@@ -61,12 +61,16 @@ class Myavana_Social_Features {
             comments_count int(11) DEFAULT 0,
             shares_count int(11) DEFAULT 0,
             is_featured tinyint(1) DEFAULT 0,
+            source_entry_id bigint(20) DEFAULT NULL,
+            ai_metadata longtext DEFAULT NULL,
+            hashtags varchar(500) DEFAULT NULL,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             KEY user_id (user_id),
             KEY post_type (post_type),
-            KEY created_at (created_at)
+            KEY created_at (created_at),
+            KEY source_entry_id (source_entry_id)
         ) $charset_collate;";
         
         // Post likes table
@@ -146,14 +150,91 @@ class Myavana_Social_Features {
             KEY user_id (user_id)
         ) $charset_collate;";
         
+        // Shared entries tracking table
+        $shared_entries_table = $wpdb->prefix . 'myavana_shared_entries';
+        $shared_entries_sql = "CREATE TABLE $shared_entries_table (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            entry_id bigint(20) NOT NULL,
+            community_post_id mediumint(9) NOT NULL,
+            user_id bigint(20) NOT NULL,
+            shared_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY entry_id (entry_id),
+            KEY user_id (user_id),
+            KEY community_post_id (community_post_id)
+        ) $charset_collate;";
+
+        // Routine library table
+        $routines_table = $wpdb->prefix . 'myavana_shared_routines';
+        $routines_sql = "CREATE TABLE $routines_table (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            user_id bigint(20) NOT NULL,
+            title varchar(255) NOT NULL,
+            description longtext NOT NULL,
+            routine_data longtext NOT NULL,
+            hair_type varchar(50),
+            goal_type varchar(100),
+            products_used text,
+            frequency varchar(50),
+            effectiveness_score decimal(3,2) DEFAULT 0.00,
+            times_tried int(11) DEFAULT 0,
+            likes_count int(11) DEFAULT 0,
+            privacy_level varchar(20) DEFAULT 'public',
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY user_id (user_id),
+            KEY hair_type (hair_type),
+            KEY goal_type (goal_type),
+            KEY effectiveness_score (effectiveness_score)
+        ) $charset_collate;";
+
+        // Routine bookmarks table
+        $routine_bookmarks_table = $wpdb->prefix . 'myavana_routine_bookmarks';
+        $routine_bookmarks_sql = "CREATE TABLE $routine_bookmarks_table (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            routine_id mediumint(9) NOT NULL,
+            user_id bigint(20) NOT NULL,
+            tried tinyint(1) DEFAULT 0,
+            effectiveness_rating int(11) DEFAULT NULL,
+            notes text,
+            bookmarked_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY routine_user (routine_id, user_id),
+            KEY user_id (user_id)
+        ) $charset_collate;";
+
+        // Notifications table
+        $notifications_table = $wpdb->prefix . 'myavana_notifications';
+        $notifications_sql = "CREATE TABLE $notifications_table (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            user_id bigint(20) NOT NULL,
+            type varchar(50) NOT NULL,
+            title varchar(255) NOT NULL,
+            message text NOT NULL,
+            action_url varchar(500),
+            related_user_id bigint(20) DEFAULT NULL,
+            related_post_id mediumint(9) DEFAULT NULL,
+            is_read tinyint(1) DEFAULT 0,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY user_id (user_id),
+            KEY is_read (is_read),
+            KEY created_at (created_at)
+        ) $charset_collate;";
+
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        
+
         dbDelta($posts_sql);
         dbDelta($likes_sql);
         dbDelta($comments_sql);
         dbDelta($followers_sql);
         dbDelta($challenges_sql);
         dbDelta($challenge_participants_sql);
+        dbDelta($shared_entries_sql);
+        dbDelta($routines_sql);
+        dbDelta($routine_bookmarks_sql);
+        dbDelta($notifications_sql);
     }
     
     /**
@@ -264,15 +345,18 @@ class Myavana_Social_Features {
         
         if ($result) {
             $post_id = $wpdb->insert_id;
-            
+
+            // Award points for creating post
+            Myavana_Community_Integration::award_community_points($this->user_id, 'create_post');
+
             // Get the created post data
             $post = $wpdb->get_row($wpdb->prepare(
-                "SELECT p.*, u.display_name FROM $table_name p 
-                 LEFT JOIN {$wpdb->users} u ON p.user_id = u.ID 
-                 WHERE p.id = %d", 
+                "SELECT p.*, u.display_name FROM $table_name p
+                 LEFT JOIN {$wpdb->users} u ON p.user_id = u.ID
+                 WHERE p.id = %d",
                 $post_id
             ));
-            
+
             wp_send_json_success(array(
                 'message' => 'Post created successfully',
                 'post' => $post
@@ -335,16 +419,42 @@ class Myavana_Social_Features {
                 "UPDATE $posts_table SET likes_count = likes_count + 1 WHERE id = %d",
                 $post_id
             ));
-            
+
             $action = 'liked';
+
+            // Get post owner
+            $post_owner = $wpdb->get_var($wpdb->prepare(
+                "SELECT user_id FROM $posts_table WHERE id = %d",
+                $post_id
+            ));
+
+            // Award points to post owner for first like
+            $like_count = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $likes_table WHERE post_id = %d",
+                $post_id
+            ));
+
+            if ($like_count == 1 && $post_owner) {
+                Myavana_Community_Integration::award_community_points($post_owner, 'first_like');
+            }
+
+            // Create notification for post owner
+            if ($post_owner && $post_owner != $this->user_id) {
+                Myavana_Community_Integration::create_notification($post_owner, 'new_like', [
+                    'user' => wp_get_current_user()->display_name,
+                    'related_user_id' => $this->user_id,
+                    'related_post_id' => $post_id,
+                    'action_url' => '#post-' . $post_id
+                ]);
+            }
         }
-        
+
         // Get updated likes count
         $likes_count = $wpdb->get_var($wpdb->prepare(
             "SELECT likes_count FROM $posts_table WHERE id = %d",
             $post_id
         ));
-        
+
         wp_send_json_success(array(
             'action' => $action,
             'likes_count' => $likes_count
@@ -386,20 +496,49 @@ class Myavana_Social_Features {
                 "UPDATE $posts_table SET comments_count = comments_count + 1 WHERE id = %d",
                 $post_id
             ));
-            
+
             $comment_id = $wpdb->insert_id;
-            
+
+            // Get post owner
+            $post_owner = $wpdb->get_var($wpdb->prepare(
+                "SELECT user_id FROM $posts_table WHERE id = %d",
+                $post_id
+            ));
+
+            // Award points for helping someone (commenting)
+            Myavana_Community_Integration::award_community_points($this->user_id, 'help_someone');
+
+            // Award points to post owner for first comment
+            $comment_count = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $comments_table WHERE post_id = %d",
+                $post_id
+            ));
+
+            if ($comment_count == 1 && $post_owner) {
+                Myavana_Community_Integration::award_community_points($post_owner, 'first_comment');
+            }
+
+            // Create notification for post owner
+            if ($post_owner && $post_owner != $this->user_id) {
+                Myavana_Community_Integration::create_notification($post_owner, 'new_comment', [
+                    'user' => wp_get_current_user()->display_name,
+                    'related_user_id' => $this->user_id,
+                    'related_post_id' => $post_id,
+                    'action_url' => '#post-' . $post_id
+                ]);
+            }
+
             // Get the created comment with user data
             $comment = $wpdb->get_row($wpdb->prepare(
-                "SELECT c.*, u.display_name FROM $comments_table c 
-                 LEFT JOIN {$wpdb->users} u ON c.user_id = u.ID 
-                 WHERE c.id = %d", 
+                "SELECT c.*, u.display_name FROM $comments_table c
+                 LEFT JOIN {$wpdb->users} u ON c.user_id = u.ID
+                 WHERE c.id = %d",
                 $comment_id
             ));
-            
+
             $comment->user_avatar = get_avatar_url($comment->user_id);
             $comment->formatted_date = human_time_diff(strtotime($comment->created_at)) . ' ago';
-            
+
             wp_send_json_success(array(
                 'message' => 'Comment added successfully',
                 'comment' => $comment

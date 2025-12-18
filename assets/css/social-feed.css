@@ -1,0 +1,799 @@
+/**
+ * MYAVANA Community Feed Styles
+ *
+ * STRICT BRAND COMPLIANCE:
+ * - Colors: Only use approved MYAVANA palette
+ * - Typography: Archivo Black (headers), Archivo (body)
+ * - Spacing: Consistent clearspace based on brand guidelines
+ * - Mobile-first: 44px minimum touch targets
+ */
+
+/* ==========================================================================
+   MYAVANA Color Variables (DO NOT MODIFY)
+   ========================================================================== */
+:root {
+    /* Foundation Colors */
+    --myavana-onyx: #222323;
+    --myavana-stone: #f5f5f7;
+    --myavana-white: #ffffff;
+    --myavana-sand: #eeece1;
+
+    /* Signature Colors */
+    --myavana-coral: #e7a690;
+    --myavana-light-coral: #fce5d7;
+    --myavana-blueberry: #4a4d68;
+
+    /* Functional Colors */
+    --myavana-border: rgba(34, 35, 35, 0.1);
+    --myavana-shadow: rgba(34, 35, 35, 0.08);
+    --myavana-hover: rgba(231, 166, 144, 0.1);
+}
+
+/* ==========================================================================
+   Community Container
+   ========================================================================== */
+.myavana-community-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    font-family: 'Archivo', sans-serif;
+    color: var(--myavana-onyx);
+    background-color: var(--myavana-stone);
+}
+
+/* ==========================================================================
+   Community Header - MYAVANA Brand Typography
+   ========================================================================== */
+.myavana-community-header {
+    margin-bottom: 48px;
+    text-align: center;
+}
+
+.myavana-community-header-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+}
+
+.myavana-community-title-section {
+    max-width: 600px;
+}
+
+.myavana-preheader {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 13.5px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--myavana-coral);
+    margin-bottom: 8px;
+    display: block;
+}
+
+.myavana-community-title {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 48px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0;
+    color: var(--myavana-onyx);
+    margin: 0 0 16px 0;
+    line-height: 1.1;
+}
+
+.myavana-subheader {
+    font-family: 'Archivo', sans-serif;
+    font-size: 27px;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    color: var(--myavana-onyx);
+    margin: 0;
+}
+
+.myavana-body {
+    font-family: 'Archivo', sans-serif;
+    font-size: 13.5px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.6;
+    color: var(--myavana-onyx);
+    opacity: 0.8;
+}
+
+/* ==========================================================================
+   MYAVANA Buttons - Brand Standards
+   ========================================================================== */
+.myavana-btn-primary {
+    background-color: var(--myavana-coral);
+    color: var(--myavana-white);
+    font-family: 'Archivo', sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 28px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px; /* Mobile touch target */
+    box-shadow: 0 2px 8px var(--myavana-shadow);
+}
+
+.myavana-btn-primary:hover {
+    background-color: #d4956f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(231, 166, 144, 0.3);
+}
+
+.myavana-btn-primary:active {
+    transform: translateY(0);
+}
+
+.myavana-btn-secondary {
+    background-color: transparent;
+    color: var(--myavana-coral);
+    border: 2px solid var(--myavana-coral);
+    font-family: 'Archivo', sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 12px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+}
+
+.myavana-btn-secondary:hover {
+    background-color: var(--myavana-hover);
+    transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   Filter Tabs - MYAVANA Styled
+   ========================================================================== */
+.myavana-feed-filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 32px;
+    padding: 8px;
+    background: var(--myavana-white);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px var(--myavana-shadow);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.myavana-filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--myavana-blueberry);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    min-height: 44px;
+}
+
+.myavana-filter-btn:hover {
+    background-color: var(--myavana-hover);
+    color: var(--myavana-coral);
+}
+
+.myavana-filter-btn.active {
+    background-color: var(--myavana-coral);
+    color: var(--myavana-white);
+}
+
+.myavana-filter-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* ==========================================================================
+   Feed Grid - Instagram-Style Layout
+   ========================================================================== */
+.myavana-feed-content {
+    position: relative;
+}
+
+.myavana-feed-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+/* ==========================================================================
+   Post Card - MYAVANA Brand Card Component
+   ========================================================================== */
+.myavana-post-card {
+    background: var(--myavana-white);
+    border: 1px solid var(--myavana-border);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px var(--myavana-shadow);
+    transition: all 0.3s ease;
+}
+
+.myavana-post-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(34, 35, 35, 0.12);
+}
+
+/* Post Header */
+.myavana-post-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid var(--myavana-border);
+}
+
+.myavana-post-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--myavana-coral);
+}
+
+.myavana-post-user-info {
+    flex: 1;
+}
+
+.myavana-post-username {
+    font-family: 'Archivo', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--myavana-onyx);
+    margin: 0 0 4px 0;
+}
+
+.myavana-post-time {
+    font-size: 12px;
+    color: var(--myavana-blueberry);
+    opacity: 0.7;
+}
+
+.myavana-post-type-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background-color: var(--myavana-light-coral);
+    color: var(--myavana-coral);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 12px;
+}
+
+/* Post Image */
+.myavana-post-image-wrapper {
+    position: relative;
+    width: 100%;
+    padding-bottom: 100%; /* 1:1 aspect ratio */
+    overflow: hidden;
+    background-color: var(--myavana-sand);
+}
+
+.myavana-post-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.myavana-post-card:hover .myavana-post-image {
+    transform: scale(1.05);
+}
+
+/* Post Content */
+.myavana-post-content {
+    padding: 16px;
+}
+
+.myavana-post-title {
+    font-family: 'Archivo', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--myavana-onyx);
+    margin: 0 0 8px 0;
+    line-height: 1.3;
+}
+
+.myavana-post-text {
+    font-family: 'Archivo', sans-serif;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--myavana-onyx);
+    opacity: 0.9;
+    margin: 0;
+}
+
+.myavana-post-text.truncated {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.myavana-read-more {
+    color: var(--myavana-coral);
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.myavana-read-more:hover {
+    color: var(--myavana-blueberry);
+}
+
+/* Post Actions */
+.myavana-post-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    border-top: 1px solid var(--myavana-border);
+}
+
+.myavana-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--myavana-blueberry);
+    font-family: 'Archivo', sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    padding: 8px 12px;
+    border-radius: 4px;
+    min-height: 44px;
+}
+
+.myavana-action-btn:hover {
+    background-color: var(--myavana-hover);
+    color: var(--myavana-coral);
+}
+
+.myavana-action-btn.liked {
+    color: var(--myavana-coral);
+}
+
+.myavana-action-btn svg {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.2s ease;
+}
+
+.myavana-action-btn.liked svg {
+    fill: var(--myavana-coral);
+    animation: heartBeat 0.3s ease;
+}
+
+@keyframes heartBeat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+.myavana-action-count {
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   Loading & Empty States
+   ========================================================================== */
+.myavana-feed-loading {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.myavana-loader-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--myavana-light-coral);
+    border-top-color: var(--myavana-coral);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.myavana-feed-empty {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.myavana-empty-icon {
+    margin-bottom: 24px;
+}
+
+.myavana-empty-icon svg {
+    width: 64px;
+    height: 64px;
+}
+
+.myavana-feed-empty .myavana-subheader {
+    margin-bottom: 12px;
+}
+
+.myavana-feed-empty .myavana-body {
+    margin-bottom: 24px;
+}
+
+.myavana-feed-load-more {
+    text-align: center;
+    padding: 24px 0;
+}
+
+/* ==========================================================================
+   Create Post Modal - MYAVANA Styled
+   ========================================================================== */
+.myavana-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.myavana-modal.active {
+    display: flex;
+}
+
+.myavana-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(34, 35, 35, 0.8);
+    backdrop-filter: blur(4px);
+    z-index: 1; /* Behind modal content */
+}
+
+.myavana-modal-content {
+    position: relative;
+    background: var(--myavana-white);
+    border-radius: 12px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(34, 35, 35, 0.2);
+    animation: modalSlideIn 0.3s ease;
+    z-index: 10; /* Above overlay */
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.myavana-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px;
+    border-bottom: 1px solid var(--myavana-border);
+}
+
+.myavana-modal-header .myavana-subheader {
+    margin: 0;
+    font-size: 22px;
+}
+
+.myavana-modal-close {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--myavana-blueberry);
+    transition: all 0.2s ease;
+    border-radius: 50%;
+}
+
+.myavana-modal-close:hover {
+    background-color: var(--myavana-hover);
+    color: var(--myavana-coral);
+}
+
+.myavana-modal-body {
+    padding: 24px;
+    max-height: calc(90vh - 180px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+/* Ensure form fields are visible and interactive */
+.myavana-modal-body input,
+.myavana-modal-body textarea,
+.myavana-modal-body select,
+.myavana-modal-body button {
+    pointer-events: auto;
+    position: relative;
+    z-index: 1;
+}
+
+/* Form Styles */
+.myavana-form-group {
+    margin-bottom: 24px;
+}
+
+.myavana-form-label {
+    display: block;
+    font-family: 'Archivo', sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--myavana-onyx);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.myavana-form-input,
+.myavana-form-textarea,
+.myavana-form-select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--myavana-border);
+    border-radius: 4px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 14px;
+    color: var(--myavana-onyx);
+    transition: all 0.2s ease;
+    background-color: var(--myavana-white);
+}
+
+.myavana-form-input:focus,
+.myavana-form-textarea:focus,
+.myavana-form-select:focus {
+    outline: none;
+    border-color: var(--myavana-coral);
+    box-shadow: 0 0 0 3px rgba(231, 166, 144, 0.1);
+}
+
+.myavana-form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Upload Area */
+.myavana-upload-area {
+    border: 2px dashed var(--myavana-border);
+    border-radius: 8px;
+    padding: 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: var(--myavana-sand);
+}
+
+.myavana-upload-area:hover {
+    border-color: var(--myavana-coral);
+    background-color: var(--myavana-light-coral);
+}
+
+.myavana-upload-prompt svg {
+    margin-bottom: 12px;
+}
+
+.myavana-upload-preview {
+    position: relative;
+    max-width: 100%;
+}
+
+.myavana-upload-preview img {
+    max-width: 100%;
+    border-radius: 8px;
+}
+
+/* Radio Buttons */
+.myavana-radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.myavana-radio-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 12px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.myavana-radio-label:hover {
+    background-color: var(--myavana-hover);
+}
+
+.myavana-radio-label input[type="radio"] {
+    display: none;
+}
+
+.myavana-radio-custom {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--myavana-coral);
+    border-radius: 50%;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.myavana-radio-label input[type="radio"]:checked + .myavana-radio-custom::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--myavana-coral);
+}
+
+/* Modal Footer */
+.myavana-modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding: 24px;
+    border-top: 1px solid var(--myavana-border);
+}
+
+/* ==========================================================================
+   Responsive Design - Mobile First
+   ========================================================================== */
+@media (max-width: 768px) {
+    .myavana-community-container {
+        padding: 24px 16px;
+    }
+
+    .myavana-community-title {
+        font-size: 32px;
+    }
+
+    .myavana-feed-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .myavana-feed-filters {
+        flex-wrap: wrap;
+    }
+
+    .myavana-modal-content {
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .myavana-modal-footer {
+        flex-direction: column;
+    }
+
+    .myavana-modal-footer button {
+        width: 100%;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .myavana-feed-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1025px) {
+    .myavana-feed-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* ==========================================================================
+   Accessibility & Focus States
+   ========================================================================== */
+button:focus-visible,
+a:focus-visible {
+    outline: 3px solid var(--myavana-coral);
+    outline-offset: 2px;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Entry Selector Button Styles */
+.myavana-community-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.myavana-btn-secondary {
+    background: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.myavana-btn-secondary:hover {
+    background: #e5e7eb;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.myavana-btn-secondary svg {
+    width: 16px;
+    height: 16px;
+}
+
+@media (max-width: 768px) {
+    .myavana-community-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .myavana-community-actions .myavana-btn-primary,
+    .myavana-community-actions .myavana-btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+}

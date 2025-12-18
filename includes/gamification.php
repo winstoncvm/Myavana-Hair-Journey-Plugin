@@ -273,6 +273,107 @@ class Myavana_Gamification {
                 'requirement_value' => 50,
                 'points_reward' => 1000,
                 'rarity' => 'legendary'
+            ),
+            // Community Social Badges
+            array(
+                'badge_key' => 'community_starter',
+                'name' => 'Community Starter',
+                'description' => 'Share your first post to the community',
+                'category' => 'community',
+                'requirement_type' => 'milestone',
+                'requirement_value' => 1,
+                'points_reward' => 50,
+                'rarity' => 'common'
+            ),
+            array(
+                'badge_key' => 'trendsetter',
+                'name' => 'Trendsetter',
+                'description' => 'Get 100 likes on a single post',
+                'category' => 'community',
+                'requirement_type' => 'likes',
+                'requirement_value' => 100,
+                'points_reward' => 250,
+                'rarity' => 'rare'
+            ),
+            array(
+                'badge_key' => 'community_champion',
+                'name' => 'Community Champion',
+                'description' => 'Share 50 posts to the community',
+                'category' => 'community',
+                'requirement_type' => 'count',
+                'requirement_value' => 50,
+                'points_reward' => 500,
+                'rarity' => 'epic'
+            ),
+            array(
+                'badge_key' => 'mentor',
+                'name' => 'Mentor',
+                'description' => '10 people try your shared routine',
+                'category' => 'community',
+                'requirement_type' => 'routine_tries',
+                'requirement_value' => 10,
+                'points_reward' => 300,
+                'rarity' => 'rare'
+            ),
+            array(
+                'badge_key' => 'challenge_winner',
+                'name' => 'Challenge Winner',
+                'description' => 'Win a community challenge',
+                'category' => 'community',
+                'requirement_type' => 'challenge_win',
+                'requirement_value' => 1,
+                'points_reward' => 750,
+                'rarity' => 'epic'
+            ),
+            array(
+                'badge_key' => 'super_connector',
+                'name' => 'Super Connector',
+                'description' => 'Reach 50 followers',
+                'category' => 'community',
+                'requirement_type' => 'followers',
+                'requirement_value' => 50,
+                'points_reward' => 200,
+                'rarity' => 'rare'
+            ),
+            array(
+                'badge_key' => 'helpful_hero',
+                'name' => 'Helpful Hero',
+                'description' => 'Comment on 50 community posts',
+                'category' => 'community',
+                'requirement_type' => 'comments_made',
+                'requirement_value' => 50,
+                'points_reward' => 150,
+                'rarity' => 'common'
+            ),
+            array(
+                'badge_key' => 'transformation_star',
+                'name' => 'Transformation Star',
+                'description' => 'Share a before/after transformation post',
+                'category' => 'community',
+                'requirement_type' => 'transformation_post',
+                'requirement_value' => 1,
+                'points_reward' => 100,
+                'rarity' => 'common'
+            ),
+            array(
+                'badge_key' => 'routine_master',
+                'name' => 'Routine Master',
+                'description' => 'Share 5 routines to the community library',
+                'category' => 'community',
+                'requirement_type' => 'routines_shared',
+                'requirement_value' => 5,
+                'points_reward' => 250,
+                'rarity' => 'rare'
+            ),
+            array(
+                'badge_key' => 'challenge_enthusiast',
+                'name' => 'Challenge Enthusiast',
+                'description' => 'Complete 5 community challenges',
+                'category' => 'community',
+                'requirement_type' => 'challenges_completed',
+                'requirement_value' => 5,
+                'points_reward' => 400,
+                'rarity' => 'epic'
             )
         );
 

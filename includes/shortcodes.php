@@ -12,6 +12,7 @@ class Myavana_Shortcodes {
         require_once MYAVANA_DIR . 'templates/analytics-shortcode.php';
         require_once MYAVANA_DIR . 'templates/test-shortcode.php';
         require_once MYAVANA_DIR . 'templates/react-shortcode.php';
+        
 
         require_once MYAVANA_DIR . 'templates/widgets/hair-profile.php';
 
@@ -41,6 +42,12 @@ class Myavana_Shortcodes {
         add_shortcode('myavana_recommended_products_widget', [$this, 'recommended_products_widget_shortcode']);
         add_shortcode('myavana_hair_diary_timeline', [$this, 'hair_timeline_shortcode']);
         add_shortcode('myavana_hair_diary', [$this, 'hair_diary_shortcode']);
+        add_shortcode('myavana_community_feed', [$this, 'community_feed_shortcode']);
+        add_shortcode('myavana_user_profile', [$this, 'user_profile_shortcode']);
+        add_shortcode('myavana_challenges', [$this, 'challenges_shortcode']);
+        add_shortcode('myavana_trending_posts', [$this, 'trending_posts_shortcode']);
+        add_shortcode('myavana_routine_library', [$this, 'routine_library_shortcode']);
+        add_shortcode('myavana_community_stats', [$this, 'community_stats_shortcode']);
     }
 
     public function login_shortcode() {
@@ -113,6 +120,29 @@ class Myavana_Shortcodes {
 
     public function hair_diary_shortcode() {
         return hair_journey_diary_shortcode();
+    }
+    public function community_feed_shortcode($atts = []) {
+        return myavana_community_feed_shortcode($atts);
+    }
+
+    public function user_profile_shortcode($atts = []) {
+        return myavana_user_profile_shortcode($atts);
+    }
+
+    public function challenges_shortcode($atts = []) {
+        return myavana_challenges_shortcode($atts);
+    }
+
+    public function trending_posts_shortcode($atts = []) {
+        return myavana_trending_posts_shortcode($atts);
+    }
+
+    public function routine_library_shortcode($atts = []) {
+        return myavana_routine_library_shortcode($atts);
+    }
+
+    public function community_stats_shortcode($atts = []) {
+        return myavana_community_stats_shortcode($atts);
     }
 }
 ?>

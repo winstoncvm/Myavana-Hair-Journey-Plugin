@@ -29,6 +29,7 @@ require_once MYAVANA_DIR . 'actions/gamification-handlers.php';
 require_once MYAVANA_DIR . 'actions/smart-entry-handlers.php';
 require_once MYAVANA_DIR . 'actions/insight-handlers.php';
 require_once MYAVANA_DIR . 'actions/goal-routine-handlers.php';
+require_once MYAVANA_DIR . 'actions/community-entry-sharing-handlers.php';
 require_once MYAVANA_DIR . 'includes/myavana_database_setup.php';
 require_once MYAVANA_DIR . 'includes/myavana_ajax_handlers.php';
 
@@ -41,6 +42,7 @@ require_once MYAVANA_DIR . 'includes/ai-recommendations.php';
 require_once MYAVANA_DIR . 'includes/social-features.php';
 require_once MYAVANA_DIR . 'includes/photo-comparison.php';
 require_once MYAVANA_DIR . 'includes/gamification.php';
+require_once MYAVANA_DIR . 'includes/community-integration.php';
 
 // Include shortcode files
 require_once MYAVANA_DIR . 'templates/login-shortcode.php';
@@ -58,6 +60,10 @@ require_once MYAVANA_DIR . 'templates/widgets/hair-profile.php';
 require_once MYAVANA_DIR . 'templates/hair-diary-timeline-shortcode.php';
 require_once MYAVANA_DIR . 'templates/hair-diary.php';
 require_once MYAVANA_DIR . 'templates/hair-offcanvas.php';
+
+//community
+require_once MYAVANA_DIR . 'templates/pages/community/community-feed.php';
+require_once MYAVANA_DIR . 'templates/pages/community/community-shortcodes.php';
 // require_once MYAVANA_DIR . 'templates/enhanced-timeline-shortcode.php';
 // require_once MYAVANA_DIR . 'templates/improved-timeline-shortcode.php';
 require_once MYAVANA_DIR . 'templates/advanced-dashboard-shortcode.php';
@@ -242,6 +248,16 @@ class Myavana_Hair_Journey {
 
         wp_enqueue_style('myavana-luxury-home', MYAVANA_URL . 'assets/css/luxury-home.css', [], '1.0.0');
         wp_enqueue_script('myavana-luxury-home', MYAVANA_URL . 'assets/js/luxury-home.js', ['jquery'], '1.0.0', true);
+
+        // COMMUNITY SOCIAL FEED
+        wp_enqueue_style('myavana-social-feed-css', MYAVANA_URL . 'assets/css/social-feed.css', [], '1.0.0');
+        wp_enqueue_script('myavana-social-feed-js', MYAVANA_URL . 'assets/js/social-feed.js', ['jquery'], '1.0.0', true);
+        wp_enqueue_script('myavana-share-to-community-js', MYAVANA_URL . 'assets/js/share-to-community.js', ['jquery'], '1.0.0', true);
+
+        // ENTRY SELECTOR FOR COMMUNITY SHARING
+        wp_enqueue_style('myavana-entry-selector-css', MYAVANA_URL . 'assets/css/entry-selector.css', [], '1.0.0');
+        wp_enqueue_script('myavana-entry-selector-js', MYAVANA_URL . 'assets/js/entry-selector.js', ['jquery'], '1.0.0', true);
+
 
         // Enqueue unified core framework
         wp_enqueue_script('myavana-unified-core', MYAVANA_URL . 'assets/js/myavana-unified-core.js', ['jquery'], '1.0.0', true);
