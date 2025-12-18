@@ -1,0 +1,3012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Myavana Hair Journey Timeline</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/css/splide.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* MYAVANA Primary Color Palette - Luxury Edition */
+        :root {
+            /* Primary Colors - Luxury Focus */
+            --myavana-onyx: #222323;
+            --myavana-white: #ffffff;
+            --myavana-light-coral: #fce5d7;
+            
+            /* Secondary Colors - Sparingly Used */
+            --myavana-stone: #f5f5f7;
+            --myavana-sand: #eeece1;
+            --myavana-coral: #e7a690;
+            --myavana-blueberry: #4a4d68;
+
+            /* Utility */
+            --text-primary: #222323;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px rgba(34, 35, 35, 0.05);
+            --shadow-md: 0 4px 6px rgba(34, 35, 35, 0.07);
+            --shadow-lg: 0 10px 15px rgba(34, 35, 35, 0.1);
+            --shadow-xl: 0 20px 25px rgba(34, 35, 35, 0.15);
+        }
+
+        /* Dark Mode Colors */
+        [data-theme="dark"] {
+            --myavana-onyx: #ffffff;
+            --myavana-white: #1a1a1a;
+            --myavana-light-coral: #2d2420;
+            --myavana-stone: #262626;
+            --myavana-sand: #2a2a2a;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --border-color: #374151;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--myavana-stone);
+            min-height: 100vh;
+            transition: background 0.3s ease;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: var(--myavana-white);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.3s ease;
+        }
+
+        /* Dashboard Header */
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--myavana-light-coral) 0%, var(--myavana-stone) 100%);
+            padding: 2rem 2.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: background 0.3s ease;
+        }
+
+        .dashboard-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(231,166,144,0.1)"/><circle cx="80" cy="30" r="3" fill="rgba(231,166,144,0.1)"/><circle cx="40" cy="70" r="1" fill="rgba(231,166,144,0.1)"/><circle cx="90" cy="80" r="2" fill="rgba(231,166,144,0.1)"/></svg>');
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .welcome-message {
+            flex: 1;
+        }
+
+        .welcome-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0 0 0.5rem 0;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .dashboard-controls {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .view-controls {
+            display: flex;
+            background: var(--myavana-white);
+            border-radius: 1rem;
+            padding: 0.25rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .view-btn {
+            padding: 0.75rem 1rem;
+            background: none;
+            border: none;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .view-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .view-btn:hover {
+            background: var(--myavana-light-coral);
+            color: var(--myavana-onyx);
+        }
+
+        .view-btn.active {
+            background: var(--myavana-coral);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .action-btn-primary {
+            background: var(--myavana-coral);
+            color: white;
+        }
+
+        .action-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .action-btn-secondary {
+            background: var(--myavana-white);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .action-btn-secondary:hover {
+            background: var(--myavana-light-coral);
+        }
+
+        .theme-toggle {
+            background: var(--myavana-white);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            background: var(--myavana-light-coral);
+            transform: rotate(15deg);
+        }
+
+        .theme-toggle svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .streak-section {
+            display: flex;
+            align-items: center;
+        }
+
+        .streak-card {
+            background: var(--myavana-white);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .streak-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--myavana-coral), #fbbf24);
+        }
+
+        .streak-flame {
+            font-size: 2rem;
+            animation: flicker 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes flicker {
+            0% { transform: scale(1) rotate(-1deg); }
+            50% { transform: scale(1.05) rotate(1deg); }
+            100% { transform: scale(1) rotate(-1deg); }
+        }
+
+        .streak-content {
+            text-align: center;
+        }
+
+        .streak-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--myavana-coral);
+            line-height: 1;
+        }
+
+        .streak-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        /* Main Content Layout */
+        .main-content {
+            display: flex;
+            flex: 1;
+            position: relative;
+        }
+
+        /* Collapsible Sidebar */
+        .sidebar {
+            width: 320px;
+            background: var(--myavana-white);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 1.5rem;
+            overflow-y: auto;
+            transition: transform 0.3s ease, width 0.3s ease;
+            position: relative;
+        }
+
+        .sidebar.collapsed {
+            width: 6px;
+            padding: 0;
+            transform: translateX(-100%);
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            right: -12px;
+            top: 2rem;
+            width: 24px;
+            height: 24px;
+            background: var(--myavana-coral);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: var(--shadow-md);
+            z-index: 10;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .sidebar.collapsed .sidebar-toggle {
+            right: -136px;
+        }
+
+        .ai-insights {
+            background: linear-gradient(135deg, var(--myavana-light-coral) 0%, var(--myavana-stone) 100%);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-insights::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(231,166,144,0.1)"/><circle cx="80" cy="30" r="3" fill="rgba(231,166,144,0.1)"/></svg>');
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .ai-insights h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+            color: var(--text-primary);
+            position: relative;
+            z-index: 1;
+        }
+
+        .ai-insights p {
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            position: relative;
+            z-index: 1;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--myavana-white);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card .label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card .value {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: var(--myavana-coral);
+        }
+
+        .goals-section h3 {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .goal-item {
+            background: var(--myavana-white);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .goal-item:hover {
+            border-color: var(--myavana-coral);
+            transform: translateX(4px);
+        }
+
+        .goal-item.active {
+            border-color: var(--myavana-coral);
+            background: var(--myavana-light-coral);
+        }
+
+        .goal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .goal-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        .goal-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            background: var(--myavana-coral);
+            color: white;
+        }
+
+        .goal-date {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--myavana-coral);
+            transition: width 0.3s;
+        }
+
+        /* Timeline Area */
+        .timeline-area {
+            flex: 1;
+            padding: 2rem 2.5rem;
+            overflow-y: auto;
+            background: var(--myavana-stone);
+        }
+
+        .timeline-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .view-tabs {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .tab {
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            border: none;
+            background: var(--myavana-white);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .tab.active {
+            background: var(--myavana-coral);
+            color: white;
+            border-color: var(--myavana-coral);
+        }
+
+        .timeline-filters {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 0.625rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            background: var(--myavana-white);
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        /* View Content */
+        .view-content {
+            display: none;
+        }
+
+        .view-content.active {
+            display: block;
+        }
+
+        /* Timeline View */
+        .timeline-wrapper {
+            position: relative;
+            padding: 2.5rem 0;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--myavana-coral);
+            transform: translateX(-50%);
+        }
+
+        .timeline-month {
+            margin-bottom: 4rem;
+        }
+
+        .month-label {
+            text-align: center;
+            font-weight: bold;
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.25rem;
+        }
+
+        .month-label::before,
+        .month-label::after {
+            content: '';
+            height: 2px;
+            width: 100px;
+            background: linear-gradient(90deg, transparent, var(--border-color));
+        }
+
+        .month-label::after {
+            background: linear-gradient(90deg, var(--border-color), transparent);
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 2.5rem;
+            margin-bottom: 2.5rem;
+            position: relative;
+        }
+
+        .timeline-item.left {
+            flex-direction: row;
+        }
+
+        .timeline-item.right {
+            flex-direction: row-reverse;
+        }
+
+        .timeline-content {
+            flex: 1;
+            max-width: 45%;
+        }
+
+        .timeline-card {
+            background: var(--myavana-white);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid var(--border-color);
+        }
+
+        .timeline-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--myavana-coral);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-type {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .card-date {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .card-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.75rem;
+            font-size: 0.75rem;
+            background: var(--myavana-light-coral);
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .timeline-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--myavana-white);
+            border: 3px solid var(--myavana-coral);
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .timeline-dot:hover {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.2); }
+        }
+
+        /* Calendar View */
+        .calendar-view {
+            background: var(--myavana-white);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .calendar-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .calendar-title {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .calendar-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.25rem;
+        }
+
+        .calendar-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .view-toggles {
+            display: flex;
+            gap: 0.25rem;
+            background: var(--myavana-stone);
+            padding: 0.25rem;
+            border-radius: 0.5rem;
+        }
+
+        .view-toggle {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: transparent;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: var(--text-primary);
+        }
+
+        .view-toggle.active {
+            background: var(--myavana-white);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .date-navigation {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .nav-arrow {
+            width: 32px;
+            height: 32px;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            background: var(--myavana-white);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: var(--text-primary);
+        }
+
+        .nav-arrow:hover {
+            background: var(--myavana-light-coral);
+            border-color: var(--myavana-coral);
+        }
+
+        .date-range {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .calendar-options {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        .switch {
+            width: 40px;
+            height: 20px;
+            background: var(--border-color);
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .switch.active {
+            background: var(--myavana-coral);
+        }
+
+        .switch::after {
+            content: '';
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s;
+        }
+
+        .switch.active::after {
+            left: 22px;
+        }
+
+        /* Calendar Grid Container */
+        .calendar-grid-container {
+            background: var(--myavana-stone);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            position: relative;
+            margin-bottom: 1.25rem;
+        }
+
+        .calendar-grid {
+            display: flex;
+            position: relative;
+        }
+
+        .time-column {
+            width: 60px;
+            flex-shrink: 0;
+            border-right: 2px solid var(--border-color);
+            padding-right: 0.75rem;
+        }
+
+        .time-slot {
+            height: 60px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .time-slot:first-child {
+            border-top: none;
+        }
+
+        .calendar-main {
+            flex: 1;
+            position: relative;
+            padding-left: 1.25rem;
+        }
+
+        .month-header-row {
+            margin-bottom: 0.75rem;
+        }
+
+        .month-label-cal {
+            font-weight: bold;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .days-header {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .day-col {
+            flex: 1;
+            text-align: center;
+            font-size: 0.75rem;
+        }
+
+        .day-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+            display: block;
+        }
+
+        .day-number {
+            color: var(--text-primary);
+            font-weight: bold;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        .tasks-grid {
+            position: relative;
+            min-height: 780px;
+            background-image: 
+                repeating-linear-gradient(
+                    to right,
+                    transparent,
+                    transparent calc(100% / 14 - 1px),
+                    rgba(0, 0, 0, 0.03) calc(100% / 14 - 1px),
+                    rgba(0, 0, 0, 0.03) calc(100% / 14)
+                ),
+                repeating-linear-gradient(
+                    to bottom,
+                    transparent,
+                    transparent 59px,
+                    rgba(0, 0, 0, 0.05) 59px,
+                    rgba(0, 0, 0, 0.05) 60px
+                );
+        }
+
+        /* Week View */
+        .week-view .tasks-grid {
+            min-height: 600px;
+        }
+
+        .week-view .day-col {
+            flex: 1;
+        }
+
+        /* Day View */
+        .day-view .calendar-main {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .day-view .tasks-grid {
+            min-height: 800px;
+        }
+
+        /* Goal Bar Spans */
+        .goal-bar-span {
+            position: absolute;
+            height: 60px;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-sm);
+            background: var(--myavana-white);
+            border: 2px solid var(--myavana-coral);
+        }
+
+        .goal-bar-span:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .goal-bar-span.highlighted {
+            background: linear-gradient(135deg, var(--myavana-coral) 0%, var(--myavana-blueberry) 100%);
+            border: 2px solid transparent;
+            color: white;
+        }
+
+        .goal-span-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .goal-span-info {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+
+        .task-icon {
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .goal-span-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        .goal-bar-span.highlighted .goal-span-title,
+        .goal-bar-span.highlighted .goal-span-dates {
+            color: white;
+        }
+
+        .goal-span-dates {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.125rem;
+        }
+
+        .goal-progress-mini {
+            height: 4px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 0.375rem;
+        }
+
+        .goal-progress-fill {
+            height: 100%;
+            background: var(--myavana-coral);
+            transition: width 0.3s;
+        }
+
+        .goal-bar-span.highlighted .goal-progress-fill {
+            background: white;
+        }
+
+        /* Routine Bars */
+        .routine-bar {
+            position: absolute;
+            height: 45px;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-sm);
+            background: var(--myavana-white);
+            border: 2px solid var(--myavana-blueberry);
+            border-left: 4px solid var(--myavana-blueberry);
+            z-index: 4;
+        }
+
+        .routine-bar:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .routine-bar-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .routine-bar-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .routine-bar-title {
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .routine-bar-time {
+            font-size: 0.625rem;
+            color: var(--text-secondary);
+        }
+
+        .routine-frequency {
+            font-size: 0.625rem;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            background: var(--myavana-light-coral);
+            color: var(--myavana-blueberry);
+            font-weight: 600;
+        }
+
+        /* Journey Entries */
+        .journey-entry {
+            position: absolute;
+            width: 160px;
+            background: var(--myavana-white);
+            border-radius: 0.75rem;
+            box-shadow: var(--shadow-md);
+            cursor: pointer;
+            transition: all 0.3s;
+            overflow: hidden;
+            z-index: 6;
+            border: 2px solid var(--myavana-coral);
+        }
+
+        .journey-entry:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: var(--shadow-xl);
+            z-index: 10;
+        }
+
+        .entry-image {
+            width: 100%;
+            height: 100px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .entry-content {
+            padding: 0.75rem;
+        }
+
+        .entry-time {
+            font-size: 0.625rem;
+            color: var(--myavana-coral);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.375rem;
+        }
+
+        .entry-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .entry-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .entry-tags {
+            display: flex;
+            gap: 0.375rem;
+            flex-wrap: wrap;
+        }
+
+        .entry-tag {
+            font-size: 0.625rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            background: var(--myavana-light-coral);
+            color: var(--myavana-blueberry);
+            font-weight: 500;
+        }
+
+        /* Entry Carousel */
+        .entry-carousel {
+            background: var(--myavana-white);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+        }
+
+        .carousel-nav {
+            width: 36px;
+            height: 36px;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            background: var(--myavana-white);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .carousel-nav:hover {
+            background: var(--myavana-stone);
+            border-color: var(--myavana-coral);
+            color: var(--myavana-coral);
+        }
+
+        .carousel-track {
+            display: flex;
+            gap: 0.75rem;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding: 0.25rem;
+        }
+
+        .carousel-track::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .carousel-track::-webkit-scrollbar-thumb {
+            background: var(--myavana-coral);
+            border-radius: 3px;
+        }
+
+        .carousel-item {
+            flex-shrink: 0;
+            width: 140px;
+            border-radius: 0.625rem;
+            border: 2px solid var(--border-color);
+            background: var(--myavana-white);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .carousel-item:hover {
+            border-color: var(--myavana-coral);
+            transform: translateY(-2px);
+        }
+
+        .carousel-item.active {
+            border-color: var(--myavana-coral);
+            background: var(--myavana-light-coral);
+        }
+
+        .carousel-date {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--myavana-coral);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .carousel-preview {
+            padding: 0.75rem;
+        }
+
+        .carousel-image {
+            width: 100%;
+            height: 60px;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .carousel-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Slider View */
+        .slider-view {
+            min-height: 600px;
+        }
+
+        .diary-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .myavana-h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.625rem;
+        }
+
+        .myavana-body {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .timeline-slider {
+            position: relative;
+        }
+
+        .splide__slide {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .main-entry {
+            background: var(--myavana-white);
+            border-radius: 1.25rem;
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            max-width: 600px;
+            width: 100%;
+            border: 3px solid var(--myavana-coral);
+        }
+
+        .entry-image-container {
+            position: relative;
+            height: 400px;
+            overflow: hidden;
+        }
+
+        .entry-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .no-image-placeholder {
+            width: 100%;
+            height: 100%;
+            background: var(--myavana-stone);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 3rem;
+        }
+
+        .entry-details {
+            padding: 1.875rem;
+        }
+
+        .entry-date {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .entry-time {
+            color: var(--myavana-coral);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .entry-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .entry-text {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 1.25rem;
+        }
+
+        .entry-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .entry-mood {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--myavana-light-coral);
+            border-radius: 1.25rem;
+            font-size: 0.875rem;
+            color: var(--myavana-blueberry);
+        }
+
+        .timeline-nav {
+            margin-top: 2.5rem;
+        }
+
+        .timeline-track {
+            height: 4px;
+            background: var(--myavana-stone);
+            border-radius: 2px;
+            margin-bottom: 1.25rem;
+            position: relative;
+        }
+
+        .timeline-progress {
+            height: 100%;
+            background: var(--myavana-coral);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        .timeline-dates {
+            display: flex;
+            justify-content: space-between;
+            overflow-x: auto;
+            gap: 1.25rem;
+            padding: 0.625rem 0;
+        }
+
+        .date-marker {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 80px;
+        }
+
+        .date-marker:hover {
+            transform: scale(1.1);
+        }
+
+        .mini-card {
+            width: 60px;
+            height: 60px;
+            border-radius: 0.75rem;
+            background: white;
+            border: 2px solid var(--myavana-coral);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .mini-card-image {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            display: block;
+        }
+
+        .mini-card-title {
+            font-size: 0.625rem;
+            text-align: center;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .marker-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--myavana-coral);
+        }
+
+        .marker-date {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* List View */
+        .list-view {
+            background: var(--myavana-white);
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .list-item {
+            background: var(--myavana-white);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            border: 2px solid var(--border-color);
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            gap: 1.25rem;
+            align-items: center;
+        }
+
+        .list-item:hover {
+            border-color: var(--myavana-coral);
+            box-shadow: var(--shadow-md);
+        }
+
+        .list-item-type {
+            width: 60px;
+            height: 60px;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            background: var(--myavana-light-coral);
+        }
+
+        .list-item-content {
+            flex: 1;
+        }
+
+        .list-item-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.375rem;
+        }
+
+        .list-item-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .list-item-meta {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .list-meta-tag {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: 0.5rem;
+            background: var(--myavana-stone);
+            color: var(--text-primary);
+        }
+
+        .list-item-action {
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            border: none;
+            background: var(--myavana-coral);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .list-item-action:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Dependency Lines */
+        .dependency-line {
+            position: absolute;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .dependency-path {
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+        }
+
+        .dependency-node {
+            fill: white;
+            stroke-width: 2;
+        }
+
+        .dependency-green .dependency-path {
+            stroke: #4ade80;
+        }
+
+        .dependency-green .dependency-node {
+            stroke: #4ade80;
+        }
+
+        .dependency-blue .dependency-path {
+            stroke: var(--myavana-blueberry);
+        }
+
+        .dependency-blue .dependency-node {
+            stroke: var(--myavana-blueberry);
+        }
+
+        .dependency-red .dependency-path {
+            stroke: var(--myavana-coral);
+        }
+
+        .dependency-red .dependency-node {
+            stroke: var(--myavana-coral);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--myavana-white);
+            border-radius: 1.25rem;
+            padding: 2.5rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-close {
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .sidebar.collapsed {
+                width: 100%;
+                transform: translateY(-100%);
+                height: 0;
+            }
+
+            .timeline-item {
+                flex-direction: column !important;
+            }
+
+            .timeline-content {
+                max-width: 100%;
+            }
+
+            .timeline-line {
+                left: 30px;
+            }
+
+            .timeline-dot {
+                left: 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-header {
+                padding: 1.5rem;
+            }
+
+            .welcome-title {
+                font-size: 1.75rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .dashboard-controls {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .view-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .view-btn {
+                flex: 1;
+            }
+
+            .action-buttons {
+                width: 100%;
+            }
+
+            .action-btn {
+                flex: 1;
+            }
+
+            .timeline-area {
+                padding: 1.25rem;
+            }
+
+            .timeline-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .view-tabs {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .calendar-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .time-column {
+                width: 40px;
+            }
+
+            .journey-entry {
+                width: 120px;
+            }
+
+            .entry-image {
+                height: 80px;
+            }
+
+            .goal-bar-span {
+                height: 50px;
+                padding: 0.5rem 0.75rem;
+            }
+
+            .routine-bar {
+                height: 40px;
+                padding: 0.375rem 0.625rem;
+            }
+
+            .list-item {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tab {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.75rem;
+            }
+
+            .calendar-grid {
+                overflow-x: auto;
+            }
+
+            .tasks-grid {
+                min-width: 800px;
+            }
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container" data-theme="light">
+        <!-- Dashboard Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="welcome-section">
+                    <div class="welcome-message">
+                        <h1 class="welcome-title">
+                            Good Morning, Sarah! ✨
+                        </h1>
+                        <p class="welcome-subtitle">You're making amazing progress on your hair journey</p>
+                    </div>
+                    
+                    <div class="dashboard-controls">
+                        <div class="view-controls">
+                            <button type="button" class="view-btn active" data-view="timeline" title="Hair Journey Timeline">
+                                <svg viewBox="0 0 24 24"><path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12Z"/></svg>
+                                <span class="view-label">Timeline</span>
+                            </button>
+                            <button type="button" class="view-btn" data-view="calendar" title="Calendar View">
+                                <svg viewBox="0 0 24 24"><path d="M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z"/></svg>
+                                <span class="view-label">Calendar</span>
+                            </button>
+                            <button type="button" class="view-btn" data-view="slider" title="Slider View">
+                                <svg viewBox="0 0 24 24"><path d="M22,16V4A2,2 0 0,0 20,2H8A2,2 0 0,0 6,4V16A2,2 0 0,0 8,18H20A2,2 0 0,0 22,16M11,12L13.03,14.71L16,11L20,16H8M2,6V20A2,2 0 0,0 4,22H18V20H4V6"/></svg>
+                                <span class="view-label">Slider</span>
+                            </button>
+                            <button type="button" class="view-btn" data-view="list" title="List View">
+                                <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+                                <span class="view-label">List</span>
+                            </button>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button type="button" class="action-btn action-btn-secondary" onclick="addGoal()">
+                                + Goal
+                            </button>
+                            <button type="button" class="action-btn action-btn-secondary" onclick="addRoutine()">
+                                + Routine
+                            </button>
+                            <button type="button" class="action-btn action-btn-primary" onclick="addEntry()">
+                                + Entry
+                            </button>
+                        </div>
+
+                        <button type="button" class="theme-toggle" id="themeToggle" title="Toggle dark mode">
+                            <svg class="sun-icon" viewBox="0 0 24 24">
+                                <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
+                            </svg>
+                            <svg class="moon-icon" viewBox="0 0 24 24" style="display: none;">
+                                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="streak-section">
+                    <div class="streak-card">
+                        <div class="streak-flame">🔥</div>
+                        <div class="streak-content">
+                            <div class="streak-number">7</div>
+                            <div class="streak-label">Day Streak</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Collapsible Sidebar -->
+            <div class="sidebar" id="sidebar">
+                <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+                    ‹
+                </button>
+
+                <div class="ai-insights">
+                    <h3>✨ AI Insights</h3>
+                    <p>Your hair health has improved 23% this month! Keep up with your protein treatments for best results.</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="label">Hair Health</div>
+                        <div class="value">87%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Goals</div>
+                        <div class="value">4/6</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Treatments</div>
+                        <div class="value">12</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Growth</div>
+                        <div class="value">2.5"</div>
+                    </div>
+                </div>
+
+                <div class="goals-section">
+                    <h3>Active Hair Goals</h3>
+                    
+                    <div class="goal-item active">
+                        <div class="goal-header">
+                            <div class="goal-title">Grow 6 inches</div>
+                            <div class="goal-badge">75%</div>
+                        </div>
+                        <div class="goal-date">Jan 15 - Oct 15, 2025</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 75%"></div>
+                        </div>
+                    </div>
+
+                    <div class="goal-item">
+                        <div class="goal-header">
+                            <div class="goal-title">Reduce Breakage</div>
+                            <div class="goal-badge">60%</div>
+                        </div>
+                        <div class="goal-date">Mar 1 - Dec 1, 2025</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 60%"></div>
+                        </div>
+                    </div>
+
+                    <div class="goal-item">
+                        <div class="goal-header">
+                            <div class="goal-title">Moisture Retention</div>
+                            <div class="goal-badge">85%</div>
+                        </div>
+                        <div class="goal-date">Feb 1 - Nov 1, 2025</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 85%"></div>
+                        </div>
+                    </div>
+
+                    <div class="goal-item">
+                        <div class="goal-header">
+                            <div class="goal-title">Try New Styles</div>
+                            <div class="goal-badge">40%</div>
+                        </div>
+                        <div class="goal-date">Apr 1 - Dec 31, 2025</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 40%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-area">
+                <div class="timeline-controls">
+                    <div class="view-tabs">
+                        <button class="tab active" onclick="switchView('timeline')">Timeline</button>
+                        <button class="tab" onclick="switchView('calendar')">Calendar</button>
+                        <button class="tab" onclick="switchView('slider')">Slider</button>
+                        <button class="tab" onclick="switchView('list')">List</button>
+                    </div>
+                    <div class="timeline-filters">
+                        <select class="filter-btn">
+                            <option>All Events</option>
+                            <option>Goals</option>
+                            <option>Entries</option>
+                            <option>Routines</option>
+                        </select>
+                        <button class="filter-btn">🔍 Search</button>
+                    </div>
+                </div>
+
+                <!-- Timeline View -->
+                <div id="timelineView" class="view-content active">
+                    <div class="timeline-wrapper">
+                        <div class="timeline-line"></div>
+
+                        <div class="timeline-month">
+                            <div class="month-label">October 2025</div>
+
+                            <div class="timeline-item left">
+                                <div class="timeline-content">
+                                    <div class="timeline-card">
+                                        <div class="card-header">
+                                            <div class="card-type">🎉 Milestone</div>
+                                            <div class="card-date">Oct 14, 2025</div>
+                                        </div>
+                                        <div class="card-title">4.5 Inches of Growth!</div>
+                                        <div class="card-description">
+                                            Congratulations! You've achieved significant growth. Your consistent protein treatments are paying off!
+                                        </div>
+                                        <div class="card-tags">
+                                            <span class="tag">Growth</span>
+                                            <span class="tag">Health Improved</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="timeline-dot"></div>
+                            </div>
+
+                            <div class="timeline-item right">
+                                <div class="timeline-content">
+                                    <div class="timeline-card">
+                                        <div class="card-header">
+                                            <div class="card-type">🔄 Daily Routine</div>
+                                            <div class="card-date">Every Morning</div>
+                                        </div>
+                                        <div class="card-title">Morning Moisturizing</div>
+                                        <div class="card-description">
+                                            Apply leave-in conditioner and seal with oil. Helps maintain moisture throughout the day.
+                                        </div>
+                                        <div class="card-tags">
+                                            <span class="tag">Daily</span>
+                                            <span class="tag">Morning</span>
+                                            <span class="tag">Moisturize</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="timeline-dot"></div>
+                            </div>
+
+                            <div class="timeline-item left">
+                                <div class="timeline-content">
+                                    <div class="timeline-card">
+                                        <div class="card-header">
+                                            <div class="card-type">💆 Treatment</div>
+                                            <div class="card-date">Oct 8, 2025</div>
+                                        </div>
+                                        <div class="card-title">Deep Conditioning Treatment</div>
+                                        <div class="card-description">
+                                            Applied Shea Moisture Manuka Honey mask for 30 minutes with heat. Hair feels softer and more manageable.
+                                        </div>
+                                        <div class="card-tags">
+                                            <span class="tag">Moisture</span>
+                                            <span class="tag">Heat Treatment</span>
+                                            <span class="tag">30 min</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="timeline-dot"></div>
+                            </div>
+                        </div>
+
+                        <div class="timeline-month">
+                            <div class="month-label">September 2025</div>
+
+                            <div class="timeline-item left">
+                                <div class="timeline-content">
+                                    <div class="timeline-card">
+                                        <div class="card-header">
+                                            <div class="card-type">🎯 Hair Goal</div>
+                                            <div class="card-date">Sep 1 - Dec 31, 2025</div>
+                                        </div>
+                                        <div class="card-title">Achieve Shoulder Length</div>
+                                        <div class="card-description">
+                                            Target length: Shoulder length by end of year. Current progress: 75% complete.
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 75%"></div>
+                                        </div>
+                                        <div class="card-tags">
+                                            <span class="tag">Length Goal</span>
+                                            <span class="tag">In Progress</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="timeline-dot"></div>
+                            </div>
+
+                            <div class="timeline-item right">
+                                <div class="timeline-content">
+                                    <div class="timeline-card">
+                                        <div class="card-header">
+                                            <div class="card-type">✂️ Salon Visit</div>
+                                            <div class="card-date">Sep 15, 2025</div>
+                                        </div>
+                                        <div class="card-title">Trim & Protein Treatment</div>
+                                        <div class="card-description">
+                                            Trimmed 0.5 inches of split ends. Received Aphogee protein treatment. Hair feels stronger!
+                                        </div>
+                                        <div class="card-tags">
+                                            <span class="tag">Trim</span>
+                                            <span class="tag">Protein</span>
+                                            <span class="tag">Salon</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="timeline-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar View -->
+                <div id="calendarView" class="view-content calendar-view">
+                    <div class="calendar-header">
+                        <h2 class="calendar-title">Calendar Timeline</h2>
+                        <p class="calendar-description">Detailed, visual representation of your hair journey with goals, entries, and routines.</p>
+                    </div>
+
+                    <div class="calendar-controls">
+                        <div class="view-toggles">
+                            <button class="view-toggle" onclick="setCalendarView('day')">Day</button>
+                            <button class="view-toggle" onclick="setCalendarView('week')">Week</button>
+                            <button class="view-toggle active" onclick="setCalendarView('month')">Month</button>
+                        </div>
+
+                        <div class="date-navigation">
+                            <button class="nav-arrow">‹</button>
+                            <span class="date-range" id="dateRange">1 Oct - 14 Oct</span>
+                            <button class="nav-arrow">›</button>
+                        </div>
+
+                        <div class="calendar-options">
+                            <div class="toggle-switch">
+                                <span>Show done</span>
+                                <div class="switch active" onclick="this.classList.toggle('active')"></div>
+                            </div>
+                            <button class="filter-btn">🔽 Sort</button>
+                            <button class="filter-btn">⚙️ Filter</button>
+                        </div>
+                    </div>
+
+                    <!-- Month View -->
+                    <div id="monthView" class="calendar-grid-container">
+                        <svg class="dependency-line" style="position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 5;">
+                            <g class="dependency-green">
+                                <path class="dependency-path" d="M 180 110 L 180 180 Q 180 195 195 195 L 250 195" />
+                                <circle class="dependency-node" cx="180" cy="110" r="4" />
+                                <circle class="dependency-node" cx="250" cy="195" r="4" />
+                            </g>
+                            <g class="dependency-blue">
+                                <path class="dependency-path" d="M 520 130 L 520 340 Q 520 355 505 355 L 450 355" />
+                                <circle class="dependency-node" cx="520" cy="130" r="4" />
+                                <circle class="dependency-node" cx="450" cy="355" r="4" />
+                            </g>
+                            <g class="dependency-red">
+                                <path class="dependency-path" d="M 350 580 L 420 580 Q 435 580 435 565 L 435 495" />
+                                <circle class="dependency-node" cx="350" cy="580" r="4" />
+                                <circle class="dependency-node" cx="435" cy="495" r="4" />
+                            </g>
+                        </svg>
+
+                        <div class="calendar-grid">
+                            <div class="time-column">
+                                <div class="time-slot">08:00</div>
+                                <div class="time-slot">09:00</div>
+                                <div class="time-slot">10:00</div>
+                                <div class="time-slot">11:00</div>
+                                <div class="time-slot">12:00</div>
+                                <div class="time-slot">13:00</div>
+                                <div class="time-slot">14:00</div>
+                                <div class="time-slot">15:00</div>
+                                <div class="time-slot">16:00</div>
+                                <div class="time-slot">17:00</div>
+                                <div class="time-slot">18:00</div>
+                                <div class="time-slot">19:00</div>
+                                <div class="time-slot">20:00</div>
+                            </div>
+
+                            <div class="calendar-main">
+                                <div class="month-header-row">
+                                    <div class="month-label-cal">October 2025</div>
+                                </div>
+                                
+                                <div class="days-header">
+                                    <div class="day-col">
+                                        <span class="day-label">T</span>
+                                        <span class="day-number">1</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">W</span>
+                                        <span class="day-number">2</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">T</span>
+                                        <span class="day-number">3</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">F</span>
+                                        <span class="day-number">4</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">S</span>
+                                        <span class="day-number">5</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">S</span>
+                                        <span class="day-number">6</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">M</span>
+                                        <span class="day-number">7</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">T</span>
+                                        <span class="day-number">8</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">W</span>
+                                        <span class="day-number">9</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">T</span>
+                                        <span class="day-number">10</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">F</span>
+                                        <span class="day-number">11</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">S</span>
+                                        <span class="day-number">12</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">S</span>
+                                        <span class="day-number">13</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">M</span>
+                                        <span class="day-number">14</span>
+                                    </div>
+                                </div>
+
+                                <div class="tasks-grid">
+                                    <!-- Goals -->
+                                    <div class="goal-bar-span" style="left: 0%; top: 80px; width: 50%; z-index: 2;">
+                                        <div class="goal-span-content">
+                                            <div class="goal-span-info">
+                                                <span class="task-icon">💧</span>
+                                                <div>
+                                                    <div class="goal-span-title">Moisture Retention Goal</div>
+                                                    <div class="goal-span-dates">Oct 1 - Oct 7 • 60% complete</div>
+                                                </div>
+                                            </div>
+                                            <div class="goal-progress-mini">
+                                                <div class="goal-progress-fill" style="width: 60%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="goal-bar-span highlighted" style="left: 35%; top: 100px; width: 45%; z-index: 3;">
+                                        <div class="goal-span-content">
+                                            <div class="goal-span-info">
+                                                <span class="task-icon">✨</span>
+                                                <div>
+                                                    <div class="goal-span-title">Protective Style Phase</div>
+                                                    <div class="goal-span-dates">Oct 5 - Oct 12 • 75% complete</div>
+                                                </div>
+                                            </div>
+                                            <div class="goal-progress-mini">
+                                                <div class="goal-progress-fill" style="width: 75%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Routines -->
+                                    <div class="routine-bar" style="left: 7%; top: 140px; width: 10%;">
+                                        <div class="routine-bar-content">
+                                            <div class="routine-bar-info">
+                                                <span class="task-icon" style="font-size: 14px;">☀️</span>
+                                                <div>
+                                                    <div class="routine-bar-title">Morning Moisturize</div>
+                                                    <div class="routine-bar-time">08:00 AM</div>
+                                                </div>
+                                            </div>
+                                            <div class="routine-frequency">Daily</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="routine-bar" style="left: 21%; top: 140px; width: 10%;">
+                                        <div class="routine-bar-content">
+                                            <div class="routine-bar-info">
+                                                <span class="task-icon" style="font-size: 14px;">☀️</span>
+                                                <div>
+                                                    <div class="routine-bar-title">Morning Moisturize</div>
+                                                    <div class="routine-bar-time">08:00 AM</div>
+                                                </div>
+                                            </div>
+                                            <div class="routine-frequency">Daily</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="routine-bar" style="left: 35%; top: 140px; width: 10%;">
+                                        <div class="routine-bar-content">
+                                            <div class="routine-bar-info">
+                                                <span class="task-icon" style="font-size: 14px;">☀️</span>
+                                                <div>
+                                                    <div class="routine-bar-title">Morning Moisturize</div>
+                                                    <div class="routine-bar-time">08:00 AM</div>
+                                                </div>
+                                            </div>
+                                            <div class="routine-frequency">Daily</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Journal Entries -->
+                                    <div class="journey-entry" style="left: 14.5%; top: 160px;">
+                                        <div class="entry-image" style="background: linear-gradient(135deg, rgba(231, 166, 144, 0.3), rgba(74, 77, 104, 0.3)), url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23e7a690%22 width=%22100%22 height=%22100%22/><circle cx=%2250%22 cy=%2250%22 r=%2230%22 fill=%22%23fce5d7%22/></svg>'); background-size: cover;"></div>
+                                        <div class="entry-content">
+                                            <div class="entry-time">09:30 AM</div>
+                                            <div class="entry-title">Deep Conditioning</div>
+                                            <div class="entry-subtitle">Shea Moisture Treatment</div>
+                                            <div class="entry-tags">
+                                                <span class="entry-tag">💧 Moisture</span>
+                                                <span class="entry-tag">30 min</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="journey-entry" style="left: 35.7%; top: 420px;">
+                                        <div class="entry-image" style="background: linear-gradient(135deg, rgba(238, 236, 225, 0.3), rgba(231, 166, 144, 0.3)), url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23eeece1%22 width=%22100%22 height=%22100%22/></svg>'); background-size: cover;"></div>
+                                        <div class="entry-content">
+                                            <div class="entry-time">02:15 PM</div>
+                                            <div class="entry-title">Scalp Massage</div>
+                                            <div class="entry-subtitle">Oil blend therapy</div>
+                                            <div class="entry-tags">
+                                                <span class="entry-tag">🌿 Growth</span>
+                                                <span class="entry-tag">15 min</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="journey-entry" style="left: 28.5%; top: 320px;">
+                                        <div class="entry-image" style="background: linear-gradient(135deg, rgba(252, 229, 215, 0.3), rgba(231, 166, 144, 0.3)), url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23fce5d7%22 width=%22100%22 height=%22100%22/></svg>'); background-size: cover;"></div>
+                                        <div class="entry-content">
+                                            <div class="entry-time">11:00 AM</div>
+                                            <div class="entry-title">Trim Session</div>
+                                            <div class="entry-subtitle">Split ends removed</div>
+                                            <div class="entry-tags">
+                                                <span class="entry-tag">✂️ Trim</span>
+                                                <span class="entry-tag">Salon</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="journey-entry" style="left: 64.2%; top: 240px;">
+                                        <div class="entry-image" style="background: linear-gradient(135deg, rgba(231, 166, 144, 0.3), rgba(74, 77, 104, 0.3)), url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%234a4d68%22 width=%22100%22 height=%22100%22/></svg>'); background-size: cover;"></div>
+                                        <div class="entry-content">
+                                            <div class="entry-time">10:30 AM</div>
+                                            <div class="entry-title">Wash Day Routine</div>
+                                            <div class="entry-subtitle">Full cleanse & condition</div>
+                                            <div class="entry-tags">
+                                                <span class="entry-tag">🚿 Wash</span>
+                                                <span class="entry-tag">90 min</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Week View -->
+                    <div id="weekView" class="calendar-grid-container week-view" style="display: none;">
+                        <div class="calendar-grid">
+                            <div class="time-column">
+                                <div class="time-slot">08:00</div>
+                                <div class="time-slot">10:00</div>
+                                <div class="time-slot">12:00</div>
+                                <div class="time-slot">14:00</div>
+                                <div class="time-slot">16:00</div>
+                                <div class="time-slot">18:00</div>
+                                <div class="time-slot">20:00</div>
+                            </div>
+
+                            <div class="calendar-main">
+                                <div class="month-header-row">
+                                    <div class="month-label-cal">October 7-13, 2025</div>
+                                </div>
+                                
+                                <div class="days-header">
+                                    <div class="day-col">
+                                        <span class="day-label">Mon</span>
+                                        <span class="day-number">7</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">Tue</span>
+                                        <span class="day-number">8</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">Wed</span>
+                                        <span class="day-number">9</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">Thu</span>
+                                        <span class="day-number">10</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">Fri</span>
+                                        <span class="day-number">11</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">Sat</span>
+                                        <span class="day-number">12</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">Sun</span>
+                                        <span class="day-number">13</span>
+                                    </div>
+                                </div>
+
+                                <div class="tasks-grid">
+                                    <div class="goal-bar-span highlighted" style="left: 0%; top: 80px; width: 100%; z-index: 2;">
+                                        <div class="goal-span-content">
+                                            <div class="goal-span-info">
+                                                <span class="task-icon">✨</span>
+                                                <div>
+                                                    <div class="goal-span-title">Protective Style Phase</div>
+                                                    <div class="goal-span-dates">Oct 5 - Oct 12 • 75% complete</div>
+                                                </div>
+                                            </div>
+                                            <div class="goal-progress-mini">
+                                                <div class="goal-progress-fill" style="width: 75%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="journey-entry" style="left: 14%; top: 140px;">
+                                        <div class="entry-image" style="background: linear-gradient(135deg, rgba(231, 166, 144, 0.3), rgba(74, 77, 104, 0.3)), url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23e7a690%22 width=%22100%22 height=%22100%22/></svg>'); background-size: cover;"></div>
+                                        <div class="entry-content">
+                                            <div class="entry-time">09:30 AM</div>
+                                            <div class="entry-title">Deep Conditioning</div>
+                                            <div class="entry-subtitle">Weekly treatment</div>
+                                            <div class="entry-tags">
+                                                <span class="entry-tag">💧 Moisture</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Day View -->
+                    <div id="dayView" class="calendar-grid-container day-view" style="display: none;">
+                        <div class="calendar-grid">
+                            <div class="time-column">
+                                <div class="time-slot">08:00</div>
+                                <div class="time-slot">09:00</div>
+                                <div class="time-slot">10:00</div>
+                                <div class="time-slot">11:00</div>
+                                <div class="time-slot">12:00</div>
+                                <div class="time-slot">13:00</div>
+                                <div class="time-slot">14:00</div>
+                                <div class="time-slot">15:00</div>
+                                <div class="time-slot">16:00</div>
+                                <div class="time-slot">17:00</div>
+                                <div class="time-slot">18:00</div>
+                                <div class="time-slot">19:00</div>
+                                <div class="time-slot">20:00</div>
+                            </div>
+
+                            <div class="calendar-main">
+                                <div class="month-header-row">
+                                    <div class="month-label-cal">Monday, October 14, 2025</div>
+                                </div>
+
+                                <div class="tasks-grid">
+                                    <div class="routine-bar" style="left: 10%; top: 140px; width: 80%;">
+                                        <div class="routine-bar-content">
+                                            <div class="routine-bar-info">
+                                                <span class="task-icon" style="font-size: 14px;">☀️</span>
+                                                <div>
+                                                    <div class="routine-bar-title">Morning Moisturizing Routine</div>
+                                                    <div class="routine-bar-time">08:00 AM</div>
+                                                </div>
+                                            </div>
+                                            <div class="routine-frequency">Daily</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="journey-entry" style="left: 30%; top: 200px;">
+                                        <div class="entry-image" style="background: linear-gradient(135deg, rgba(231, 166, 144, 0.3), rgba(74, 77, 104, 0.3)), url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23e7a690%22 width=%22100%22 height=%22100%22/></svg>'); background-size: cover;"></div>
+                                        <div class="entry-content">
+                                            <div class="entry-time">09:30 AM</div>
+                                            <div class="entry-title">Deep Conditioning</div>
+                                            <div class="entry-subtitle">Shea Moisture Treatment</div>
+                                            <div class="entry-tags">
+                                                <span class="entry-tag">💧 Moisture</span>
+                                                <span class="entry-tag">30 min</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Entry Carousel -->
+                    <div class="entry-carousel">
+                        <button class="carousel-nav" onclick="scrollCarousel(-1)">‹</button>
+                        <div class="carousel-track" id="carouselTrack">
+                            <div class="carousel-item active">
+                                <div class="carousel-date">Oct 2</div>
+                                <div class="carousel-preview">
+                                    <div class="carousel-image" style="background: linear-gradient(135deg, #e7a690, #fce5d7);"></div>
+                                    <div class="carousel-title">Deep Conditioning</div>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <div class="carousel-date">Oct 3</div>
+                                <div class="carousel-preview">
+                                    <div class="carousel-image" style="background: linear-gradient(135deg, #fce5d7, #e7a690);"></div>
+                                    <div class="carousel-title">Trim Session</div>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <div class="carousel-date">Oct 6</div>
+                                <div class="carousel-preview">
+                                    <div class="carousel-image" style="background: linear-gradient(135deg, #eeece1, #e7a690);"></div>
+                                    <div class="carousel-title">Scalp Massage</div>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <div class="carousel-date">Oct 9</div>
+                                <div class="carousel-preview">
+                                    <div class="carousel-image" style="background: linear-gradient(135deg, #4a4d68, #e7a690);"></div>
+                                    <div class="carousel-title">Wash Day</div>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <div class="carousel-date">Oct 11</div>
+                                <div class="carousel-preview">
+                                    <div class="carousel-image" style="background: linear-gradient(135deg, #eeece1, #e7a690);"></div>
+                                    <div class="carousel-title">Protein Treatment</div>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <div class="carousel-date">Oct 14</div>
+                                <div class="carousel-preview">
+                                    <div class="carousel-image" style="background: linear-gradient(135deg, #4a4d68, #e7a690);"></div>
+                                    <div class="carousel-title">Night Routine</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="carousel-nav" onclick="scrollCarousel(1)">›</button>
+                    </div>
+                </div>
+
+                <!-- Slider View -->
+                <div id="sliderView" class="view-content slider-view">
+                    <div class="diary-header">
+                        <h1 class="myavana-h1">MY HAIR JOURNEY</h1>
+                        <p class="myavana-body">Document your transformation with our beautiful horizontal timeline</p>
+                    </div>
+
+                    <div class="timeline-slider">
+                        <div class="splide" id="hairJourneySlider">
+                            <div class="splide__track">
+                                <div class="splide__list">
+                                    <div class="splide__slide">
+                                        <div class="main-entry">
+                                            <div class="entry-image-container">
+                                                <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'><rect fill='%23e7a690' width='400' height='400'/><circle cx='200' cy='200' r='100' fill='%23fce5d7'/></svg>" alt="Hair progress" class="entry-image">
+                                            </div>
+                                            
+                                            <div class="entry-details">
+                                                <div class="entry-date">
+                                                    <div class="entry-time">October 14, 2025 9:30 AM</div>
+                                                </div>
+                                                <h3 class="entry-title">Deep Conditioning Treatment</h3>
+                                                <p class="entry-text">Applied my favorite deep conditioner with heat for 30 minutes. Hair feels incredibly soft and manageable! The moisture retention is getting better each week.</p>
+                                                <div class="entry-meta">
+                                                    <div class="entry-mood">
+                                                        😊 Feeling great about my progress
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="splide__slide">
+                                        <div class="main-entry">
+                                            <div class="entry-image-container">
+                                                <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'><rect fill='%234a4d68' width='400' height='400'/><circle cx='200' cy='200' r='120' fill='%23e7a690'/></svg>" alt="Hair progress" class="entry-image">
+                                            </div>
+                                            
+                                            <div class="entry-details">
+                                                <div class="entry-date">
+                                                    <div class="entry-time">October 10, 2025 2:15 PM</div>
+                                                </div>
+                                                <h3 class="entry-title">Trim Day</h3>
+                                                <p class="entry-text">Finally got my trim! Removed about half an inch of split ends. My hair looks so much healthier now. The stylist recommended protein treatments.</p>
+                                                <div class="entry-meta">
+                                                    <div class="entry-mood">
+                                                        ✨ Excited for healthy ends
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="splide__slide">
+                                        <div class="main-entry">
+                                            <div class="entry-image-container">
+                                                <div class="no-image-placeholder">
+                                                    <i>📸</i>
+                                                    <span>No Photo</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="entry-details">
+                                                <div class="entry-date">
+                                                    <div class="entry-time">October 5, 2025 8:00 AM</div>
+                                                </div>
+                                                <h3 class="entry-title">Morning Routine</h3>
+                                                <p class="entry-text">Started my day with a light moisturizing session. Applied leave-in conditioner and sealed with jojoba oil. Hair is responding well to this routine!</p>
+                                                <div class="entry-meta">
+                                                    <div class="entry-mood">
+                                                        ☀️ Ready for the day
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="timeline-nav">
+                            <div class="timeline-track">
+                                <div class="timeline-progress" id="progress"></div>
+                            </div>
+                            <div class="timeline-dates" id="timelineDates">
+                                <div class="date-marker" data-index="0">
+                                    <div class="mini-card">
+                                        <a href="#" class="timeline-small-card-image mini-card-image" style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 50 50%22><rect fill=%22%23e7a690%22 width=%2250%22 height=%2250%22/></svg>');"></a>
+                                        <div class="mini-card-title">Deep Conditioning</div>
+                                    </div>
+                                    <div class="marker-dot"></div>
+                                    <div class="marker-date">Oct 14</div>
+                                </div>
+                                <div class="date-marker" data-index="1">
+                                    <div class="mini-card">
+                                        <a href="#" class="timeline-small-card-image mini-card-image" style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 50 50%22><rect fill=%22%234a4d68%22 width=%2250%22 height=%2250%22/></svg>');"></a>
+                                        <div class="mini-card-title">Trim Day</div>
+                                    </div>
+                                    <div class="marker-dot"></div>
+                                    <div class="marker-date">Oct 10</div>
+                                </div>
+                                <div class="date-marker" data-index="2">
+                                    <div class="mini-card">
+                                        <a href="#" class="timeline-small-card-image mini-card-image" style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 50 50%22><rect fill=%22%23eeece1%22 width=%2250%22 height=%2250%22/></svg>');"></a>
+                                        <div class="mini-card-title">Morning Routine</div>
+                                    </div>
+                                    <div class="marker-dot"></div>
+                                    <div class="marker-date">Oct 5</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- List View -->
+                <div id="listView" class="view-content list-view">
+                    <div class="calendar-header">
+                        <h2 class="calendar-title">Journey List</h2>
+                        <p class="calendar-description">All your goals, entries, and routines in a comprehensive list view.</p>
+                    </div>
+
+                    <div class="list-container">
+                        <div class="list-item">
+                            <div class="list-item-type">🎯</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Grow 6 inches</div>
+                                <div class="list-item-subtitle">Jan 15 - Oct 15, 2025</div>
+                                <div class="list-item-meta">
+                                    <span class="list-meta-tag">Hair Goal</span>
+                                    <span class="list-meta-tag">75% Complete</span>
+                                    <span class="list-meta-tag">In Progress</span>
+                                </div>
+                            </div>
+                            <button class="list-item-action">View Details</button>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="list-item-type">📸</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Deep Conditioning Treatment</div>
+                                <div class="list-item-subtitle">October 14, 2025 at 9:30 AM</div>
+                                <div class="list-item-meta">
+                                    <span class="list-meta-tag">Journey Entry</span>
+                                    <span class="list-meta-tag">Moisture</span>
+                                    <span class="list-meta-tag">30 min</span>
+                                </div>
+                            </div>
+                            <button class="list-item-action">View Details</button>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="list-item-type">🔄</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Morning Moisturizing Routine</div>
+                                <div class="list-item-subtitle">Daily at 8:00 AM</div>
+                                <div class="list-item-meta">
+                                    <span class="list-meta-tag">Haircare Routine</span>
+                                    <span class="list-meta-tag">Daily</span>
+                                    <span class="list-meta-tag">Morning</span>
+                                </div>
+                            </div>
+                            <button class="list-item-action">View Details</button>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="list-item-type">🎯</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Reduce Breakage</div>
+                                <div class="list-item-subtitle">Mar 1 - Dec 1, 2025</div>
+                                <div class="list-item-meta">
+                                    <span class="list-meta-tag">Hair Goal</span>
+                                    <span class="list-meta-tag">60% Complete</span>
+                                    <span class="list-meta-tag">Active</span>
+                                </div>
+                            </div>
+                            <button class="list-item-action">View Details</button>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="list-item-type">📸</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Trim Session</div>
+                                <div class="list-item-subtitle">October 10, 2025 at 11:00 AM</div>
+                                <div class="list-item-meta">
+                                    <span class="list-meta-tag">Journey Entry</span>
+                                    <span class="list-meta-tag">Trim</span>
+                                    <span class="list-meta-tag">Salon</span>
+                                </div>
+                            </div>
+                            <button class="list-item-action">View Details</button>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="list-item-type">🔄</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Night Protection Routine</div>
+                                <div class="list-item-subtitle">Daily at 9:00 PM</div>
+                                <div class="list-item-meta">
+                                    <span class="list-meta-tag">Haircare Routine</span>
+                                    <span class="list-meta-tag">Daily</span>
+                                    <span class="list-meta-tag">Night</span>
+                                </div>
+                            </div>
+                            <button class="list-item-action">View Details</button>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="list-item-type">🔄</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Weekly Deep Conditioning</div>
+                                <div class="list-item-subtitle">Every Sunday at 10:00 AM</div>
+                                <div class="list-item-meta">
+                                    <span class="list-meta-tag">Haircare Routine</span>
+                                    <span class="list-meta-tag">Weekly</span>
+                                    <span class="list-meta-tag">Treat</span>
+                                </div>
+                            </div>
+                            <button class="list-item-action">View Details</button>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="list-item-type">🎯</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Moisture Retention</div>
+                                <div class="list-item-subtitle">Feb 1 - Nov 1, 2025</div>
+                                <div class="list-item-meta">
+                                    <span class="list-meta-tag">Hair Goal</span>
+                                    <span class="list-meta-tag">85% Complete</span>
+                                    <span class="list-meta-tag">Almost There</span>
+                                </div>
+                            </div>
+                            <button class="list-item-action">View Details</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="eventModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Event Details</h2>
+                <span class="modal-close" onclick="closeModal()">×</span>
+            </div>
+            <div id="modalBody">
+                <p>Event details would appear here...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/js/splide.min.js"></script>
+    <script>
+        let splide;
+let currentCalendarView = 'month';
+
+// Dark Mode Toggle
+function toggleDarkMode() {
+    const container = document.querySelector('.container');
+    const sunIcon = document.querySelector('.sun-icon');
+    const moonIcon = document.querySelector('.moon-icon');
+    
+    const currentTheme = container.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    
+    container.setAttribute('data-theme', newTheme);
+    
+    if (newTheme === 'dark') {
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+    } else {
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+    }
+    
+    // Save preference to localStorage
+    localStorage.setItem('theme', newTheme);
+}
+
+// Load theme preference
+function loadTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    const container = document.querySelector('.container');
+    const sunIcon = document.querySelector('.sun-icon');
+    const moonIcon = document.querySelector('.moon-icon');
+    
+    container.setAttribute('data-theme', savedTheme);
+    
+    if (savedTheme === 'dark') {
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+    }
+}
+
+// Toggle Sidebar
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.getElementById('sidebarToggle');
+    
+    sidebar.classList.toggle('collapsed');
+    
+    if (sidebar.classList.contains('collapsed')) {
+        toggle.textContent = '›';
+        toggle.style.right = '12px'; // Ensure toggle button is visible outside collapsed sidebar
+    } else {
+        toggle.textContent = '‹';
+        toggle.style.right = '-12px'; // Reset to original position
+    }
+}
+
+// Initialize Splide Slider
+function initSlider() {
+    if (splide) {
+        splide.destroy();
+    }
+    
+    const sliderElement = document.getElementById('hairJourneySlider');
+    if (sliderElement) {
+        splide = new Splide('#hairJourneySlider', {
+            type: 'slide',
+            perPage: 1,
+            perMove: 1,
+            gap: '2rem',
+            padding: '5%',
+            focus: 'center',
+            trimSpace: false,
+            arrows: true,
+            pagination: false,
+            breakpoints: {
+                768: {
+                    padding: '10%',
+                }
+            }
+        }).mount();
+
+        splide.on('moved', function(newIndex) {
+            const progress = document.getElementById('progress');
+            const total = splide.length;
+            const percentage = ((newIndex + 1) / total) * 100;
+            if (progress) {
+                progress.style.width = percentage + '%';
+            }
+
+            document.querySelectorAll('.date-marker').forEach(marker => {
+                marker.classList.remove('active');
+            });
+            const activeMarker = document.querySelector(`.date-marker[data-index="${newIndex}"]`);
+            if (activeMarker) {
+                activeMarker.classList.add('active');
+            }
+        });
+    }
+}
+
+// Switch Main Views
+function switchView(viewName) {
+    // Update header view buttons
+    document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`.view-btn[data-view="${viewName}"]`)?.classList.add('active');
+
+    // Update timeline control tabs
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelector(`.tab[onclick="switchView('${viewName}')"]`)?.classList.add('active');
+
+    // Switch view content
+    document.querySelectorAll('.view-content').forEach(view => view.classList.remove('active'));
+    const targetView = document.getElementById(viewName + 'View');
+    if (targetView) {
+        targetView.classList.add('active');
+    }
+
+    if (viewName === 'slider') {
+        setTimeout(() => {
+            initSlider();
+        }, 100);
+    }
+}
+
+// Switch Calendar Views (Day/Week/Month)
+function setCalendarView(view) {
+    currentCalendarView = view;
+    
+    document.querySelectorAll('.view-toggle').forEach(toggle => {
+        toggle.classList.remove('active');
+    });
+    document.querySelector(`.view-toggle[onclick="setCalendarView('${view}')"]`)?.classList.add('active');
+
+    document.getElementById('monthView').style.display = 'none';
+    document.getElementById('weekView').style.display = 'none';
+    document.getElementById('dayView').style.display = 'none';
+
+    if (view === 'month') {
+        document.getElementById('monthView').style.display = 'block';
+        document.getElementById('dateRange').textContent = '1 Oct - 14 Oct';
+    } else if (view === 'week') {
+        document.getElementById('weekView').style.display = 'block';
+        document.getElementById('dateRange').textContent = 'Oct 7-13, 2025';
+    } else if (view === 'day') {
+        document.getElementById('dayView').style.display = 'block';
+        document.getElementById('dateRange').textContent = 'Mon, Oct 14, 2025';
+    }
+}
+
+// Action Buttons
+function addGoal() {
+    alert('Add Goal: Opens form to create a new hair goal with category, target date, and progress tracking!');
+}
+
+function addRoutine() {
+    alert('Add Routine: Opens form to create a new haircare routine with frequency, time of day, and products!');
+}
+
+function addEntry() {
+    alert('Add Entry: Opens form to log a new journey entry with photos, notes, mood, products, and health rating!');
+}
+
+// Modal Functions
+function closeModal() {
+    document.getElementById('eventModal').classList.remove('active');
+}
+
+// Carousel Functions
+function scrollCarousel(direction) {
+    const track = document.getElementById('carouselTrack');
+    const scrollAmount = 160;
+    track.scrollBy({
+        left: scrollAmount * direction,
+        behavior: 'smooth'
+    });
+}
+
+// Event Listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Load theme
+    loadTheme();
+
+    // Theme toggle
+    document.getElementById('themeToggle').addEventListener('click', toggleDarkMode);
+
+    // View buttons (header)
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const viewName = this.getAttribute('data-view');
+            switchView(viewName);
+        });
+    });
+
+    // Timeline control tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const viewName = this.getAttribute('onclick').match(/'([^']+)'/)[1];
+            switchView(viewName);
+        });
+    });
+
+    // Timeline cards
+    document.querySelectorAll('.timeline-card').forEach(card => {
+        card.addEventListener('click', function() {
+            document.getElementById('eventModal').classList.add('active');
+        });
+    });
+
+    // Journey entries
+    document.querySelectorAll('.journey-entry').forEach(entry => {
+        entry.addEventListener('click', function() {
+            document.getElementById('eventModal').classList.add('active');
+        });
+    });
+
+    // Goal bars
+    document.querySelectorAll('.goal-bar-span').forEach(bar => {
+        bar.addEventListener('click', function() {
+            document.getElementById('eventModal').classList.add('active');
+        });
+    });
+
+    // Routine bars
+    document.querySelectorAll('.routine-bar').forEach(bar => {
+        bar.addEventListener('click', function() {
+            document.getElementById('eventModal').classList.add('active');
+        });
+    });
+
+    // List items
+    document.querySelectorAll('.list-item-action').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.getElementById('eventModal').classList.add('active');
+        });
+    });
+
+    document.querySelectorAll('.list-item').forEach(item => {
+        item.addEventListener('click', function() {
+            document.getElementById('eventModal').classList.add('active');
+        });
+    });
+
+    // Carousel items
+    document.querySelectorAll('.carousel-item').forEach(item => {
+        item.addEventListener('click', function() {
+            document.querySelectorAll('.carousel-item').forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Date markers
+    document.querySelectorAll('.date-marker').forEach(marker => {
+        marker.addEventListener('click', function() {
+            const index = parseInt(this.dataset.index);
+            if (splide) {
+                splide.go(index);
+            }
+        });
+    });
+
+    // Modal close
+    document.getElementById('eventModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+
+    // Goal items
+    document.querySelectorAll('.goal-item').forEach(item => {
+        item.addEventListener('click', function() {
+            document.querySelectorAll('.goal-item').forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    console.log('Myavana Hair Journey Timeline loaded successfully!');
+});
+    </script>
+</body>
+</html>

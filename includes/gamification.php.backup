@@ -1,0 +1,999 @@
+<?php
+/**
+ * Gamification Features System
+ * 
+ * This class provides gamification elements for the hair journey:
+ * - Achievement badges and milestones
+ * - Streak tracking and rewards
+ * - Points and leveling system
+ * - Challenges and competitions
+ * - Progress celebrations
+ * - Leaderboards and social recognition
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class Myavana_Gamification {
+    
+    private $user_id;
+    
+    public function __construct() {
+        $this->user_id = get_current_user_id();
+        $this->init();
+    }
+    
+    private function init() {
+        // AJAX handlers
+        add_action('wp_ajax_get_user_achievements', array($this, 'get_user_achievements'));
+        add_action('wp_ajax_get_user_stats', array($this, 'get_user_stats'));
+        add_action('wp_ajax_claim_achievement', array($this, 'claim_achievement'));
+        add_action('wp_ajax_get_leaderboard', array($this, 'get_leaderboard'));
+        add_action('wp_ajax_check_streak', array($this, 'check_streak'));
+        
+        // Hooks for automatic achievement checking
+        add_action('myavana_entry_created', array($this, 'check_achievements_on_entry'));
+        add_action('myavana_photo_uploaded', array($this, 'check_achievements_on_photo'));
+        add_action('myavana_goal_completed', array($this, 'check_achievements_on_goal'));
+        
+        // Database setup
+        add_action('init', array($this, 'create_gamification_tables'));
+        
+        // Daily cron for streak checking
+        if (!wp_next_scheduled('myavana_daily_streak_check')) {
+            wp_schedule_event(time(), 'daily', 'myavana_daily_streak_check');
+        }
+        add_action('myavana_daily_streak_check', array($this, 'update_all_streaks'));
+    }
+    
+    /**
+     * Create necessary database tables for gamification
+     */
+    public function create_gamification_tables() {
+        global $wpdb;
+        
+        $charset_collate = $wpdb->get_charset_collate();
+        
+        // Achievements table
+        $achievements_table = $wpdb->prefix . 'myavana_achievements';
+        $achievements_sql = "CREATE TABLE $achievements_table (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            achievement_key varchar(100) NOT NULL,
+            title varchar(255) NOT NULL,
+            description text NOT NULL,
+            icon varchar(100) DEFAULT 'trophy',
+            category varchar(50) DEFAULT 'general',
+            points_value int(11) DEFAULT 0,
+            badge_color varchar(20) DEFAULT 'gold',
+            requirement_type varchar(50) NOT NULL,
+            requirement_value varchar(255) NOT NULL,
+            is_repeatable tinyint(1) DEFAULT 0,
+            is_secret tinyint(1) DEFAULT 0,
+            unlock_order int(11) DEFAULT 0,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY uk_achievement_key (achievement_key),
+            KEY idx_category (category)
+        ) $charset_collate;";
+        
+        // User achievements table
+        $user_achievements_table = $wpdb->prefix . 'myavana_user_achievements';
+        $user_achievements_sql = "CREATE TABLE $user_achievements_table (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            user_id bigint(20) NOT NULL,
+            achievement_id mediumint(9) NOT NULL,
+            progress_current int(11) DEFAULT 0,
+            progress_required int(11) NOT NULL,
+            is_completed tinyint(1) DEFAULT 0,
+            is_claimed tinyint(1) DEFAULT 0,
+            completed_at datetime NULL,
+            claimed_at datetime NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY user_achievement (user_id, achievement_id),
+            KEY user_id (user_id),
+            KEY achievement_id (achievement_id)
+        ) $charset_collate;";
+        
+        // User stats table
+        $user_stats_table = $wpdb->prefix . 'myavana_user_stats';
+        $user_stats_sql = "CREATE TABLE $user_stats_table (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            user_id bigint(20) NOT NULL,
+            total_points int(11) DEFAULT 0,
+            current_level int(11) DEFAULT 1,
+            current_streak int(11) DEFAULT 0,
+            best_streak int(11) DEFAULT 0,
+            last_activity_date datetime NULL,
+            streak_freeze_count int(11) DEFAULT 0,
+            total_entries int(11) DEFAULT 0,
+            total_photos int(11) DEFAULT 0,
+            total_goals_completed int(11) DEFAULT 0,
+            total_social_interactions int(11) DEFAULT 0,
+            achievements_earned int(11) DEFAULT 0,
+            join_date datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY uk_user_stats (user_id),
+            KEY idx_current_level (current_level),
+            KEY idx_total_points (total_points)
+        ) $charset_collate;";
+        
+        // Streak history table
+        $streak_history_table = $wpdb->prefix . 'myavana_streak_history';
+        $streak_history_sql = "CREATE TABLE $streak_history_table (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            user_id bigint(20) NOT NULL,
+            streak_date date NOT NULL,
+            activity_count int(11) DEFAULT 0,
+            streak_maintained tinyint(1) DEFAULT 0,
+            freeze_used tinyint(1) DEFAULT 0,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY user_date (user_id, streak_date),
+            KEY user_id (user_id),
+            KEY streak_date (streak_date)
+        ) $charset_collate;";
+        
+        // Points history table
+        $points_history_table = $wpdb->prefix . 'myavana_points_history';
+        $points_history_sql = "CREATE TABLE $points_history_table (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            user_id bigint(20) NOT NULL,
+            points_change int(11) NOT NULL,
+            reason varchar(255) NOT NULL,
+            reference_type varchar(50),
+            reference_id int(11),
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY user_id (user_id),
+            KEY created_at (created_at)
+        ) $charset_collate;";
+        
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        
+        dbDelta($achievements_sql);
+        dbDelta($user_achievements_sql);
+        dbDelta($user_stats_sql);
+        dbDelta($streak_history_sql);
+        dbDelta($points_history_sql);
+        
+        // Insert default achievements
+        $this->insert_default_achievements();
+    }
+    
+    /**
+     * Insert default achievements into the system
+     */
+    private function insert_default_achievements() {
+        global $wpdb;
+        
+        $achievements_table = $wpdb->prefix . 'myavana_achievements';
+        
+        // Check if achievements already exist
+        $count = $wpdb->get_var("SELECT COUNT(*) FROM $achievements_table");
+        if ($count > 0) {
+            return; // Achievements already exist
+        }
+        
+        $default_achievements = array(
+            // Journey milestones
+            array(
+                'achievement_key' => 'first_entry',
+                'title' => 'First Steps',
+                'description' => 'Create your first hair journey entry',
+                'icon' => 'fas fa-baby',
+                'category' => 'milestones',
+                'points_value' => 50,
+                'badge_color' => 'bronze',
+                'requirement_type' => 'entry_count',
+                'requirement_value' => '1',
+                'unlock_order' => 1
+            ),
+            array(
+                'achievement_key' => 'week_warrior',
+                'title' => 'Week Warrior',
+                'description' => 'Maintain a 7-day hair care streak',
+                'icon' => 'fas fa-calendar-week',
+                'category' => 'streaks',
+                'points_value' => 100,
+                'badge_color' => 'silver',
+                'requirement_type' => 'streak_days',
+                'requirement_value' => '7',
+                'unlock_order' => 5
+            ),
+            array(
+                'achievement_key' => 'monthly_master',
+                'title' => 'Monthly Master',
+                'description' => 'Maintain a 30-day hair care streak',
+                'icon' => 'fas fa-calendar-alt',
+                'category' => 'streaks',
+                'points_value' => 300,
+                'badge_color' => 'gold',
+                'requirement_type' => 'streak_days',
+                'requirement_value' => '30',
+                'unlock_order' => 15
+            ),
+            
+            // Photo achievements
+            array(
+                'achievement_key' => 'picture_perfect',
+                'title' => 'Picture Perfect',
+                'description' => 'Upload your first progress photo',
+                'icon' => 'fas fa-camera',
+                'category' => 'photos',
+                'points_value' => 75,
+                'badge_color' => 'bronze',
+                'requirement_type' => 'photo_count',
+                'requirement_value' => '1',
+                'unlock_order' => 3
+            ),
+            array(
+                'achievement_key' => 'photo_fanatic',
+                'title' => 'Photo Fanatic',
+                'description' => 'Upload 50 progress photos',
+                'icon' => 'fas fa-images',
+                'category' => 'photos',
+                'points_value' => 500,
+                'badge_color' => 'gold',
+                'requirement_type' => 'photo_count',
+                'requirement_value' => '50',
+                'unlock_order' => 25
+            ),
+            
+            // Social achievements
+            array(
+                'achievement_key' => 'social_butterfly',
+                'title' => 'Social Butterfly',
+                'description' => 'Make 10 comments on community posts',
+                'icon' => 'fas fa-comments',
+                'category' => 'social',
+                'points_value' => 150,
+                'badge_color' => 'silver',
+                'requirement_type' => 'comment_count',
+                'requirement_value' => '10',
+                'unlock_order' => 10
+            ),
+            array(
+                'achievement_key' => 'inspiration_giver',
+                'title' => 'Inspiration Giver',
+                'description' => 'Receive 100 likes on your posts',
+                'icon' => 'fas fa-heart',
+                'category' => 'social',
+                'points_value' => 250,
+                'badge_color' => 'gold',
+                'requirement_type' => 'likes_received',
+                'requirement_value' => '100',
+                'unlock_order' => 20
+            ),
+            
+            // Goal achievements
+            array(
+                'achievement_key' => 'goal_getter',
+                'title' => 'Goal Getter',
+                'description' => 'Complete your first hair goal',
+                'icon' => 'fas fa-bullseye',
+                'category' => 'goals',
+                'points_value' => 200,
+                'badge_color' => 'silver',
+                'requirement_type' => 'goals_completed',
+                'requirement_value' => '1',
+                'unlock_order' => 8
+            ),
+            array(
+                'achievement_key' => 'achievement_hunter',
+                'title' => 'Achievement Hunter',
+                'description' => 'Complete 5 different goals',
+                'icon' => 'fas fa-trophy',
+                'category' => 'goals',
+                'points_value' => 500,
+                'badge_color' => 'gold',
+                'requirement_type' => 'goals_completed',
+                'requirement_value' => '5',
+                'unlock_order' => 30
+            ),
+            
+            // Special achievements
+            array(
+                'achievement_key' => 'hair_scientist',
+                'title' => 'Hair Scientist',
+                'description' => 'Track measurements for 10 photos',
+                'icon' => 'fas fa-microscope',
+                'category' => 'special',
+                'points_value' => 300,
+                'badge_color' => 'purple',
+                'requirement_type' => 'measured_photos',
+                'requirement_value' => '10',
+                'unlock_order' => 18
+            ),
+            array(
+                'achievement_key' => 'consistency_champion',
+                'title' => 'Consistency Champion',
+                'description' => 'Log activities for 100 days (not consecutive)',
+                'icon' => 'fas fa-medal',
+                'category' => 'special',
+                'points_value' => 1000,
+                'badge_color' => 'rainbow',
+                'requirement_type' => 'total_active_days',
+                'requirement_value' => '100',
+                'unlock_order' => 50
+            )
+        );
+        
+        foreach ($default_achievements as $achievement) {
+            $wpdb->insert($achievements_table, $achievement);
+        }
+    }
+    
+    /**
+     * Get user's achievements and progress
+     */
+    public function get_user_achievements() {
+        if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
+            wp_die('Security check failed');
+        }
+        
+        global $wpdb;
+        
+        $achievements_table = $wpdb->prefix . 'myavana_achievements';
+        $user_achievements_table = $wpdb->prefix . 'myavana_user_achievements';
+        
+        // Get all achievements with user progress
+        $achievements = $wpdb->get_results($wpdb->prepare("
+            SELECT 
+                a.*,
+                ua.progress_current,
+                ua.progress_required,
+                ua.is_completed,
+                ua.is_claimed,
+                ua.completed_at,
+                ua.claimed_at
+            FROM $achievements_table a
+            LEFT JOIN $user_achievements_table ua ON a.id = ua.achievement_id AND ua.user_id = %d
+            WHERE a.is_secret = 0 OR ua.is_completed = 1
+            ORDER BY a.unlock_order ASC
+        ", $this->user_id));
+        
+        // Calculate progress percentages
+        foreach ($achievements as &$achievement) {
+            if ($achievement->progress_required > 0) {
+                $achievement->progress_percentage = min(100, 
+                    round(($achievement->progress_current / $achievement->progress_required) * 100, 1)
+                );
+            } else {
+                $achievement->progress_percentage = $achievement->is_completed ? 100 : 0;
+            }
+            
+            $achievement->can_claim = $achievement->is_completed && !$achievement->is_claimed;
+        }
+        
+        wp_send_json_success($achievements);
+    }
+    
+    /**
+     * Get user's gamification stats
+     */
+    public function get_user_stats() {
+        if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
+            wp_die('Security check failed');
+        }
+        
+        $stats = $this->get_or_create_user_stats($this->user_id);
+        
+        // Calculate additional stats
+        $stats->next_level_points = $this->calculate_points_for_level($stats->current_level + 1);
+        $stats->current_level_points = $this->calculate_points_for_level($stats->current_level);
+        $stats->progress_to_next_level = $stats->total_points - $stats->current_level_points;
+        $stats->points_needed_for_next_level = $stats->next_level_points - $stats->total_points;
+        
+        // Get recent achievements
+        $stats->recent_achievements = $this->get_recent_achievements($this->user_id, 5);
+        
+        // Get streak status
+        $stats->streak_status = $this->get_streak_status($this->user_id);
+        
+        wp_send_json_success($stats);
+    }
+    
+    /**
+     * Claim an achievement reward
+     */
+    public function claim_achievement() {
+        if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
+            wp_die('Security check failed');
+        }
+        
+        $achievement_id = intval($_POST['achievement_id']);
+        
+        global $wpdb;
+        
+        $user_achievements_table = $wpdb->prefix . 'myavana_user_achievements';
+        $achievements_table = $wpdb->prefix . 'myavana_achievements';
+        
+        // Verify achievement is completed but not claimed
+        $user_achievement = $wpdb->get_row($wpdb->prepare(
+            "SELECT ua.*, a.points_value, a.title 
+             FROM $user_achievements_table ua
+             JOIN $achievements_table a ON ua.achievement_id = a.id
+             WHERE ua.user_id = %d AND ua.achievement_id = %d 
+             AND ua.is_completed = 1 AND ua.is_claimed = 0",
+            $this->user_id, $achievement_id
+        ));
+        
+        if (!$user_achievement) {
+            wp_send_json_error('Achievement not available for claiming');
+            return;
+        }
+        
+        // Mark as claimed
+        $wpdb->update(
+            $user_achievements_table,
+            array('is_claimed' => 1, 'claimed_at' => current_time('mysql')),
+            array('user_id' => $this->user_id, 'achievement_id' => $achievement_id)
+        );
+        
+        // Award points
+        if ($user_achievement->points_value > 0) {
+            $this->award_points(
+                $this->user_id, 
+                $user_achievement->points_value, 
+                'Achievement claimed: ' . $user_achievement->title,
+                'achievement',
+                $achievement_id
+            );
+        }
+        
+        wp_send_json_success(array(
+            'message' => 'Achievement claimed successfully!',
+            'points_earned' => $user_achievement->points_value
+        ));
+    }
+    
+    /**
+     * Get leaderboard data
+     */
+    public function get_leaderboard() {
+        if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
+            wp_die('Security check failed');
+        }
+        
+        $type = sanitize_text_field($_POST['type'] ?? 'points');
+        $period = sanitize_text_field($_POST['period'] ?? 'all_time');
+        $limit = intval($_POST['limit'] ?? 10);
+        
+        global $wpdb;
+        
+        $user_stats_table = $wpdb->prefix . 'myavana_user_stats';
+        $users_table = $wpdb->users;
+        
+        $order_by = '';
+        $where_clause = '';
+        
+        switch ($type) {
+            case 'points':
+                $order_by = 'us.total_points DESC';
+                break;
+            case 'streak':
+                $order_by = 'us.best_streak DESC';
+                break;
+            case 'level':
+                $order_by = 'us.current_level DESC, us.total_points DESC';
+                break;
+            case 'achievements':
+                $order_by = 'us.achievements_earned DESC';
+                break;
+        }
+        
+        if ($period === 'monthly') {
+            $where_clause = "WHERE us.updated_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)";
+        }
+        
+        $leaderboard = $wpdb->get_results($wpdb->prepare("
+            SELECT 
+                us.*,
+                u.display_name,
+                u.user_email,
+                (@row_number:=@row_number + 1) AS rank
+            FROM $user_stats_table us
+            JOIN $users_table u ON us.user_id = u.ID
+            CROSS JOIN (SELECT @row_number := 0) r
+            $where_clause
+            ORDER BY $order_by
+            LIMIT %d
+        ", $limit));
+        
+        // Add user avatars and format data
+        foreach ($leaderboard as &$user) {
+            $user->avatar_url = get_avatar_url($user->user_id, 64);
+            $user->is_current_user = ($user->user_id == $this->user_id);
+        }
+        
+        wp_send_json_success($leaderboard);
+    }
+    
+    /**
+     * Check and update user's streak
+     */
+    public function check_streak() {
+        if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
+            wp_die('Security check failed');
+        }
+        
+        $streak_data = $this->update_user_streak($this->user_id);
+        
+        wp_send_json_success($streak_data);
+    }
+    
+    /**
+     * Check achievements when a new entry is created
+     */
+    public function check_achievements_on_entry($entry_data) {
+        $user_id = $entry_data['user_id'] ?? $this->user_id;
+        
+        // Update user stats
+        $this->increment_user_stat($user_id, 'total_entries');
+        
+        // Check entry-related achievements
+        $this->check_achievement_progress($user_id, 'entry_count', 'get_user_entry_count');
+        $this->check_achievement_progress($user_id, 'total_active_days', 'get_user_active_days');
+        
+        // Update streak
+        $this->update_user_streak($user_id);
+        
+        // Award points for entry
+        $this->award_points($user_id, 10, 'Hair journey entry created', 'entry', $entry_data['entry_id'] ?? 0);
+    }
+    
+    /**
+     * Check achievements when a photo is uploaded
+     */
+    public function check_achievements_on_photo($photo_data) {
+        $user_id = $photo_data['user_id'] ?? $this->user_id;
+        
+        // Update user stats
+        $this->increment_user_stat($user_id, 'total_photos');
+        
+        // Check photo-related achievements
+        $this->check_achievement_progress($user_id, 'photo_count', 'get_user_photo_count');
+        $this->check_achievement_progress($user_id, 'measured_photos', 'get_user_measured_photos');
+        
+        // Award points for photo
+        $points = 25;
+        if (!empty($photo_data['measurements'])) {
+            $points = 50; // Bonus for photos with measurements
+        }
+        
+        $this->award_points($user_id, $points, 'Progress photo uploaded', 'photo', $photo_data['photo_id'] ?? 0);
+    }
+    
+    /**
+     * Check achievements when a goal is completed
+     */
+    public function check_achievements_on_goal($goal_data) {
+        $user_id = $goal_data['user_id'] ?? $this->user_id;
+        
+        // Update user stats
+        $this->increment_user_stat($user_id, 'total_goals_completed');
+        
+        // Check goal-related achievements
+        $this->check_achievement_progress($user_id, 'goals_completed', 'get_user_completed_goals');
+        
+        // Award points for goal completion
+        $this->award_points($user_id, 100, 'Hair goal completed', 'goal', $goal_data['goal_id'] ?? 0);
+    }
+    
+    /**
+     * Award points to a user
+     */
+    private function award_points($user_id, $points, $reason, $reference_type = null, $reference_id = null) {
+        global $wpdb;
+        
+        $points_history_table = $wpdb->prefix . 'myavana_points_history';
+        $user_stats_table = $wpdb->prefix . 'myavana_user_stats';
+        
+        // Record points transaction
+        $wpdb->insert(
+            $points_history_table,
+            array(
+                'user_id' => $user_id,
+                'points_change' => $points,
+                'reason' => $reason,
+                'reference_type' => $reference_type,
+                'reference_id' => $reference_id,
+                'created_at' => current_time('mysql')
+            )
+        );
+        
+        // Update user's total points
+        $wpdb->query($wpdb->prepare(
+            "UPDATE $user_stats_table SET total_points = total_points + %d WHERE user_id = %d",
+            $points, $user_id
+        ));
+        
+        // Check for level up
+        $this->check_level_up($user_id);
+    }
+    
+    /**
+     * Check if user should level up
+     */
+    private function check_level_up($user_id) {
+        $stats = $this->get_or_create_user_stats($user_id);
+        
+        $required_points = $this->calculate_points_for_level($stats->current_level + 1);
+        
+        if ($stats->total_points >= $required_points) {
+            global $wpdb;
+            
+            $user_stats_table = $wpdb->prefix . 'myavana_user_stats';
+            
+            $new_level = $stats->current_level + 1;
+            
+            $wpdb->update(
+                $user_stats_table,
+                array('current_level' => $new_level),
+                array('user_id' => $user_id)
+            );
+            
+            // Award level up bonus points
+            $bonus_points = $new_level * 50;
+            $this->award_points($user_id, $bonus_points, "Level $new_level reached!", 'level_up', $new_level);
+            
+            // Trigger level up hook for notifications
+            do_action('myavana_user_level_up', $user_id, $new_level);
+        }
+    }
+    
+    /**
+     * Calculate points required for a specific level
+     */
+    private function calculate_points_for_level($level) {
+        // Exponential growth: each level requires more points
+        return ($level - 1) * 100 + pow($level - 1, 2) * 25;
+    }
+    
+    /**
+     * Update user's streak
+     */
+    private function update_user_streak($user_id) {
+        global $wpdb;
+        
+        $user_stats_table = $wpdb->prefix . 'myavana_user_stats';
+        $streak_history_table = $wpdb->prefix . 'myavana_streak_history';
+        
+        $today = current_time('Y-m-d');
+        $yesterday = date('Y-m-d', strtotime('-1 day', current_time('timestamp')));
+        
+        // Get current stats
+        $stats = $this->get_or_create_user_stats($user_id);
+        
+        // Check if user was active today
+        $today_activities = $this->get_user_daily_activities($user_id, $today);
+        
+        // Update or create today's streak record
+        $wpdb->replace(
+            $streak_history_table,
+            array(
+                'user_id' => $user_id,
+                'streak_date' => $today,
+                'activity_count' => count($today_activities),
+                'streak_maintained' => count($today_activities) > 0 ? 1 : 0,
+                'created_at' => current_time('mysql')
+            )
+        );
+        
+        // Calculate new streak
+        $new_streak = $this->calculate_current_streak($user_id);
+        
+        // Update best streak if necessary
+        $new_best_streak = max($stats->best_streak, $new_streak);
+        
+        // Update user stats
+        $wpdb->update(
+            $user_stats_table,
+            array(
+                'current_streak' => $new_streak,
+                'best_streak' => $new_best_streak,
+                'last_activity_date' => count($today_activities) > 0 ? current_time('mysql') : $stats->last_activity_date
+            ),
+            array('user_id' => $user_id)
+        );
+        
+        // Check streak achievements
+        $this->check_achievement_progress($user_id, 'streak_days', 'get_user_current_streak');
+        
+        return array(
+            'current_streak' => $new_streak,
+            'best_streak' => $new_best_streak,
+            'today_activities' => count($today_activities)
+        );
+    }
+    
+    /**
+     * Calculate user's current streak
+     */
+    private function calculate_current_streak($user_id) {
+        global $wpdb;
+        
+        $streak_history_table = $wpdb->prefix . 'myavana_streak_history';
+        
+        // Get recent streak history
+        $streak_days = $wpdb->get_results($wpdb->prepare(
+            "SELECT streak_date, streak_maintained, freeze_used 
+             FROM $streak_history_table 
+             WHERE user_id = %d 
+             ORDER BY streak_date DESC 
+             LIMIT 365",
+            $user_id
+        ));
+        
+        $current_streak = 0;
+        $date = current_time('Y-m-d');
+        
+        foreach ($streak_days as $day) {
+            if ($day->streak_date === $date) {
+                if ($day->streak_maintained || $day->freeze_used) {
+                    $current_streak++;
+                    $date = date('Y-m-d', strtotime('-1 day', strtotime($date)));
+                } else {
+                    break;
+                }
+            } else {
+                // Missing day - check if we can use a streak freeze
+                break;
+            }
+        }
+        
+        return $current_streak;
+    }
+    
+    /**
+     * Get user's daily activities
+     */
+    private function get_user_daily_activities($user_id, $date) {
+        global $wpdb;
+        
+        $activities = array();
+        
+        // Check hair journey entries
+        $entries_table = $wpdb->prefix . 'myavana_hair_journey';
+        $entries = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $entries_table WHERE user_id = %d AND DATE(entry_date) = %s",
+            $user_id, $date
+        ));
+        if ($entries > 0) $activities[] = 'entry';
+        
+        // Check photos
+        $photos_table = $wpdb->prefix . 'myavana_hair_photos';
+        $photos = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $photos_table WHERE user_id = %d AND DATE(photo_date) = %s",
+            $user_id, $date
+        ));
+        if ($photos > 0) $activities[] = 'photo';
+        
+        // Check community interactions
+        $posts_table = $wpdb->prefix . 'myavana_community_posts';
+        $posts = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $posts_table WHERE user_id = %d AND DATE(created_at) = %s",
+            $user_id, $date
+        ));
+        if ($posts > 0) $activities[] = 'post';
+        
+        return $activities;
+    }
+    
+    /**
+     * Get or create user stats record
+     */
+    private function get_or_create_user_stats($user_id) {
+        global $wpdb;
+        
+        $user_stats_table = $wpdb->prefix . 'myavana_user_stats';
+        
+        $stats = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $user_stats_table WHERE user_id = %d",
+            $user_id
+        ));
+        
+        if (!$stats) {
+            // Create initial stats record
+            $wpdb->insert(
+                $user_stats_table,
+                array(
+                    'user_id' => $user_id,
+                    'total_points' => 0,
+                    'current_level' => 1,
+                    'current_streak' => 0,
+                    'best_streak' => 0,
+                    'join_date' => current_time('mysql')
+                )
+            );
+            
+            $stats = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM $user_stats_table WHERE user_id = %d",
+                $user_id
+            ));
+        }
+        
+        return $stats;
+    }
+    
+    /**
+     * Check achievement progress
+     */
+    private function check_achievement_progress($user_id, $requirement_type, $count_function) {
+        global $wpdb;
+        
+        $achievements_table = $wpdb->prefix . 'myavana_achievements';
+        $user_achievements_table = $wpdb->prefix . 'myavana_user_achievements';
+        
+        // Get achievements of this type that aren't completed
+        $achievements = $wpdb->get_results($wpdb->prepare(
+            "SELECT a.*, ua.is_completed 
+             FROM $achievements_table a
+             LEFT JOIN $user_achievements_table ua ON a.id = ua.achievement_id AND ua.user_id = %d
+             WHERE a.requirement_type = %s AND (ua.is_completed IS NULL OR ua.is_completed = 0)",
+            $user_id, $requirement_type
+        ));
+        
+        foreach ($achievements as $achievement) {
+            $current_count = call_user_func(array($this, $count_function), $user_id);
+            $required_count = intval($achievement->requirement_value);
+            
+            // Update or create user achievement progress
+            $wpdb->replace(
+                $user_achievements_table,
+                array(
+                    'user_id' => $user_id,
+                    'achievement_id' => $achievement->id,
+                    'progress_current' => $current_count,
+                    'progress_required' => $required_count,
+                    'is_completed' => $current_count >= $required_count ? 1 : 0,
+                    'completed_at' => $current_count >= $required_count ? current_time('mysql') : null
+                )
+            );
+            
+            // If completed, trigger completion hook
+            if ($current_count >= $required_count && !$achievement->is_completed) {
+                do_action('myavana_achievement_completed', $user_id, $achievement->id);
+                
+                // Update achievements earned count
+                $this->increment_user_stat($user_id, 'achievements_earned');
+            }
+        }
+    }
+    
+    // Helper functions for counting user activities
+    private function get_user_entry_count($user_id) {
+        global $wpdb;
+        return $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}myavana_hair_journey WHERE user_id = %d",
+            $user_id
+        ));
+    }
+    
+    private function get_user_photo_count($user_id) {
+        global $wpdb;
+        return $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}myavana_hair_photos WHERE user_id = %d",
+            $user_id
+        ));
+    }
+    
+    private function get_user_measured_photos($user_id) {
+        global $wpdb;
+        return $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}myavana_hair_photos WHERE user_id = %d AND measurements IS NOT NULL AND measurements != ''",
+            $user_id
+        ));
+    }
+    
+    private function get_user_completed_goals($user_id) {
+        global $wpdb;
+        $user_stats = $this->get_or_create_user_stats($user_id);
+        return $user_stats->total_goals_completed;
+    }
+    
+    private function get_user_current_streak($user_id) {
+        $user_stats = $this->get_or_create_user_stats($user_id);
+        return $user_stats->current_streak;
+    }
+    
+    private function get_user_active_days($user_id) {
+        global $wpdb;
+        return $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(DISTINCT DATE(entry_date)) FROM {$wpdb->prefix}myavana_hair_journey WHERE user_id = %d",
+            $user_id
+        ));
+    }
+    
+    /**
+     * Increment a user stat
+     */
+    private function increment_user_stat($user_id, $stat_name, $increment = 1) {
+        global $wpdb;
+        
+        $user_stats_table = $wpdb->prefix . 'myavana_user_stats';
+        
+        $wpdb->query($wpdb->prepare(
+            "UPDATE $user_stats_table SET $stat_name = $stat_name + %d WHERE user_id = %d",
+            $increment, $user_id
+        ));
+    }
+    
+    /**
+     * Get recent achievements for a user
+     */
+    private function get_recent_achievements($user_id, $limit = 5) {
+        global $wpdb;
+        
+        $achievements_table = $wpdb->prefix . 'myavana_achievements';
+        $user_achievements_table = $wpdb->prefix . 'myavana_user_achievements';
+        
+        return $wpdb->get_results($wpdb->prepare(
+            "SELECT a.title, a.icon, a.badge_color, ua.completed_at
+             FROM $user_achievements_table ua
+             JOIN $achievements_table a ON ua.achievement_id = a.id
+             WHERE ua.user_id = %d AND ua.is_completed = 1
+             ORDER BY ua.completed_at DESC
+             LIMIT %d",
+            $user_id, $limit
+        ));
+    }
+    
+    /**
+     * Get streak status information
+     */
+    private function get_streak_status($user_id) {
+        $stats = $this->get_or_create_user_stats($user_id);
+        
+        $today_activities = $this->get_user_daily_activities($user_id, current_time('Y-m-d'));
+        
+        return array(
+            'current_streak' => $stats->current_streak,
+            'best_streak' => $stats->best_streak,
+            'today_complete' => count($today_activities) > 0,
+            'streak_freeze_available' => $stats->streak_freeze_count > 0,
+            'next_milestone' => $this->get_next_streak_milestone($stats->current_streak)
+        );
+    }
+    
+    /**
+     * Get next streak milestone
+     */
+    private function get_next_streak_milestone($current_streak) {
+        $milestones = array(7, 14, 30, 60, 100, 365);
+        
+        foreach ($milestones as $milestone) {
+            if ($current_streak < $milestone) {
+                return $milestone;
+            }
+        }
+        
+        return null; // No more milestones
+    }
+    
+    /**
+     * Daily cron job to update all user streaks
+     */
+    public function update_all_streaks() {
+        global $wpdb;
+        
+        $user_stats_table = $wpdb->prefix . 'myavana_user_stats';
+        
+        // Get all users who have been active in the last week
+        $users = $wpdb->get_col($wpdb->prepare(
+            "SELECT user_id FROM $user_stats_table 
+             WHERE last_activity_date >= DATE_SUB(NOW(), INTERVAL 7 DAY) 
+             OR current_streak > 0"
+        ));
+        
+        foreach ($users as $user_id) {
+            $this->update_user_streak($user_id);
+        }
+    }
+}
+
+// Initialize the gamification system
+new Myavana_Gamification();

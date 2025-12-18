@@ -1,0 +1,231 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    MYAVANA Timeline Navigation Module                        ║
+║                         timeline-navigation.js                               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                            MODULE DEPENDENCIES                               │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    ┌─────────────────────┐
+    │  timeline-state.js  │
+    │  MyavanaTimeline    │
+    │      .State         │
+    └──────────┬──────────┘
+               │
+               │ depends on
+               ▼
+    ┌─────────────────────────┐
+    │ timeline-navigation.js  │
+    │   MyavanaTimeline       │
+    │     .Navigation         │
+    └─────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         STATE INTEGRATION FLOW                               │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    OLD APPROACH (Global Variables)          NEW APPROACH (State Management)
+    ───────────────────────────────          ──────────────────────────────
+
+    var splide = null;                       State.get('splide')
+         ▼                                        ▼
+    splide = new Splide(...);           ──>  State.set('splide', splide)
+         ▼                                        ▼
+    if (splide) { ... }                      let splide = State.get('splide')
+
+    var currentCalendarView = 'month';       State.get('currentCalendarView')
+         ▼                                        ▼
+    currentCalendarView = 'week';       ──>  State.set('currentCalendarView', 'week')
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         PUBLIC API STRUCTURE                                 │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    MyavanaTimeline.Navigation
+         │
+         ├── init()                    Initialize module & event listeners
+         │
+         ├── initSlider()              Create/recreate Splide slider
+         │     │
+         │     ├── Destroy old instance
+         │     ├── Create new Splide with config
+         │     ├── Handle 'moved' event
+         │     └── Update progress bar & markers
+         │
+         ├── switchView(viewName)      Switch main views (calendar/slider/list)
+         │     │
+         │     ├── Update header buttons
+         │     ├── Update control tabs
+         │     ├── Show/hide view content
+         │     ├── Initialize view-specific code
+         │     └── Dispatch 'myavana:view:changed' event
+         │
+         ├── setCalendarView(view)     Switch calendar views (day/week/month)
+         │     │
+         │     ├── Update state
+         │     ├── Update toggle buttons
+         │     ├── Show/hide calendar views
+         │     ├── Update date range text
+         │     └── Dispatch 'myavana:calendar:view:changed' event
+         │
+         └── scrollCarousel(direction) Scroll timeline carousel
+               │
+               ├── Get track element
+               ├── Smooth scroll by 160px
+               └── Dispatch 'myavana:carousel:scrolled' event
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                      EVENT DISPATCHING SYSTEM                                │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    Navigation Module Actions           Events Dispatched
+    ────────────────────────           ─────────────────
+
+    initSlider() → splide.on('moved')  ──> myavana:slider:moved
+                                            { index, total }
+
+    switchView('calendar')             ──> myavana:view:changed
+                                            { view: 'calendar' }
+
+    setCalendarView('week')            ──> myavana:calendar:view:changed
+                                            { view: 'week' }
+
+    scrollCarousel(1)                  ──> myavana:carousel:scrolled
+                                            { direction: 1 }
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                      BACKWARD COMPATIBILITY                                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    HTML Inline Handlers              Global Function Wrappers
+    ────────────────────              ───────────────────────
+
+    onclick="switchView('list')"      window.switchView = (view) =>
+                                        MyavanaTimeline.Navigation.switchView(view)
+
+    onclick="setCalendarView('day')"  window.setCalendarView = (view) =>
+                                        MyavanaTimeline.Navigation.setCalendarView(view)
+
+    onclick="scrollCarousel(1)"       window.scrollCarousel = (dir) =>
+                                        MyavanaTimeline.Navigation.scrollCarousel(dir)
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                          VIEW SWITCHING FLOW                                 │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    User Action                Module Method               Result
+    ───────────                ─────────────               ──────
+
+    Click "Calendar" ──> switchView('calendar') ──> [Calendar View Active]
+         │                      │                          │
+         │                      ├── Update buttons         ├── Month/Week/Day visible
+         │                      ├── Update tabs            ├── Date range updated
+         │                      └── Show calendar          └── Event dispatched
+         │
+    Click "Slider" ──────> switchView('slider') ───> [Slider View Active]
+         │                      │                          │
+         │                      ├── Update buttons         ├── Splide initialized
+         │                      ├── Update tabs            ├── Progress bar visible
+         │                      └── Init slider            └── Slides interactive
+         │
+    Click "List" ────────> switchView('list') ─────> [List View Active]
+                                │                          │
+                                ├── Update buttons         ├── initListView() called
+                                ├── Update tabs            ├── Filters active
+                                └── Show list              └── Search enabled
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         CALENDAR VIEW SWITCHING                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    View Toggle Click           setCalendarView()           Display Update
+    ─────────────────           ─────────────────           ──────────────
+
+    "Day" button    ──────> setCalendarView('day')   ──> Show #dayView
+                                  │                        Hide others
+                                  └─> "Mon, Oct 14, 2025"  Update date range
+
+    "Week" button   ──────> setCalendarView('week')  ──> Show #weekView
+                                  │                        Hide others
+                                  └─> "Oct 7-13, 2025"     Update date range
+
+    "Month" button  ──────> setCalendarView('month') ──> Show #monthView
+                                  │                        Hide others
+                                  └─> "1 Oct - 14 Oct"     Update date range
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                            SLIDER LIFECYCLE                                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    1. User switches to Slider View
+          │
+          ▼
+    2. switchView('slider') called
+          │
+          ▼
+    3. setTimeout(() => initSlider(), 100)  ← 100ms delay for DOM readiness
+          │
+          ▼
+    4. Get existing instance: State.get('splide')
+          │
+          ▼
+    5. Destroy if exists: splide.destroy()
+          │
+          ▼
+    6. Create new Splide('#hairJourneySlider', config)
+          │
+          ▼
+    7. Mount slider: splide.mount()
+          │
+          ▼
+    8. Save to state: State.set('splide', splide)
+          │
+          ▼
+    9. Attach 'moved' event listener
+          │
+          ├──> Update progress bar
+          ├──> Update date markers
+          └──> Dispatch myavana:slider:moved event
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         CAROUSEL SCROLLING                                   │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    Button Click               scrollCarousel()              Track Movement
+    ────────────               ────────────────              ──────────────
+
+    ◄ Left button  ──────> scrollCarousel(-1) ────> track.scrollBy({
+                                  │                    left: -160,
+                                  │                    behavior: 'smooth'
+                                  ▼                  })
+                            Dispatch event
+
+    Right button ► ──────> scrollCarousel(1)  ────> track.scrollBy({
+                                  │                    left: 160,
+                                  │                    behavior: 'smooth'
+                                  ▼                  })
+                            Dispatch event
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                              MODULE METRICS                                  ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  Total Lines:            299 lines                                           ║
+║  File Size:              9.3 KB                                              ║
+║  Functions:              5 (init, initSlider, switchView, setCalendarView,  ║
+║                             scrollCarousel)                                  ║
+║  State Variables Used:   2 (splide, currentCalendarView)                    ║
+║  Events Dispatched:      4 (slider:moved, view:changed,                     ║
+║                             calendar:view:changed, carousel:scrolled)        ║
+║  Global Exports:         4 (backward compatibility wrappers)                ║
+║  Dependencies:           1 (MyavanaTimeline.State)                           ║
+╚══════════════════════════════════════════════════════════════════════════════╝

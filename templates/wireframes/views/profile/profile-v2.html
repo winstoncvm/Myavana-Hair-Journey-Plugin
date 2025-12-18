@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - MYAVANA</title>
+    <link rel="stylesheet" href="../../assets/css/timeline.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/css/splide.min.css">
+    <style>
+        body {
+            background: var(--myavana-stone);
+            font-family: 'Archivo', sans-serif;
+        }
+
+        .profile-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* Profile Header */
+        .profile-header {
+            background: var(--myavana-white);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .profile-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            gap: 24px;
+        }
+
+        .profile-identity {
+            display: flex;
+            gap: 24px;
+            flex: 1;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--myavana-coral), var(--myavana-blueberry));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 48px;
+            color: var(--myavana-white);
+            flex-shrink: 0;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 32px;
+            text-transform: uppercase;
+            color: var(--myavana-onyx);
+            margin: 0 0 8px 0;
+        }
+
+        .profile-handle {
+            font-size: 14px;
+            color: var(--myavana-onyx);
+            opacity: 0.6;
+            margin-bottom: 16px;
+        }
+
+        .profile-bio {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--myavana-onyx);
+            margin: 0;
+        }
+
+        .profile-actions button {
+            padding: 12px 24px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--myavana-coral);
+            color: var(--myavana-white);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .profile-actions button:hover {
+            background: #d4956f;
+            transform: translateY(-2px);
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            padding-top: 24px;
+            border-top: 2px solid var(--myavana-stone);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 28px;
+            color: var(--myavana-coral);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-onyx);
+            opacity: 0.6;
+        }
+
+        /* Profile Sections */
+        .profile-section {
+            background: var(--myavana-white);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--myavana-stone);
+        }
+
+        .section-title {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-onyx);
+            margin: 0;
+        }
+
+        .section-edit {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--myavana-coral);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* About Me Section */
+        .about-me-text {
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--myavana-onyx);
+        }
+
+        /* Hair Analysis Section */
+        .hair-analysis-container {
+            position: relative;
+        }
+
+        .analysis-slider {
+            margin-bottom: 32px;
+        }
+
+        .analysis-slide {
+            background: var(--myavana-stone);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            gap: 24px;
+        }
+
+        .analysis-visual {
+            width: 200px;
+            height: 200px;
+            border-radius: 12px;
+            background: var(--myavana-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .analysis-visual img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .analysis-date {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+
+        .analysis-details {
+            flex: 1;
+        }
+
+        .analysis-type {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .analysis-type-info h3 {
+            font-family: 'Archivo', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--myavana-onyx);
+            margin: 0 0 4px 0;
+        }
+
+        .analysis-type-info p {
+            font-size: 13px;
+            color: var(--myavana-onyx);
+            opacity: 0.7;
+            margin: 0;
+        }
+
+        .analysis-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .analysis-metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 24px;
+            color: var(--myavana-coral);
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-onyx);
+            opacity: 0.6;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--myavana-white);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--myavana-coral);
+            transition: width 0.3s ease;
+        }
+
+        .analysis-summary {
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--myavana-onyx);
+            margin-bottom: 16px;
+        }
+
+        .analysis-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .analysis-btn {
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            background: var(--myavana-white);
+            color: var(--myavana-onyx);
+            border: 2px solid var(--myavana-sand);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .analysis-btn:hover {
+            border-color: var(--myavana-coral);
+            background: var(--myavana-light-coral);
+        }
+
+        /* Goals Grid */
+        .goals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .goal-card {
+            background: var(--myavana-light-coral);
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+        }
+
+        .goal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .goal-title {
+            font-family: 'Archivo', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--myavana-onyx);
+            margin: 0;
+        }
+
+        .goal-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .goal-action-btn {
+            background: transparent;
+            border: none;
+            color: var(--myavana-onyx);
+            opacity: 0.5;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+            transition: opacity 0.3s ease;
+        }
+
+        .goal-action-btn:hover {
+            opacity: 1;
+        }
+
+        .goal-progress {
+            margin-bottom: 16px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-onyx);
+            opacity: 0.6;
+        }
+
+        .progress-percentage {
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--myavana-coral);
+        }
+
+        .goal-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .goal-category {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 4px 12px;
+            background: var(--myavana-white);
+            color: var(--myavana-coral);
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .goal-dates {
+            font-size: 11px;
+            color: var(--myavana-onyx);
+            opacity: 0.7;
+        }
+
+        /* Routine Steps */
+        .routine-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .routine-step {
+            background: var(--myavana-stone);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: var(--myavana-coral);
+            color: var(--myavana-white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Archivo', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-family: 'Archivo', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--myavana-onyx);
+            margin: 0 0 12px 0;
+        }
+
+        .step-meta-container {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 12px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meta-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .meta-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-onyx);
+            opacity: 0.6;
+        }
+
+        .meta-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--myavana-onyx);
+        }
+
+        .step-txt {
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--myavana-onyx);
+            opacity: 0.8;
+            margin-bottom: 12px;
+        }
+
+        .step-products {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .product-badge {
+            padding: 6px 12px;
+            background: var(--myavana-white);
+            color: var(--myavana-onyx);
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .step-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .step-actions button {
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--myavana-white);
+            color: var(--myavana-onyx);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .step-actions button:hover {
+            background: var(--myavana-coral);
+            color: var(--myavana-white);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--myavana-onyx);
+            opacity: 0.5;
+        }
+
+        @media (max-width: 968px) {
+            .profile-top {
+                flex-direction: column;
+            }
+
+            .profile-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .goals-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .analysis-slide {
+                flex-direction: column;
+            }
+
+            .analysis-visual {
+                width: 100%;
+                height: 250px;
+            }
+
+            .analysis-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-top">
+                <div class="profile-identity">
+                    <div class="profile-avatar">S</div>
+                    <div class="profile-info">
+                        <h2 class="profile-name">Sarah Johnson</h2>
+                        <div class="profile-handle">@sarahjohnson</div>
+                        <p class="profile-bio">
+                            On a journey to embrace my natural hair and discover what works best for my curls.
+                            Excited to document my progress and connect with others on similar journeys!
+                        </p>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <button>✏️ Edit Profile</button>
+                </div>
+            </div>
+
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <div class="stat-value">24</div>
+                    <div class="stat-label">Entries</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">4.2/5</div>
+                    <div class="stat-label">Health</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">4B/4C</div>
+                    <div class="stat-label">Type</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">Improving</div>
+                    <div class="stat-label">Trend</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Me Section -->
+        <div class="profile-section">
+            <div class="section-header">
+                <h2 class="section-title">About Me</h2>
+                <div class="section-edit">
+                    ✏️ <span>Edit</span>
+                </div>
+            </div>
+            <p class="about-me-text">
+                I'm a natural hair enthusiast on a mission to grow and maintain healthy hair. After years of heat damage and chemical treatments,
+                I decided to embrace my natural texture in 2024. My journey has been filled with learning experiences, from mastering wash day routines
+                to discovering the perfect product combinations for my hair type. I'm passionate about sharing my progress and learning from this amazing community.
+            </p>
+        </div>
+
+        <!-- Hair Analysis Section -->
+        <div class="profile-section">
+            <div class="section-header">
+                <h2 class="section-title">Hair Analysis</h2>
+                <div class="section-edit">
+                    ➕ <span>Add Analysis</span>
+                </div>
+            </div>
+
+            <div class="hair-analysis-container">
+                <div class="splide analysis-slider" id="analysisSlider">
+                    <div class="splide__track">
+                        <ul class="splide__list">
+                            <li class="splide__slide">
+                                <div class="analysis-slide">
+                                    <div class="analysis-visual">
+                                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect fill='%23f5f5f7' width='200' height='200'/%3E%3Ctext x='100' y='100' text-anchor='middle' dominant-baseline='middle' font-size='48' fill='%23e7a690'%3E📷%3C/text%3E%3C/svg%3E" alt="Hair Analysis">
+                                        <div class="analysis-date">Oct 14, 2025</div>
+                                    </div>
+
+                                    <div class="analysis-details">
+                                        <div class="analysis-type">
+                                            <div class="analysis-type-info">
+                                                <h3>Type 4B/4C</h3>
+                                                <p>Coily • High Porosity</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="analysis-metrics">
+                                            <div class="analysis-metric">
+                                                <div class="metric-value">85%</div>
+                                                <div class="metric-label">Health</div>
+                                                <div class="progress-bar">
+                                                    <div class="progress-fill" style="width: 85%;"></div>
+                                                </div>
+                                            </div>
+
+                                            <div class="analysis-metric">
+                                                <div class="metric-value">72%</div>
+                                                <div class="metric-label">Hydration</div>
+                                                <div class="progress-bar">
+                                                    <div class="progress-fill" style="width: 72%;"></div>
+                                                </div>
+                                            </div>
+
+                                            <div class="analysis-metric">
+                                                <div class="metric-value">Good</div>
+                                                <div class="metric-label">Elasticity</div>
+                                                <div class="progress-bar">
+                                                    <div class="progress-fill" style="width: 80%;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <p class="analysis-summary">
+                                            Your hair shows excellent progress! The curl pattern is well-defined, and overall health has improved significantly.
+                                            Continue with deep conditioning treatments to maintain hydration levels.
+                                        </p>
+
+                                        <div class="analysis-actions">
+                                            <button class="analysis-btn">🔍 View Details</button>
+                                            <button class="analysis-btn">📊 Compare</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <p style="text-align: center; margin-top: 16px; font-size: 13px; color: var(--myavana-onyx); opacity: 0.7;">
+                    Weekly analysis limit: 8/30 used
+                </p>
+            </div>
+        </div>
+
+        <!-- Hair Goals Section -->
+        <div class="profile-section">
+            <div class="section-header">
+                <h2 class="section-title">My Hair Goals</h2>
+                <div class="section-edit">
+                    ➕ <span>Add Goal</span>
+                </div>
+            </div>
+
+            <div class="goals-grid">
+                <div class="goal-card">
+                    <div class="goal-header">
+                        <h3 class="goal-title">Length Growth</h3>
+                        <div class="goal-actions">
+                            <button class="goal-action-btn">✏️</button>
+                            <button class="goal-action-btn">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="goal-progress">
+                        <div class="progress-info">
+                            <span class="progress-text">Progress</span>
+                            <span class="progress-percentage">75%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 75%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="goal-meta">
+                        <span class="goal-category">Growth</span>
+                        <div class="goal-dates">
+                            <div>Started: Feb 1, 2025</div>
+                            <div>Target: Apr 30, 2025</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="goal-card">
+                    <div class="goal-header">
+                        <h3 class="goal-title">Moisture Retention</h3>
+                        <div class="goal-actions">
+                            <button class="goal-action-btn">✏️</button>
+                            <button class="goal-action-btn">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="goal-progress">
+                        <div class="progress-info">
+                            <span class="progress-text">Progress</span>
+                            <span class="progress-percentage">60%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 60%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="goal-meta">
+                        <span class="goal-category">Health</span>
+                        <div class="goal-dates">
+                            <div>Started: Jan 15, 2025</div>
+                            <div>Target: Jun 15, 2025</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="goal-card">
+                    <div class="goal-header">
+                        <h3 class="goal-title">Reduce Breakage</h3>
+                        <div class="goal-actions">
+                            <button class="goal-action-btn">✏️</button>
+                            <button class="goal-action-btn">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="goal-progress">
+                        <div class="progress-info">
+                            <span class="progress-text">Progress</span>
+                            <span class="progress-percentage">40%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 40%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="goal-meta">
+                        <span class="goal-category">Strength</span>
+                        <div class="goal-dates">
+                            <div>Started: Jan 1, 2025</div>
+                            <div>Target: Jul 1, 2025</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Routine Section -->
+        <div class="profile-section">
+            <div class="section-header">
+                <h2 class="section-title">Current Routine</h2>
+                <div class="section-edit">
+                    ➕ <span>Add Step</span>
+                </div>
+            </div>
+
+            <div class="routine-container">
+                <div class="routine-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Pre-Poo Treatment</h3>
+
+                        <div class="step-meta-container">
+                            <div class="meta-item">
+                                <div class="meta-text">
+                                    <span class="meta-label">Frequency</span>
+                                    <span class="meta-value">Weekly</span>
+                                </div>
+                            </div>
+
+                            <div class="meta-item">
+                                <div class="meta-text">
+                                    <span class="meta-label">Time of Day</span>
+                                    <span class="meta-value">Evening</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="step-txt">
+                            Apply coconut oil and olive oil blend to dry hair. Cover with a plastic cap and let sit for 30 minutes before shampooing.
+                        </p>
+
+                        <div class="step-products">
+                            <span class="product-badge">Coconut Oil</span>
+                            <span class="product-badge">Olive Oil</span>
+                        </div>
+
+                        <div class="step-actions">
+                            <button>✏️ Edit</button>
+                            <button>🗑️ Delete</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="routine-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Cleansing</h3>
+
+                        <div class="step-meta-container">
+                            <div class="meta-item">
+                                <div class="meta-text">
+                                    <span class="meta-label">Frequency</span>
+                                    <span class="meta-value">Weekly</span>
+                                </div>
+                            </div>
+
+                            <div class="meta-item">
+                                <div class="meta-text">
+                                    <span class="meta-label">Time of Day</span>
+                                    <span class="meta-value">Evening</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="step-txt">
+                            Use sulfate-free shampoo to cleanse scalp and hair. Focus on scalp, then let suds run down the length.
+                        </p>
+
+                        <div class="step-products">
+                            <span class="product-badge">Shea Moisture Shampoo</span>
+                        </div>
+
+                        <div class="step-actions">
+                            <button>✏️ Edit</button>
+                            <button>🗑️ Delete</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="routine-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Deep Conditioning</h3>
+
+                        <div class="step-meta-container">
+                            <div class="meta-item">
+                                <div class="meta-text">
+                                    <span class="meta-label">Frequency</span>
+                                    <span class="meta-value">Weekly</span>
+                                </div>
+                            </div>
+
+                            <div class="meta-item">
+                                <div class="meta-text">
+                                    <span class="meta-label">Time of Day</span>
+                                    <span class="meta-value">Evening</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="step-txt">
+                            Apply deep conditioner generously. Cover with plastic cap and sit under hooded dryer for 30 minutes.
+                        </p>
+
+                        <div class="step-products">
+                            <span class="product-badge">Manuka Honey Mask</span>
+                            <span class="product-badge">Heat Cap</span>
+                        </div>
+
+                        <div class="step-actions">
+                            <button>✏️ Edit</button>
+                            <button>🗑️ Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/js/splide.min.js"></script>
+    <script>
+        // Initialize Splide slider
+        document.addEventListener('DOMContentLoaded', function () {
+            new Splide('#analysisSlider', {
+                type: 'loop',
+                perPage: 1,
+                perMove: 1,
+                gap: '2rem',
+                pagination: true,
+                arrows: true,
+            }).mount();
+        });
+    </script>
+</body>
+</html>

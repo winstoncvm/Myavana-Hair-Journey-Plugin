@@ -1,0 +1,261 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    TIMELINE COMPARISON MODULE ARCHITECTURE                    ║
+║                          timeline-comparison.js                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          NAMESPACE STRUCTURE                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+window.MyavanaTimeline.Comparison
+├── availableAnalyses: []          // Storage for analysis data
+│
+├── init()                         // Initialize and bind events
+├── bindEvents()                   // Attach event listeners
+│
+├── open()                         // Open comparison modal
+├── close()                        // Close comparison modal
+├── generate()                     // Generate comparison
+│
+├── extractAnalysisData()          // Extract data from slides
+├── displayComparison()            // Display comparison results
+├── calculateDiff()                // Calculate metric differences
+├── generateMetricRow()            // Generate metric HTML
+└── generateInsight()              // Generate insight text
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         DATA FLOW DIAGRAM                                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────┐
+│ User Action  │
+│ (Click Button)
+└──────┬───────┘
+       │
+       ▼
+┌──────────────────┐
+│ open()           │ ──────┐
+│ - Find .analysis-slide   │
+│ - Extract metadata       │
+│ - Populate dropdowns     │
+└──────────────────┘       │
+       │                    │
+       │                    │
+       ▼                    │
+┌──────────────────┐       │
+│ Modal Display    │       │
+│ - Select Analysis 1      │
+│ - Select Analysis 2      │
+└──────┬───────────┘       │
+       │                    │
+       │                    │
+       ▼                    │
+┌──────────────────┐       │
+│ generate()       │       │
+│ - Validate       │       │
+│ - Extract data   │ ◄─────┘
+└──────┬───────────┘
+       │
+       │
+       ▼
+┌──────────────────────────┐
+│ extractAnalysisData()    │
+│ × 2 (for each analysis)  │
+└──────┬───────────────────┘
+       │
+       │
+       ▼
+┌──────────────────┐
+│ calculateDiff()  │
+│ × 3 (health,     │
+│     hydration,   │
+│     elasticity)  │
+└──────┬───────────┘
+       │
+       │
+       ▼
+┌──────────────────┐
+│ displayComparison()│
+│ - Generate HTML    │
+│ - Show results     │
+└────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       EVENT LISTENER BINDINGS                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+jQuery(document).on('click', '#generateComparison')
+    ↓
+    generate()
+
+jQuery(document).on('click', '#closeCompareModal')
+    ↓
+    close()
+
+jQuery(document).on('click', '#compareAnalysisModal')
+    ↓
+    (if backdrop) → close()
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      DOM ELEMENT INTERACTIONS                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+INPUT ELEMENTS:
+┌─────────────────────────────────┐
+│ .analysis-slide (querySelectorAll)
+│ ├── .analysis-slide-date
+│ ├── .analysis-metric
+│ │   ├── .metric-label
+│ │   └── .metric-value
+│ └── .hair-type-info
+│     ├── h3 (curl pattern)
+│     └── p (type description)
+└─────────────────────────────────┘
+
+MODAL ELEMENTS:
+┌─────────────────────────────────┐
+│ #compareAnalysisModal
+│ ├── #compareAnalysis1 (select)
+│ ├── #compareAnalysis2 (select)
+│ ├── #generateComparison (button)
+│ ├── #closeCompareModal (button)
+│ └── #comparisonResults (div)
+└─────────────────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        COMPARISON DATA STRUCTURE                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+analysisData = {
+    date: string,           // "Mar 15, 2024"
+    health: string,         // "85"
+    hydration: string,      // "78"
+    elasticity: string,     // "82"
+    type: string,           // "Type 3C - Curly"
+    curlPattern: string     // "Corkscrew Curls"
+}
+
+diffData = {
+    diff: number,           // 5.0 (absolute difference)
+    percent: number,        // 6.25 (percentage change)
+    isPositive: boolean,    // true (improvement)
+    hasData: boolean        // true (valid data)
+}
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     COMPARISON RESULT LAYOUT                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                    Comparison Results                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌─────────────┐       ┌──┐       ┌─────────────┐        │
+│  │ Analysis 1  │       │→ │       │ Analysis 2  │        │
+│  │ Mar 15, 2024│       │  │       │ Apr 22, 2024│        │
+│  │             │       └──┘       │             │        │
+│  │ Curl Type   │                  │ Curl Type   │        │
+│  │ Description │                  │ Description │        │
+│  └─────────────┘                  └─────────────┘        │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│                    Metric Comparison                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Health Score     80%      ↑ 5%      85%                   │
+│  Hydration        75%      ↑ 3%      78%                   │
+│  Elasticity       70%      ↓ 2%      68%                   │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│  Overall Progress:                                          │
+│  Great progress! Your health improved by 5%, hydration     │
+│  improved by 3%.                                            │
+└─────────────────────────────────────────────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    BACKWARD COMPATIBILITY LAYER                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Global Functions → MyavanaTimeline.Comparison Methods
+
+window.openCompareModal()        → MyavanaTimeline.Comparison.open()
+window.closeCompareModal()       → MyavanaTimeline.Comparison.close()
+window.generateComparison()      → MyavanaTimeline.Comparison.generate()
+window.extractAnalysisData()     → MyavanaTimeline.Comparison.extractAnalysisData()
+window.displayComparison()       → MyavanaTimeline.Comparison.displayComparison()
+window.calculateDiff()           → MyavanaTimeline.Comparison.calculateDiff()
+window.generateMetricRow()       → MyavanaTimeline.Comparison.generateMetricRow()
+window.generateInsight()         → MyavanaTimeline.Comparison.generateInsight()
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         ERROR HANDLING FLOW                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+open()
+├── Modal not found? → console.error + return
+├── Dropdowns not found? → console.error + return
+└── Success → Log analyses count
+
+generate()
+├── Missing dropdowns? → return
+├── No selections? → alert "Please select two analyses"
+├── Same selection? → alert "Please select two different analyses"
+├── Missing data? → alert "Error loading analysis data"
+└── Success → Display comparison
+
+extractAnalysisData()
+├── Missing metrics? → Default to '--'
+└── Success → Return data object
+
+displayComparison()
+└── No results div? → return
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       MYAVANA BRAND INTEGRATION                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+CSS Variables Used:
+├── --myavana-onyx          (Primary text, headers)
+├── --myavana-coral         (Positive improvements, accents)
+├── --myavana-blueberry     (Secondary context, negative changes)
+└── --myavana-stone         (Background sections)
+
+Typography:
+├── 'Archivo Black'         (Headings, emphasis)
+└── 'Archivo'              (Body text, metrics)
+
+Visual Indicators:
+├── ↑ (Improvement)         → Coral color
+├── ↓ (Decrease)            → Blueberry color
+└── → (No change)           → Gray color
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          MODULE STATISTICS                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+File Size:           ~16KB
+Total Lines:         416
+Public Methods:      8
+Event Listeners:     3
+Dependencies:        jQuery, MYAVANA CSS
+Backward Compat:     8 global functions
+
+Performance:
+├── DOM Queries:     Optimized (querySelectorAll, getElementById)
+├── Memory:          Minimal (stores only references)
+└── Rendering:       Template strings (fast)
+
+
+╔════════════════════════════════════════════════════════════════════��══════════╗
+║                              MODULE COMPLETE                                  ║
+║                     Ready for Integration & Testing                           ║
+╚═══════════════════════════════════════════════════════════════════════════════╝

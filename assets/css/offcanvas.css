@@ -1,0 +1,141 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+:root {
+--onyx: #222323;
+--stone: #f5f5f7;
+--white: #ffffff;
+--sand: #eeece1;
+--coral: #e7a690;
+--light-coral: #fce5d7;
+--blueberry: #4a4d68;
+--transition: all 0.3s ease-in-out;
+--bg-gradient-one: linear-gradient(130deg, var(--sand), #fff 33%, var(--sand));
+--bg-boxshadow-one: rgba(0, 0, 0, 0.1) 0 4px 30px,
+    rgba(60, 64, 67, 0.1) 0 1px 8px 0,
+    rgba(60, 64, 67, 0.1) 0 1px 1px 0,
+    rgba(187, 18, 199, 0.15) 1px 1px 200px 0px,
+    rgba(0, 98, 178, 0.15) -1px -1px 200px 0px;
+}
+
+
+@media (max-width: 1024px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .sidebar {
+        order: -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .calendar {
+        gap: 4px;
+    }
+    
+    .day {
+        min-height: 60px;
+        padding: 4px 2px;
+    }
+    
+    .day-number {
+        font-size: 0.8em;
+    }
+    
+    .entry-pill {
+        width: 6px;
+        height: 6px;
+    }
+}
+.offcanvas-container {
+    position: relative;
+}
+
+.offcanvas-toggle-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: transform 0.2s ease;
+}
+
+.offcanvas-toggle-btn:hover {
+    transform: translateY(-2px);
+}
+
+.offcanvas {
+    position: fixed;
+    top: 0;
+    right: -50%;
+    width: 50%;
+    height: 100%;
+    background: #fff;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+    transition: right 0.3s ease;
+    z-index: 10000000000000000000000000000000000000000000000000000000000;
+    display: flex;
+    flex-direction: column;
+}
+
+.offcanvas-open {
+    right: 0;
+}
+
+.offcanvas-header {
+    padding: 20px;
+    background: var(--onyx);
+    color: var(--light-coral);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.offcanvas-header h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.offcanvas-close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.offcanvas-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--light-coral);
+    color: var(--onyx);
+    padding: 15px 25px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    z-index: 2000;
+    font-weight: bold;
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+}
+
+.notification-error {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+}
+
+.notification-show {
+    transform: translateX(0);
+}
+

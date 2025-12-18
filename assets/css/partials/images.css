@@ -1,0 +1,91 @@
+/* Entry primary image and full-screen overlay styles */
+.view-primary-image-hjn {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.75rem 1rem 1rem 1rem;
+}
+
+.primary-image-button-hjn {
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    display: inline-block;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.primary-image-hjn {
+    display: block;
+    width: 100%;
+    max-width: 420px;
+    height: auto;
+    object-fit: cover;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.primary-image-button-hjn:focus .primary-image-hjn,
+.primary-image-button-hjn:hover .primary-image-hjn {
+    transform: scale(1.02);
+    box-shadow: var(--shadow-lg);
+}
+
+.entry-image-overlay-hjn {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.85);
+    z-index: 99999;
+    padding: 2rem;
+}
+
+.entry-image-overlay-hjn .entry-image-overlay-inner-hjn {
+    position: relative;
+    max-width: 1200px;
+    width: 100%;
+    max-height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.entry-image-overlay-hjn img#entryImageOverlayImg {
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+}
+
+.entry-image-overlay-close-hjn {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    background: #fff;
+    color: #111;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+}
+
+/* Responsive tweaks */
+@media (min-width: 1024px) {
+    .primary-image-hjn { max-width: 520px; }
+    .view-primary-image-hjn { padding-bottom: 1.25rem; }
+}
+
+@media (max-width: 480px) {
+    .primary-image-hjn { max-width: 320px; border-radius: 8px; }
+    .entry-image-overlay-hjn { padding: 1rem; }
+    .entry-image-overlay-close-hjn { top: 8px; right: 8px; }
+}

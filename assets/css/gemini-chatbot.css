@@ -1,0 +1,829 @@
+/* MYAVANA Gemini Live Chatbot - Enhanced Styles */
+:root {
+    --myavana-onyx: #222323;
+    --myavana-stone: #f5f5f7;
+    --myavana-white: #ffffff;
+    --myavana-sand: #eeece1;
+    --myavana-coral: #e7a690;
+    --myavana-light-coral: #fce5d7;
+    --myavana-blueberry: #4a4d68;
+    --myavana-slate: #69758a;
+    --myavana-sage: #a5b2a1;
+}
+
+/* Enhanced Voice AI Animation */
+.myavana-voice-control-ai-input:checked + .inner-card {
+    background: linear-gradient(45deg, rgba(231, 166, 144, 0.1), rgba(165, 178, 161, 0.1));
+    border: 2px solid var(--myavana-coral);
+    transform: scale(1.02);
+}
+
+.myavana-voice-control-ai-input:checked ~ .inner-card .spectrum b {
+    animation: myavana-voice-pulse 0.5s infinite alternate;
+}
+
+@keyframes myavana-voice-pulse {
+    0% {
+        height: 8px;
+        background: var(--myavana-sage);
+    }
+    50% {
+        height: 20px;
+        background: var(--myavana-coral);
+    }
+    100% {
+        height: 35px;
+        background: var(--myavana-coral);
+    }
+}
+
+/* Enhanced Live Session Indicator */
+.myavana-live-session-indicator {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: var(--myavana-coral);
+    color: var(--myavana-white);
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.myavana-live-session-indicator.active {
+    opacity: 1;
+}
+
+.myavana-live-session-indicator::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--myavana-white);
+    border-radius: 50%;
+    animation: myavana-live-pulse 2s infinite;
+}
+
+@keyframes myavana-live-pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(0.8);
+    }
+}
+
+/* Enhanced Chat Messages */
+.myavana-chat-message {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.myavana-chat-message.user {
+    flex-direction: row-reverse;
+}
+
+.myavana-chat-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--myavana-coral);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--myavana-white);
+    font-weight: 600;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+
+.myavana-chat-avatar.assistant {
+    background: var(--myavana-sage);
+}
+
+.myavana-chat-bubble {
+    max-width: 70%;
+    padding: 0.875rem 1rem;
+    border-radius: 18px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+.myavana-chat-message.user .myavana-chat-bubble {
+    background: var(--myavana-coral);
+    color: var(--myavana-white);
+    border-bottom-right-radius: 4px;
+}
+
+.myavana-chat-message.assistant .myavana-chat-bubble {
+    background: var(--myavana-cream);
+    color: var(--myavana-onyx);
+    border-bottom-left-radius: 4px;
+    border: 1px solid rgba(165, 178, 161, 0.2);
+}
+
+/* Enhanced Hair Analysis Results */
+.hair-analysis-results {
+    background: var(--myavana-white);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(34, 35, 35, 0.1);
+    margin-top: 1rem;
+}
+
+.hair-analysis-results h3 {
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+.analysis-placeholder {
+    color: var(--myavana-slate);
+    font-style: italic;
+    text-align: center;
+    padding: 2rem;
+}
+
+.hair-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.metric {
+    text-align: center;
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    color: var(--myavana-slate);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.metric-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--myavana-cream);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.metric-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--myavana-coral), var(--myavana-sage));
+    border-radius: 4px;
+    transition: width 1s ease-out;
+    position: relative;
+}
+
+.metric-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--myavana-white);
+    border-radius: 2px;
+}
+
+/* Enhanced Video Controls */
+.video-controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(238, 236, 225, 0.5);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.control-btn {
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 50%;
+    background: var(--myavana-white);
+    color: var(--myavana-onyx);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(34, 35, 35, 0.15);
+}
+
+.control-btn:hover {
+    background: var(--myavana-coral);
+    color: var(--myavana-white);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(231, 166, 144, 0.3);
+}
+
+.control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Enhanced Mode Toggle */
+.mode-toggle {
+    position: relative;
+    background: var(--myavana-stone);
+    color: var(--myavana-white);
+    border: none;
+    padding: 0.75rem 1.25rem;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.mode-toggle:hover {
+    background: var(--myavana-coral);
+    transform: translateY(-2px);
+}
+
+.mode-toggle[data-mode="video"] {
+    background: var(--myavana-sage);
+}
+
+.button-overlay {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.mode-toggle:hover .button-overlay {
+    left: 100%;
+}
+
+/* Enhanced Volume Controls */
+.volume-control-container {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 8px 12px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.volume-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--myavana-onyx);
+    transition: color 0.3s ease;
+}
+
+.volume-button:hover {
+    color: var(--myavana-coral);
+}
+
+.new-volume-slider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.new-volume-slider input[type="range"] {
+    width: 80px;
+    height: 4px;
+    background: var(--myavana-cream);
+    border-radius: 2px;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.new-volume-slider input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--myavana-coral);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.new-volume-slider input[type="range"]::-webkit-slider-thumb:hover {
+    background: var(--myavana-sage);
+    transform: scale(1.1);
+}
+
+/* Enhanced Responsive Design */
+@media (max-width: 768px) {
+    .myavana-video-chatbot-container {
+        margin: 0;
+        border-radius: 0;
+    }
+    
+    .myavana-chatbot-header {
+        padding: 1rem;
+    }
+    
+    .controls {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .mode-toggle {
+        padding: 0.875rem 1.5rem;
+    }
+    
+    .hair-metrics {
+        grid-template-columns: 1fr;
+    }
+    
+    .myavana-chat-bubble {
+        max-width: 85%;
+    }
+}
+
+/* Loading States */
+.myavana-analyzing {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.myavana-analyzing::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--myavana-cream);
+    border-top: 3px solid var(--myavana-coral);
+    border-radius: 50%;
+    animation: myavana-spin 1s linear infinite;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+}
+
+@keyframes myavana-spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Real-time Status Indicators */
+.myavana-status-indicator {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--myavana-white);
+    border: 2px solid var(--myavana-coral);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--myavana-onyx);
+    box-shadow: 0 4px 15px rgba(34, 35, 35, 0.1);
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    z-index: 10000;
+}
+
+.myavana-status-indicator.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.myavana-status-indicator.success {
+    border-color: var(--myavana-sage);
+    color: var(--myavana-sage);
+}
+
+.myavana-status-indicator.error {
+    border-color: #e74c3c;
+    color: #e74c3c;
+}
+
+/* Enhanced Accessibility */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Focus States */
+.control-btn:focus,
+.mode-toggle:focus,
+.volume-button:focus {
+    outline: 2px solid var(--myavana-coral);
+    outline-offset: 2px;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    :root {
+        --myavana-onyx: #000000;
+        --myavana-white: #ffffff;
+        --myavana-coral: #cc6600;
+        --myavana-sage: #006600;
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ========================================
+   MYAVANA GEMINI LIVE API SPECIFIC STYLES
+   ======================================== */
+
+/* Live Mode Toggle Styles */
+.myavana-live-mode-toggle {
+    position: absolute;
+    top: 55px;
+    left: 10px;
+    z-index: 10;
+}
+
+.myavana-toggle-switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px 12px;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(34, 35, 35, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    user-select: none;
+}
+
+.myavana-toggle-switch:hover {
+    box-shadow: 0 4px 12px rgba(34, 35, 35, 0.15);
+    background: rgba(255, 255, 255, 1);
+}
+
+.myavana-toggle-switch input[type="checkbox"] {
+    position: relative;
+    width: 40px;
+    height: 20px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: var(--myavana-stone);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border: 1px solid var(--myavana-sand);
+}
+
+.myavana-toggle-switch input[type="checkbox"]:checked {
+    background: var(--myavana-coral);
+    border-color: var(--myavana-coral);
+}
+
+.myavana-toggle-switch input[type="checkbox"]::before {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: 16px;
+    height: 16px;
+    background: var(--myavana-white);
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 4px rgba(34, 35, 35, 0.2);
+}
+
+.myavana-toggle-switch input[type="checkbox"]:checked::before {
+    transform: translateX(20px);
+}
+
+.myavana-toggle-label {
+    font-family: 'Archivo', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--myavana-onyx);
+    white-space: nowrap;
+}
+
+/* Enhanced Live Session Indicator */
+.myavana-live-session-indicator.active::before {
+    animation: myavana-live-pulse-enhanced 1.5s infinite;
+}
+
+@keyframes myavana-live-pulse-enhanced {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.1);
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow: 0 0 0 8px rgba(255, 255, 255, 0);
+    }
+}
+
+/* Live Audio Visual Feedback */
+.myavana-voice-ai-grid-container.live-active {
+    border: 2px solid var(--myavana-coral);
+    box-shadow: 0 0 20px rgba(231, 166, 144, 0.3);
+    position: relative;
+    overflow: visible;
+}
+
+.myavana-voice-ai-grid-container.live-active::before {
+    content: 'LIVE AUDIO';
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--myavana-coral);
+    color: var(--myavana-white);
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 10px;
+    font-weight: 900;
+    padding: 4px 8px;
+    border-radius: 4px;
+    z-index: 10;
+    animation: myavana-live-badge-pulse 2s infinite;
+}
+
+@keyframes myavana-live-badge-pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: translateX(-50%) scale(1.05);
+    }
+}
+
+/* Connection Quality Indicator */
+.myavana-connection-quality {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.myavana-voice-ai-grid-container.live-active .myavana-connection-quality {
+    opacity: 1;
+}
+
+.myavana-connection-bar {
+    width: 3px;
+    height: 12px;
+    background: var(--myavana-stone);
+    border-radius: 1px;
+    transition: background-color 0.3s ease;
+}
+
+.myavana-connection-bar.active {
+    background: var(--myavana-coral);
+    animation: myavana-connection-pulse 1s infinite alternate;
+}
+
+@keyframes myavana-connection-pulse {
+    0% {
+        height: 8px;
+        opacity: 0.7;
+    }
+    100% {
+        height: 12px;
+        opacity: 1;
+    }
+}
+
+/* Enhanced Audio Spectrum for Live Mode */
+.myavana-voice-ai-grid-container.live-active .spectrum {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    margin: 15px 0;
+    height: 40px;
+}
+
+.myavana-voice-ai-grid-container.live-active .spectrum b {
+    display: block;
+    width: 4px;
+    height: 8px;
+    background: var(--myavana-coral);
+    border-radius: 2px;
+    animation: myavana-live-spectrum 0.8s infinite alternate;
+    animation-delay: calc(var(--index) * 0.1s);
+}
+
+@keyframes myavana-live-spectrum {
+    0% {
+        height: 8px;
+        background: var(--myavana-sage);
+        transform: scaleY(1);
+    }
+    50% {
+        height: 25px;
+        background: var(--myavana-coral);
+        transform: scaleY(1.2);
+    }
+    100% {
+        height: 35px;
+        background: var(--myavana-light-coral);
+        transform: scaleY(1);
+    }
+}
+
+/* Status Indicator Updates for Live API */
+.myavana-status-indicator.live {
+    background: var(--myavana-coral);
+    color: var(--myavana-white);
+    border-color: var(--myavana-coral);
+}
+
+.myavana-status-indicator.connecting {
+    background: var(--myavana-blueberry);
+    color: var(--myavana-white);
+    border-color: var(--myavana-blueberry);
+}
+
+.myavana-status-indicator.recording {
+    background: #e74c3c;
+    color: var(--myavana-white);
+    border-color: #e74c3c;
+    animation: myavana-recording-pulse 1s infinite;
+}
+
+@keyframes myavana-recording-pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: translateX(0) scale(1.02);
+    }
+}
+
+/* Enhanced Chat Messages for Live Mode */
+.myavana-chat-message.live-response {
+    opacity: 0;
+    animation: myavana-live-message-fade-in 0.5s ease-out forwards;
+}
+
+@keyframes myavana-live-message-fade-in {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.myavana-chat-message.assistant.live-response .myavana-chat-bubble {
+    border-left: 3px solid var(--myavana-coral);
+    position: relative;
+}
+
+.myavana-chat-message.assistant.live-response .myavana-chat-bubble::before {
+    content: '';
+    position: absolute;
+    left: -3px;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--myavana-coral);
+    animation: myavana-live-typing-indicator 1.5s infinite;
+}
+
+@keyframes myavana-live-typing-indicator {
+    0%, 100% {
+        opacity: 0.3;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* Responsive Design Updates for Live API Features */
+@media (max-width: 768px) {
+    .myavana-live-mode-toggle {
+        position: static;
+        margin: 10px 0;
+        display: flex;
+        justify-content: center;
+    }
+
+    .myavana-toggle-switch {
+        padding: 6px 10px;
+    }
+
+    .myavana-toggle-label {
+        font-size: 10px;
+    }
+
+    .myavana-voice-ai-grid-container.live-active::before {
+        font-size: 9px;
+        padding: 3px 6px;
+    }
+
+    .myavana-connection-quality {
+        top: 5px;
+        right: 5px;
+        gap: 1px;
+    }
+
+    .myavana-connection-bar {
+        width: 2px;
+        height: 10px;
+    }
+
+    .myavana-voice-ai-grid-container.live-active .spectrum {
+        height: 35px;
+        gap: 1px;
+    }
+
+    .myavana-voice-ai-grid-container.live-active .spectrum b {
+        width: 3px;
+    }
+}
+
+/* Dark Mode Support for Live Features */
+@media (prefers-color-scheme: dark) {
+    .myavana-toggle-switch {
+        background: rgba(34, 35, 35, 0.95);
+    }
+
+    .myavana-toggle-label {
+        color: var(--myavana-white);
+    }
+
+    .myavana-status-indicator {
+        background: var(--myavana-onyx);
+        color: var(--myavana-white);
+    }
+}
+
+/* Accessibility Enhancements for Live Features */
+.myavana-toggle-switch:focus-within {
+    outline: 2px solid var(--myavana-coral);
+    outline-offset: 2px;
+}
+
+.myavana-voice-ai-grid-container.live-active[aria-label] {
+    /* Screen reader accessibility */
+}
+
+/* Performance optimizations for animations in Live mode */
+.myavana-voice-ai-grid-container.live-active * {
+    will-change: transform, opacity;
+}
+
+.myavana-voice-ai-grid-container.live-active .spectrum b {
+    contain: layout style paint;
+}

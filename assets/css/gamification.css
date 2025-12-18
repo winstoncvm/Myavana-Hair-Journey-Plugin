@@ -1,0 +1,409 @@
+/**
+ * MYAVANA Gamification Styles
+ * Badge unlocks, streaks, check-in prompts, and visual rewards
+ * @version 2.3.5
+ */
+
+/* ============================================
+   GAMIFICATION STATS WIDGET
+   ============================================ */
+#myavana-gamification-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding: 20px;
+    background: var(--myavana-white, #fff);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(34, 35, 35, 0.1);
+}
+
+.gamification-stat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--myavana-stone, #f5f5f7);
+    border-radius: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gamification-stat:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(231, 166, 144, 0.2);
+}
+
+.stat-icon {
+    font-size: 32px;
+    line-height: 1;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-value {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 24px;
+    color: var(--myavana-coral, #e7a690);
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-family: 'Archivo', sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--myavana-onyx, #222323);
+    font-weight: 600;
+}
+
+/* ============================================
+   DAILY CHECK-IN PROMPT
+   ============================================ */
+.myavana-checkin-prompt {
+    position: fixed;
+    bottom: -500px;
+    right: 20px;
+    width: 380px;
+    max-width: calc(100vw - 40px);
+    background: var(--myavana-white, #fff);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    z-index: 99999;
+    transition: bottom 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.myavana-checkin-prompt.visible {
+    bottom: 20px;
+}
+
+.checkin-prompt-inner {
+    padding: 24px;
+    position: relative;
+}
+
+.checkin-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 32px;
+    color: var(--myavana-onyx, #222323);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+}
+
+.checkin-close:hover {
+    color: var(--myavana-coral, #e7a690);
+}
+
+.checkin-prompt-inner h3 {
+    margin: 0 0 8px 0;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 20px;
+    text-transform: uppercase;
+    color: var(--myavana-onyx, #222323);
+}
+
+.checkin-prompt-inner p {
+    margin: 0 0 20px 0;
+    font-family: 'Archivo', sans-serif;
+    font-size: 14px;
+    color: var(--myavana-blueberry, #4a4d68);
+}
+
+.checkin-mood-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.mood-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 12px;
+    background: var(--myavana-stone, #f5f5f7);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Archivo', sans-serif;
+}
+
+.mood-btn:hover {
+    border-color: var(--myavana-coral, #e7a690);
+    transform: scale(1.05);
+}
+
+.mood-btn:active {
+    transform: scale(0.95);
+}
+
+.mood-emoji {
+    font-size: 32px;
+    line-height: 1;
+}
+
+.mood-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--myavana-onyx, #222323);
+}
+
+.checkin-streak-info {
+    text-align: center;
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    color: var(--myavana-blueberry, #4a4d68);
+    padding: 12px;
+    background: var(--myavana-light-coral, #fce5d7);
+    border-radius: 8px;
+}
+
+.checkin-streak-info strong {
+    color: var(--myavana-coral, #e7a690);
+}
+
+/* ============================================
+   BADGE UNLOCK MODAL
+   ============================================ */
+.myavana-badge-unlock {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(34, 35, 35, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100000;
+    animation: fadeIn 0.3s ease;
+}
+
+.badge-unlock-inner {
+    background: var(--myavana-white, #fff);
+    border-radius: 20px;
+    padding: 48px 40px;
+    text-align: center;
+    max-width: 420px;
+    position: relative;
+    animation: scaleIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.badge-glow {
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    right: -20px;
+    bottom: -20px;
+    background: radial-gradient(circle, rgba(231, 166, 144, 0.3) 0%, transparent 70%);
+    border-radius: 20px;
+    animation: pulse 2s infinite;
+}
+
+.badge-icon {
+    font-size: 80px;
+    line-height: 1;
+    margin-bottom: 24px;
+    animation: bounce 0.6s ease;
+    filter: drop-shadow(0 4px 12px rgba(231, 166, 144, 0.5));
+}
+
+.badge-icon.rare {
+    filter: drop-shadow(0 4px 12px rgba(66, 165, 245, 0.5));
+}
+
+.badge-icon.epic {
+    filter: drop-shadow(0 4px 12px rgba(156, 39, 176, 0.5));
+}
+
+.badge-icon.legendary {
+    filter: drop-shadow(0 4px 12px rgba(255, 193, 7, 0.5));
+}
+
+.badge-unlock-inner h2 {
+    margin: 0 0 12px 0;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 24px;
+    text-transform: uppercase;
+    color: var(--myavana-coral, #e7a690);
+}
+
+.badge-unlock-inner h3 {
+    margin: 0 0 12px 0;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 28px;
+    color: var(--myavana-onyx, #222323);
+}
+
+.badge-unlock-inner p {
+    margin: 0 0 20px 0;
+    font-family: 'Archivo', sans-serif;
+    font-size: 15px;
+    color: var(--myavana-blueberry, #4a4d68);
+    line-height: 1.6;
+}
+
+.badge-reward {
+    display: inline-block;
+    padding: 8px 20px;
+    background: var(--myavana-light-coral, #fce5d7);
+    color: var(--myavana-coral, #e7a690);
+    font-family: 'Archivo', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    border-radius: 24px;
+    margin-bottom: 24px;
+}
+
+.badge-close-btn {
+    padding: 14px 32px;
+    background: var(--myavana-coral, #e7a690);
+    color: var(--myavana-white, #fff);
+    border: none;
+    border-radius: 8px;
+    font-family: 'Archivo', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.badge-close-btn:hover {
+    background: #d4956f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(231, 166, 144, 0.4);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.05); }
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* ============================================
+   LOADING STATES
+   ============================================ */
+.gamification-loading {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 16px;
+    border: 4px solid var(--myavana-stone, #f5f5f7);
+    border-top-color: var(--myavana-coral, #e7a690);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.gamification-loading p {
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    color: var(--myavana-blueberry, #4a4d68);
+    margin: 0;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Sidebar Check-In Button */
+.sidebar-checkin-btn {
+    width: 100%;
+    padding: 12px 20px;
+    margin-top: 16px;
+    background: var(--myavana-coral, #e7a690);
+    color: var(--myavana-white, #fff);
+    border: none;
+    border-radius: 8px;
+    font-family: 'Archivo', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sidebar-checkin-btn:hover {
+    background: #d4956f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(231, 166, 144, 0.4);
+}
+
+.sidebar-checkin-btn:disabled {
+    background: var(--myavana-stone, #f5f5f7);
+    color: var(--myavana-blueberry, #4a4d68);
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ============================================
+   MOBILE RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+    #myavana-gamification-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .myavana-checkin-prompt {
+        right: 10px;
+        left: 10px;
+        width: auto;
+    }
+
+    .myavana-checkin-prompt.visible {
+        bottom: 10px;
+    }
+
+    .badge-unlock-inner {
+        padding: 32px 24px;
+        max-width: calc(100vw - 40px);
+    }
+
+    .badge-icon {
+        font-size: 60px;
+    }
+}

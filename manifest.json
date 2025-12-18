@@ -1,0 +1,144 @@
+{
+  "name": "MYAVANA Hair Journey",
+  "short_name": "MYAVANA",
+  "description": "Your personal hair care journey with AI-powered insights, virtual try-on, and community support.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#e7a690",
+  "background_color": "#ffffff",
+  "lang": "en-US",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "assets/images/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/images/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/images/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/images/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/images/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/images/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/images/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/images/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Hair Diary",
+      "short_name": "Diary",
+      "description": "Add a new hair journal entry",
+      "url": "/#diary",
+      "icons": [
+        {
+          "src": "assets/images/shortcut-diary.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Timeline",
+      "short_name": "Timeline",
+      "description": "View your hair journey timeline",
+      "url": "/#timeline",
+      "icons": [
+        {
+          "src": "assets/images/shortcut-timeline.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "AI Analysis",
+      "short_name": "AI",
+      "description": "Get AI hair analysis and recommendations",
+      "url": "/#analysis",
+      "icons": [
+        {
+          "src": "assets/images/shortcut-ai.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "short_name": "Profile",
+      "description": "View and edit your hair profile",
+      "url": "/#profile",
+      "icons": [
+        {
+          "src": "assets/images/shortcut-profile.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "categories": ["lifestyle", "health", "beauty"],
+  "screenshots": [
+    {
+      "src": "assets/images/screenshot-desktop-1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Dashboard view showing hair journey analytics"
+    },
+    {
+      "src": "assets/images/screenshot-mobile-1.png",
+      "sizes": "360x640",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile timeline view with hair progress"
+    },
+    {
+      "src": "assets/images/screenshot-mobile-2.png",
+      "sizes": "360x640",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "AI hair analysis interface"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
+}

@@ -1,0 +1,122 @@
+/* Timeline Filter Controls */
+.timeline-filter-controls-hjn {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.timeline-search-bar-hjn {
+    flex: 1;
+    min-width: 250px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--myavana-white);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.timeline-search-bar-hjn:focus-within {
+    border-color: var(--myavana-coral);
+    box-shadow: 0 0 0 3px rgba(231, 166, 144, 0.1);
+}
+
+.timeline-search-bar-hjn svg {
+    color: var(--myavana-coral);
+    flex-shrink: 0;
+}
+
+.timeline-search-input-hjn {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    background: transparent;
+}
+
+.timeline-search-input-hjn::placeholder {
+    color: var(--text-secondary);
+}
+
+.timeline-filter-buttons-hjn {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.timeline-filter-btn-hjn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--myavana-white);
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.timeline-filter-btn-hjn svg {
+    flex-shrink: 0;
+}
+
+.timeline-filter-btn-hjn:hover {
+    border-color: var(--myavana-coral);
+    color: var(--text-primary);
+    background: var(--myavana-light-coral);
+}
+
+.timeline-filter-btn-hjn.active {
+    border-color: var(--myavana-coral);
+    background: var(--myavana-coral);
+    color: var(--myavana-white);
+}
+
+.timeline-filters-panel-hjn {
+    background: var(--myavana-white);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    animation: slideDown 0.3s ease;
+}
+
+/* Mobile responsive timeline filters */
+@media (max-width: 768px) {
+    .timeline-filter-controls-hjn {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .timeline-search-bar-hjn {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .timeline-filter-buttons-hjn {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .timeline-filter-btn-hjn {
+        flex: 1;
+        min-width: 80px;
+        justify-content: center;
+        padding: 0.625rem 0.875rem;
+        font-size: 0.8125rem;
+    }
+}

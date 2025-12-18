@@ -1,0 +1,77 @@
+/*
+ * Base styles and variables
+ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* MYAVANA Primary Color Palette - Luxury Edition */
+:root {
+    /* Primary Colors - Luxury Focus */
+    --myavana-onyx: #222323;
+    --myavana-white: #ffffff;
+    --myavana-light-coral: #fce5d7;
+
+    /* Secondary Colors - Sparingly Used */
+    --myavana-stone: #f5f5f7;
+    --myavana-sand: #eeece1;
+    --myavana-coral: #e7a690;
+    --myavana-blueberry: #4a4d68;
+
+    /* Utility */
+    --text-primary: #222323;
+    --text-secondary: #6b7280;
+    --border-color: #e5e7eb;
+    --grid-line-light: rgba(0, 0, 0, 0.03);
+    --grid-line-medium: rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 2px rgba(34, 35, 35, 0.05);
+    --shadow-md: 0 4px 6px rgba(34, 35, 35, 0.07);
+    --shadow-lg: 0 10px 15px rgba(34, 35, 35, 0.1);
+    --shadow-xl: 0 20px 25px rgba(34, 35, 35, 0.15);
+}
+
+/* Dark Mode Colors */
+[data-theme="dark"] {
+    /* Primary Colors - Dark Mode */
+    --myavana-onyx: #ffffff;
+    --myavana-white: #1a1a1a;
+    --myavana-light-coral: #fce5d7;
+
+    /* Secondary Colors - Dark Mode */
+    --myavana-stone: #262626;
+    --myavana-sand: #2a2a2a;
+    --myavana-coral: #e7a690;
+    --myavana-blueberry: #9ca3af;
+
+    /* Text Colors */
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+
+    /* Utility */
+    --border-color: #374151;
+    --grid-line-light: rgba(255, 255, 255, 0.05);
+    --grid-line-medium: rgba(255, 255, 255, 0.07);
+    --shadow-sm: 0 1px 2px rgba(255, 255, 255, 0.05);
+    --shadow-md: 0 4px 6px rgba(255, 255, 255, 0.07);
+    --shadow-lg: 0 10px 15px rgba(255, 255, 255, 0.1);
+    --shadow-xl: 0 20px 25px rgba(255, 255, 255, 0.15);
+}
+
+body {
+    background: var(--myavana-stone);
+    min-height: 100vh;
+    transition: background 0.3s ease;
+}
+
+.hair-journey-container {
+    max-width: 100%;
+    margin: 0 auto;
+    background: var(--myavana-white);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s ease;
+}

@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Myavana Hair Journey Timeline</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/css/splide.min.css">
+    <link rel="stylesheet" href="../../assets/css/new-timeline.css">
+    <link rel="stylesheet" href="../../assets/css/offcanvas.css">
+</head>
+<body>
+    <div class="hair-journey-container" data-theme="light">
+        <!-- Dashboard Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="welcome-section">
+                    <div class="welcome-message">
+                        <h1 class="welcome-title">
+                            Good Morning, Sarah! ✨
+                        </h1>
+                        <p class="welcome-subtitle">You're making amazing progress on your hair journey</p>
+                    </div>
+                    
+                    <div class="dashboard-controls">
+                        <div class="view-controls">
+                            <button type="button" class="view-btn active" data-view="timeline" title="Hair Journey Timeline">
+                                <svg viewBox="0 0 24 24"><path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12Z"/></svg>
+                                <span class="view-label">Timeline</span>
+                            </button>
+                            <button type="button" class="view-btn" data-view="calendar" title="Calendar View">
+                                <svg viewBox="0 0 24 24"><path d="M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z"/></svg>
+                                <span class="view-label">Calendar</span>
+                            </button>
+                            <button type="button" class="view-btn" data-view="slider" title="Slider View">
+                                <svg viewBox="0 0 24 24"><path d="M22,16V4A2,2 0 0,0 20,2H8A2,2 0 0,0 6,4V16A2,2 0 0,0 8,18H20A2,2 0 0,0 22,16M11,12L13.03,14.71L16,11L20,16H8M2,6V20A2,2 0 0,0 4,22H18V20H4V6"/></svg>
+                                <span class="view-label">Slider</span>
+                            </button>
+                            <button type="button" class="view-btn" data-view="list" title="List View">
+                                <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+                                <span class="view-label">List</span>
+                            </button>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button type="button" class="action-btn action-btn-secondary" onclick="openOffcanvas('goal')">
+                                + Goal
+                            </button>
+                            <button type="button" class="action-btn action-btn-secondary" onclick="openOffcanvas('routine')">
+                                + Routine
+                            </button>
+                            <button type="button" class="action-btn action-btn-primary" onclick="openOffcanvas('entry')">
+                                + Entry
+                            </button>
+                        </div>
+
+                        <button type="button" class="theme-toggle" id="themeToggle" title="Toggle dark mode">
+                            <svg class="sun-icon" viewBox="0 0 24 24">
+                                <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
+                            </svg>
+                            <svg class="moon-icon" viewBox="0 0 24 24" style="display: none;">
+                                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="streak-section">
+                    <div class="streak-card">
+                        <div class="streak-flame">🔥</div>
+                        <div class="streak-content">
+                            <div class="streak-number">7</div>
+                            <div class="streak-label">Day Streak</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Collapsible Sidebar -->
+            <div class="sidebar" id="sidebar">
+                <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+                    ‹
+                </button>
+
+                <!-- Mobile Sidebar Header (Collapsible) -->
+                <div class="sidebar-mobile-header" onclick="toggleMobileSidebar()">
+                    <div class="sidebar-mobile-title">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z"/>
+                        </svg>
+                        <span>My Hair Journey Dashboard</span>
+                    </div>
+                    <div class="sidebar-mobile-toggle-icon" id="mobileSidebarIcon">
+                        <svg viewBox="0 0 24 24" width="24" height="24">
+                            <path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="sidebar-content" id="sidebarContent">
+                    <!-- Sidebar Tab Navigation -->
+                    <div class="sidebar-tabs">
+                        <button class="sidebar-tab active" data-tab="insights" onclick="switchSidebarTab('insights')">
+                            <svg viewBox="0 0 24 24" width="18" height="18">
+                                <path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z"/>
+                            </svg>
+                            <span>Insights</span>
+                        </button>
+                        <button class="sidebar-tab" data-tab="profile" onclick="switchSidebarTab('profile')">
+                            <svg viewBox="0 0 24 24" width="18" height="18">
+                                <path fill="currentColor" d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
+                            </svg>
+                            <span>Profile</span>
+                        </button>
+                        <button class="sidebar-tab" data-tab="analytics" onclick="switchSidebarTab('analytics')">
+                            <svg viewBox="0 0 24 24" width="18" height="18">
+                                <path fill="currentColor" d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z"/>
+                            </svg>
+                            <span>Analytics</span>
+                        </button>
+                    </div>
+
+                    <!-- AI Insights Tab -->
+                    <div class="sidebar-tab-content active" id="insightsTab">
+                        <div class="ai-insights">
+                            <h3>✨ AI Insights</h3>
+                            <p>Your hair health has improved 23% this month! Keep up with your protein treatments for best results.</p>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="label">Hair Health</div>
+                                <div class="value">87%</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="label">Goals</div>
+                                <div class="value">4/6</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="label">Treatments</div>
+                                <div class="value">12</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="label">Growth</div>
+                                <div class="value">2.5"</div>
+                            </div>
+                        </div>
+
+                        <div class="goals-section">
+                            <h3>Active Hair Goals</h3>
+
+                            <div class="goal-item active">
+                                <div class="goal-header">
+                                    <div class="goal-title">Grow 6 inches</div>
+                                    <div class="goal-badge">75%</div>
+                                </div>
+                                <div class="goal-date">Jan 15 - Oct 15, 2025</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 75%"></div>
+                                </div>
+                            </div>
+
+                            <div class="goal-item">
+                                <div class="goal-header">
+                                    <div class="goal-title">Reduce Breakage</div>
+                                    <div class="goal-badge">60%</div>
+                                </div>
+                                <div class="goal-date">Mar 1 - Dec 1, 2025</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 60%"></div>
+                                </div>
+                            </div>
+
+                            <div class="goal-item">
+                                <div class="goal-header">
+                                    <div class="goal-title">Moisture Retention</div>
+                                    <div class="goal-badge">85%</div>
+                                </div>
+                                <div class="goal-date">Feb 1 - Nov 1, 2025</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 85%"></div>
+                                </div>
+                            </div>
+
+                            <div class="goal-item">
+                                <div class="goal-header">
+                                    <div class="goal-title">Try New Styles</div>
+                                    <div class="goal-badge">40%</div>
+                                </div>
+                                <div class="goal-date">Apr 1 - Dec 31, 2025</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 40%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Tab -->
+                    <div class="sidebar-tab-content" id="profileTab">
+                        <div class="profile-header">
+                            <div class="profile-avatar">
+                                <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23e7a690'/><circle cx='50' cy='40' r='15' fill='%23fff'/><path d='M 25 80 Q 50 65 75 80' fill='%23fff'/></svg>" alt="Sarah's profile">
+                            </div>
+                            <div class="profile-info">
+                                <h3>Sarah Johnson</h3>
+                                <p>Hair Journey: 287 days</p>
+                            </div>
+                        </div>
+
+                        <div class="profile-details">
+                            <div class="detail-item">
+                                <div class="detail-label">Hair Type</div>
+                                <div class="detail-value">4C Coily</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Porosity</div>
+                                <div class="detail-value">High</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Current Length</div>
+                                <div class="detail-value">Shoulder Length</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Goal Length</div>
+                                <div class="detail-value">Bra Strap</div>
+                            </div>
+                        </div>
+
+                        <div class="profile-section">
+                            <h4>Main Hair Goals</h4>
+                            <div class="profile-goals">
+                                <span class="profile-goal-tag">Length Retention</span>
+                                <span class="profile-goal-tag">Moisture Balance</span>
+                                <span class="profile-goal-tag">Reduce Breakage</span>
+                            </div>
+                        </div>
+
+                        <div class="profile-section">
+                            <h4>Current Regimen</h4>
+                            <div class="regimen-item">
+                                <span class="regimen-icon">🚿</span>
+                                <span>Wash Day: Sundays</span>
+                            </div>
+                            <div class="regimen-item">
+                                <span class="regimen-icon">💧</span>
+                                <span>Deep Condition: Weekly</span>
+                            </div>
+                            <div class="regimen-item">
+                                <span class="regimen-icon">✨</span>
+                                <span>Protein Treatment: Monthly</span>
+                            </div>
+                        </div>
+
+                        <button class="profile-edit-btn" onclick="editProfile()">
+                            Edit Profile
+                        </button>
+                    </div>
+
+                    <!-- Analytics Tab -->
+                    <div class="sidebar-tab-content" id="analyticsTab">
+                        <div class="analytics-header">
+                            <h3>Progress Analytics</h3>
+                            <select class="analytics-period">
+                                <option>Last 30 Days</option>
+                                <option>Last 90 Days</option>
+                                <option>Last Year</option>
+                                <option>All Time</option>
+                            </select>
+                        </div>
+
+                        <div class="analytics-summary">
+                            <div class="summary-card">
+                                <div class="summary-icon">📸</div>
+                                <div class="summary-data">
+                                    <div class="summary-value">24</div>
+                                    <div class="summary-label">Entries</div>
+                                </div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="summary-icon">💆</div>
+                                <div class="summary-data">
+                                    <div class="summary-value">12</div>
+                                    <div class="summary-label">Treatments</div>
+                                </div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="summary-icon">📈</div>
+                                <div class="summary-data">
+                                    <div class="summary-value">+23%</div>
+                                    <div class="summary-label">Health</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="analytics-chart">
+                            <h4>Hair Health Trend</h4>
+                            <div class="mini-chart">
+                                <div class="chart-bar" style="height: 60%"></div>
+                                <div class="chart-bar" style="height: 65%"></div>
+                                <div class="chart-bar" style="height: 70%"></div>
+                                <div class="chart-bar" style="height: 68%"></div>
+                                <div class="chart-bar" style="height: 75%"></div>
+                                <div class="chart-bar" style="height: 80%"></div>
+                                <div class="chart-bar" style="height: 87%"></div>
+                            </div>
+                            <div class="chart-labels">
+                                <span>Apr</span>
+                                <span>May</span>
+                                <span>Jun</span>
+                                <span>Jul</span>
+                                <span>Aug</span>
+                                <span>Sep</span>
+                                <span>Oct</span>
+                            </div>
+                        </div>
+
+                        <div class="analytics-insights">
+                            <h4>Key Insights</h4>
+                            <div class="insight-item positive">
+                                <span class="insight-icon">✅</span>
+                                <span>Consistent moisture routine shows best results</span>
+                            </div>
+                            <div class="insight-item positive">
+                                <span class="insight-icon">✅</span>
+                                <span>23% improvement in hair health since July</span>
+                            </div>
+                            <div class="insight-item neutral">
+                                <span class="insight-icon">💡</span>
+                                <span>Try protective styling for better retention</span>
+                            </div>
+                        </div>
+
+                        <div class="analytics-milestones">
+                            <h4>Recent Milestones</h4>
+                            <div class="milestone-item">
+                                <span class="milestone-badge">🏆</span>
+                                <div class="milestone-text">
+                                    <strong>7-Day Streak</strong>
+                                    <small>Logged entries daily</small>
+                                </div>
+                            </div>
+                            <div class="milestone-item">
+                                <span class="milestone-badge">🎯</span>
+                                <div class="milestone-text">
+                                    <strong>Goal 75% Complete</strong>
+                                    <small>Grow 6 inches</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> 
+
+            <div class="timeline-area">
+                <div class="timeline-controls">
+                    <div class="view-tabs">
+                        <button class="tab active" onclick="switchView('timeline')">Timeline</button>
+                        <button class="tab" onclick="switchView('calendar')">Calendar</button>
+                        <button class="tab" onclick="switchView('slider')">Slider</button>
+                        <button class="tab" onclick="switchView('list')">List</button>
+                    </div>
+                    <div class="timeline-filters">
+                        <select class="filter-btn">
+                            <option>All Events</option>
+                            <option>Goals</option>
+                            <option>Entries</option>
+                            <option>Routines</option>
+                        </select>
+                        <button class="filter-btn">🔍 Search</button>
+                    </div>
+                </div>
+
+                <!-- Timeline View -->
+                <div id="timelineView" class="view-content active">
+                    <div class="timeline-wrapper">
+                        <div class="timeline-line"></div>
+
+                        <div class="timeline-month">
+                            <div class="month-label">October 2025</div>
+
+                            <div class="timeline-item left">
+                                <div class="timeline-content">
+                                    <div class="timeline-card">
+                                        <div class="card-header">
+                                            <div class="card-type">🎉 Milestone</div>
+                                            <div class="card-date">Oct 14, 2025</div>
+                                        </div>
+                                        <div class="card-title">4.5 Inches of Growth!</div>
+                                        <div class="card-description">
+                                            Congratulations! You've achieved significant growth. Your consistent protein treatments are paying off!
+                                        </div>
+                                        <div class="card-tags">
+                                            <span class="tag">Growth</span>
+                                            <span class="tag">Health Improved</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="timeline-dot"></div>
+                            </div>
+
+                            <div class="timeline-item right">
+                                <div class="timeline-content">
+                                    <div class="timeline-card">
+                                        <div class="card-header">
+                                            <div class="card-type">🔄 Daily Routine</div>
+                                            <div class="card-date">Every Morning</div>
+                                        </div>
+                                        <div class="card-title">Morning Moisturizing</div>
+                                        <div class="card-description">
+                                            Apply leave-in conditioner and seal with oil. Helps maintain moisture throughout the day.
+                                        </div>
+                                        <div class="card-tags">
+                                            <span class="tag">Daily</span>
+                                            <span class="tag">Morning</span>
+                                            <span class="tag">Moisturize</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="timeline-dot"></div>
+                            </div>
+
+                            <div class="timeline-item left">
+                                <div class="timeline-content">
+                                    <div class="timeline-card">
+                                        <div class="card-header">
+                                            <div class="card-type">💆 Treatment</div>
+                                            <div class="card-date">Oct 8, 2025</div>
+                                        </div>
+                                        <div class="card-title">Deep Conditioning Treatment</div>
+                                        <div class="card-description">
+                                            Applied Shea Moisture Manuka Honey mask for 30 minutes with heat. Hair feels softer and more manageable.
+                                        </div>
+                                        <div class="card-tags">
+                                            <span class="tag">Moisture</span>
+                                            <span class="tag">Heat Treatment</span>
+                                            <span class="tag">30 min</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="timeline-dot"></div>
+                            </div>
+                        </div>
+
+                        <div class="timeline-month">
+                            <div class="month-label">September 2025</div>
+
+                            <div class="timeline-item left">
+                                <div class="timeline-content">
+                                    <div class="timeline-card">
+                                        <div class="card-header">
+                                            <div class="card-type">🎯 Hair Goal</div>
+                                            <div class="card-date">Sep 1 - Dec 31, 2025</div>
+                                        </div>
+                                        <div class="card-title">Achieve Shoulder Length</div>
+                                        <div class="card-description">
+                                            Target length: Shoulder length by end of year. Current progress: 75% complete.
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 75%"></div>
+                                        </div>
+                                        <div class="card-tags">
+                                            <span class="tag">Length Goal</span>
+                                            <span class="tag">In Progress</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="timeline-dot"></div>
+                            </div>
+
+                            <div class="timeline-item right">
+                                <div class="timeline-content">
+                                    <div class="timeline-card">
+                                        <div class="card-header">
+                                            <div class="card-type">✂️ Salon Visit</div>
+                                            <div class="card-date">Sep 15, 2025</div>
+                                        </div>
+                                        <div class="card-title">Trim & Protein Treatment</div>
+                                        <div class="card-description">
+                                            Trimmed 0.5 inches of split ends. Received Aphogee protein treatment. Hair feels stronger!
+                                        </div>
+                                        <div class="card-tags">
+                                            <span class="tag">Trim</span>
+                                            <span class="tag">Protein</span>
+                                            <span class="tag">Salon</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="timeline-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar View -->
+                <div id="calendarView" class="view-content calendar-view">
+                    <div class="calendar-header">
+                        <h2 class="calendar-title">Calendar Timeline</h2>
+                        <p class="calendar-description">Detailed, visual representation of your hair journey with goals, entries, and routines.</p>
+                    </div>
+
+                    <div class="calendar-controls">
+                        <div class="view-toggles">
+                            <button class="view-toggle" onclick="setCalendarView('day')">Day</button>
+                            <button class="view-toggle" onclick="setCalendarView('week')">Week</button>
+                            <button class="view-toggle active" onclick="setCalendarView('month')">Month</button>
+                        </div>
+
+                        <div class="date-navigation">
+                            <button class="nav-arrow">‹</button>
+                            <span class="date-range" id="dateRange">1 Oct - 14 Oct</span>
+                            <button class="nav-arrow">›</button>
+                        </div>
+
+                        <div class="calendar-options">
+                            <div class="toggle-switch">
+                                <span>Show done</span>
+                                <div class="switch active" onclick="this.classList.toggle('active')"></div>
+                            </div>
+                            <button class="filter-btn">🔽 Sort</button>
+                            <button class="filter-btn">⚙️ Filter</button>
+                        </div>
+                    </div>
+
+                    <!-- Month View -->
+                    <div id="monthView" class="calendar-grid-container">
+                        <svg class="dependency-line" style="position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 5;">
+                            <g class="dependency-green">
+                                <path class="dependency-path" d="M 180 110 L 180 180 Q 180 195 195 195 L 250 195" />
+                                <circle class="dependency-node" cx="180" cy="110" r="4" />
+                                <circle class="dependency-node" cx="250" cy="195" r="4" />
+                            </g>
+                            <g class="dependency-blue">
+                                <path class="dependency-path" d="M 520 130 L 520 340 Q 520 355 505 355 L 450 355" />
+                                <circle class="dependency-node" cx="520" cy="130" r="4" />
+                                <circle class="dependency-node" cx="450" cy="355" r="4" />
+                            </g>
+                            <g class="dependency-red">
+                                <path class="dependency-path" d="M 350 580 L 420 580 Q 435 580 435 565 L 435 495" />
+                                <circle class="dependency-node" cx="350" cy="580" r="4" />
+                                <circle class="dependency-node" cx="435" cy="495" r="4" />
+                            </g>
+                        </svg>
+
+                        <div class="calendar-grid">
+                            <div class="time-column">
+                                <div class="time-slot">08:00</div>
+                                <div class="time-slot">09:00</div>
+                                <div class="time-slot">10:00</div>
+                                <div class="time-slot">11:00</div>
+                                <div class="time-slot">12:00</div>
+                                <div class="time-slot">13:00</div>
+                                <div class="time-slot">14:00</div>
+                                <div class="time-slot">15:00</div>
+                                <div class="time-slot">16:00</div>
+                                <div class="time-slot">17:00</div>
+                                <div class="time-slot">18:00</div>
+                                <div class="time-slot">19:00</div>
+                                <div class="time-slot">20:00</div>
+                            </div>
+
+                            <div class="calendar-main">
+                                <div class="month-header-row">
+                                    <div class="month-label-cal">October 2025</div>
+                                </div>
+                                
+                                <div class="days-header">
+                                    <div class="day-col">
+                                        <span class="day-label">T</span>
+                                        <span class="day-number">1</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">W</span>
+                                        <span class="day-number">2</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">T</span>
+                                        <span class="day-number">3</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">F</span>
+                                        <span class="day-number">4</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">S</span>
+                                        <span class="day-number">5</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">S</span>
+                                        <span class="day-number">6</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">M</span>
+                                        <span class="day-number">7</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">T</span>
+                                        <span class="day-number">8</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">W</span>
+                                        <span class="day-number">9</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">T</span>
+                                        <span class="day-number">10</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">F</span>
+                                        <span class="day-number">11</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">S</span>
+                                        <span class="day-number">12</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">S</span>
+                                        <span class="day-number">13</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">M</span>
+                                        <span class="day-number">14</span>
+                                    </div>
+                                </div>
+
+                                <div class="tasks-grid">
+                                    <!-- Goals -->
+                                    <div class="goal-bar-span" style="left: 0%; top: 80px; width: 50%; z-index: 2;">
+                                        <div class="goal-span-content">
+                                            <div class="goal-span-info">
+                                                <span class="task-icon">💧</span>
+                                                <div>
+                                                    <div class="goal-span-title">Moisture Retention Goal</div>
+                                                    <div class="goal-span-dates">Oct 1 - Oct 7 • 60% complete</div>
+                                                </div>
+                                            </div>
+                                            <div class="goal-progress-mini">
+                                                <div class="goal-progress-fill" style="width: 60%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="goal-bar-span highlighted" style="left: 35%; top: 100px; width: 45%; z-index: 3;">
+                                        <div class="goal-span-content">
+                                            <div class="goal-span-info">
+                                                <span class="task-icon">✨</span>
+                                                <div>
+                                                    <div class="goal-span-title">Protective Style Phase</div>
+                                                    <div class="goal-span-dates">Oct 5 - Oct 12 • 75% complete</div>
+                                                </div>
+                                            </div>
+                                            <div class="goal-progress-mini">
+                                                <div class="goal-progress-fill" style="width: 75%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Routines -->
+                                    <div class="routine-bar" style="left: 7%; top: 140px; width: 10%;">
+                                        <div class="routine-bar-content">
+                                            <div class="routine-bar-info">
+                                                <span class="task-icon" style="font-size: 14px;">☀️</span>
+                                                <div>
+                                                    <div class="routine-bar-title">Morning Moisturize</div>
+                                                    <div class="routine-bar-time">08:00 AM</div>
+                                                </div>
+                                            </div>
+                                            <div class="routine-frequency">Daily</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="routine-bar" style="left: 21%; top: 140px; width: 10%;">
+                                        <div class="routine-bar-content">
+                                            <div class="routine-bar-info">
+                                                <span class="task-icon" style="font-size: 14px;">☀️</span>
+                                                <div>
+                                                    <div class="routine-bar-title">Morning Moisturize</div>
+                                                    <div class="routine-bar-time">08:00 AM</div>
+                                                </div>
+                                            </div>
+                                            <div class="routine-frequency">Daily</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="routine-bar" style="left: 35%; top: 140px; width: 10%;">
+                                        <div class="routine-bar-content">
+                                            <div class="routine-bar-info">
+                                                <span class="task-icon" style="font-size: 14px;">☀️</span>
+                                                <div>
+                                                    <div class="routine-bar-title">Morning Moisturize</div>
+                                                    <div class="routine-bar-time">08:00 AM</div>
+                                                </div>
+                                            </div>
+                                            <div class="routine-frequency">Daily</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Journal Entries -->
+                                    <div class="journey-entry" style="left: 14.5%; top: 160px;">
+                                        <div class="entry-image" style="background: linear-gradient(135deg, rgba(231, 166, 144, 0.3), rgba(74, 77, 104, 0.3)), url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23e7a690%22 width=%22100%22 height=%22100%22/><circle cx=%2250%22 cy=%2250%22 r=%2230%22 fill=%22%23fce5d7%22/></svg>'); background-size: cover;"></div>
+                                        <div class="entry-content">
+                                            <div class="entry-time">09:30 AM</div>
+                                            <div class="entry-title">Deep Conditioning</div>
+                                            <div class="entry-subtitle">Shea Moisture Treatment</div>
+                                            <div class="entry-tags">
+                                                <span class="entry-tag">💧 Moisture</span>
+                                                <span class="entry-tag">30 min</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="journey-entry" style="left: 35.7%; top: 420px;">
+                                        <div class="entry-image" style="background: linear-gradient(135deg, rgba(238, 236, 225, 0.3), rgba(231, 166, 144, 0.3)), url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23eeece1%22 width=%22100%22 height=%22100%22/></svg>'); background-size: cover;"></div>
+                                        <div class="entry-content">
+                                            <div class="entry-time">02:15 PM</div>
+                                            <div class="entry-title">Scalp Massage</div>
+                                            <div class="entry-subtitle">Oil blend therapy</div>
+                                            <div class="entry-tags">
+                                                <span class="entry-tag">🌿 Growth</span>
+                                                <span class="entry-tag">15 min</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="journey-entry" style="left: 28.5%; top: 320px;">
+                                        <div class="entry-image" style="background: linear-gradient(135deg, rgba(252, 229, 215, 0.3), rgba(231, 166, 144, 0.3)), url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23fce5d7%22 width=%22100%22 height=%22100%22/></svg>'); background-size: cover;"></div>
+                                        <div class="entry-content">
+                                            <div class="entry-time">11:00 AM</div>
+                                            <div class="entry-title">Trim Session</div>
+                                            <div class="entry-subtitle">Split ends removed</div>
+                                            <div class="entry-tags">
+                                                <span class="entry-tag">✂️ Trim</span>
+                                                <span class="entry-tag">Salon</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="journey-entry" style="left: 64.2%; top: 240px;">
+                                        <div class="entry-image" style="background: linear-gradient(135deg, rgba(231, 166, 144, 0.3), rgba(74, 77, 104, 0.3)), url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%234a4d68%22 width=%22100%22 height=%22100%22/></svg>'); background-size: cover;"></div>
+                                        <div class="entry-content">
+                                            <div class="entry-time">10:30 AM</div>
+                                            <div class="entry-title">Wash Day Routine</div>
+                                            <div class="entry-subtitle">Full cleanse & condition</div>
+                                            <div class="entry-tags">
+                                                <span class="entry-tag">🚿 Wash</span>
+                                                <span class="entry-tag">90 min</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Week View -->
+                    <div id="weekView" class="calendar-grid-container week-view" style="display: none;">
+                        <div class="calendar-grid">
+                            <div class="time-column">
+                                <div class="time-slot">08:00</div>
+                                <div class="time-slot">10:00</div>
+                                <div class="time-slot">12:00</div>
+                                <div class="time-slot">14:00</div>
+                                <div class="time-slot">16:00</div>
+                                <div class="time-slot">18:00</div>
+                                <div class="time-slot">20:00</div>
+                            </div>
+
+                            <div class="calendar-main">
+                                <div class="month-header-row">
+                                    <div class="month-label-cal">October 7-13, 2025</div>
+                                </div>
+                                
+                                <div class="days-header">
+                                    <div class="day-col">
+                                        <span class="day-label">Mon</span>
+                                        <span class="day-number">7</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">Tue</span>
+                                        <span class="day-number">8</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">Wed</span>
+                                        <span class="day-number">9</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">Thu</span>
+                                        <span class="day-number">10</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">Fri</span>
+                                        <span class="day-number">11</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">Sat</span>
+                                        <span class="day-number">12</span>
+                                    </div>
+                                    <div class="day-col">
+                                        <span class="day-label">Sun</span>
+                                        <span class="day-number">13</span>
+                                    </div>
+                                </div>
+
+                                <div class="tasks-grid">
+                                    <div class="goal-bar-span highlighted" style="left: 0%; top: 80px; width: 100%; z-index: 2;">
+                                        <div class="goal-span-content">
+                                            <div class="goal-span-info">
+                                                <span class="task-icon">✨</span>
+                                                <div>
+                                                    <div class="goal-span-title">Protective Style Phase</div>
+                                                    <div class="goal-span-dates">Oct 5 - Oct 12 • 75% complete</div>
+                                                </div>
+                                            </div>
+                                            <div class="goal-progress-mini">
+                                                <div class="goal-progress-fill" style="width: 75%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="journey-entry" style="left: 14%; top: 140px;">
+                                        <div class="entry-image" style="background: linear-gradient(135deg, rgba(231, 166, 144, 0.3), rgba(74, 77, 104, 0.3)), url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23e7a690%22 width=%22100%22 height=%22100%22/></svg>'); background-size: cover;"></div>
+                                        <div class="entry-content">
+                                            <div class="entry-time">09:30 AM</div>
+                                            <div class="entry-title">Deep Conditioning</div>
+                                            <div class="entry-subtitle">Weekly treatment</div>
+                                            <div class="entry-tags">
+                                                <span class="entry-tag">💧 Moisture</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Day View -->
+                    <div id="dayView" class="calendar-grid-container day-view" style="display: none;">
+                        <div class="calendar-grid">
+                            <div class="time-column">
+                                <div class="time-slot">08:00</div>
+                                <div class="time-slot">09:00</div>
+                                <div class="time-slot">10:00</div>
+                                <div class="time-slot">11:00</div>
+                                <div class="time-slot">12:00</div>
+                                <div class="time-slot">13:00</div>
+                                <div class="time-slot">14:00</div>
+                                <div class="time-slot">15:00</div>
+                                <div class="time-slot">16:00</div>
+                                <div class="time-slot">17:00</div>
+                                <div class="time-slot">18:00</div>
+                                <div class="time-slot">19:00</div>
+                                <div class="time-slot">20:00</div>
+                            </div>
+
+                            <div class="calendar-main">
+                                <div class="month-header-row">
+                                    <div class="month-label-cal">Monday, October 14, 2025</div>
+                                </div>
+
+                                <div class="tasks-grid">
+                                    <div class="routine-bar" style="left: 10%; top: 140px; width: 80%;">
+                                        <div class="routine-bar-content">
+                                            <div class="routine-bar-info">
+                                                <span class="task-icon" style="font-size: 14px;">☀️</span>
+                                                <div>
+                                                    <div class="routine-bar-title">Morning Moisturizing Routine</div>
+                                                    <div class="routine-bar-time">08:00 AM</div>
+                                                </div>
+                                            </div>
+                                            <div class="routine-frequency">Daily</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="journey-entry" style="left: 30%; top: 200px;">
+                                        <div class="entry-image" style="background: linear-gradient(135deg, rgba(231, 166, 144, 0.3), rgba(74, 77, 104, 0.3)), url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23e7a690%22 width=%22100%22 height=%22100%22/></svg>'); background-size: cover;"></div>
+                                        <div class="entry-content">
+                                            <div class="entry-time">09:30 AM</div>
+                                            <div class="entry-title">Deep Conditioning</div>
+                                            <div class="entry-subtitle">Shea Moisture Treatment</div>
+                                            <div class="entry-tags">
+                                                <span class="entry-tag">💧 Moisture</span>
+                                                <span class="entry-tag">30 min</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Entry Carousel -->
+                    <div class="entry-carousel">
+                        <button class="carousel-nav" onclick="scrollCarousel(-1)">‹</button>
+                        <div class="carousel-track" id="carouselTrack">
+                            <div class="carousel-item active">
+                                <div class="carousel-date">Oct 2</div>
+                                <div class="carousel-preview">
+                                    <div class="carousel-image" style="background: linear-gradient(135deg, #e7a690, #fce5d7);"></div>
+                                    <div class="carousel-title">Deep Conditioning</div>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <div class="carousel-date">Oct 3</div>
+                                <div class="carousel-preview">
+                                    <div class="carousel-image" style="background: linear-gradient(135deg, #fce5d7, #e7a690);"></div>
+                                    <div class="carousel-title">Trim Session</div>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <div class="carousel-date">Oct 6</div>
+                                <div class="carousel-preview">
+                                    <div class="carousel-image" style="background: linear-gradient(135deg, #eeece1, #e7a690);"></div>
+                                    <div class="carousel-title">Scalp Massage</div>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <div class="carousel-date">Oct 9</div>
+                                <div class="carousel-preview">
+                                    <div class="carousel-image" style="background: linear-gradient(135deg, #4a4d68, #e7a690);"></div>
+                                    <div class="carousel-title">Wash Day</div>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <div class="carousel-date">Oct 11</div>
+                                <div class="carousel-preview">
+                                    <div class="carousel-image" style="background: linear-gradient(135deg, #eeece1, #e7a690);"></div>
+                                    <div class="carousel-title">Protein Treatment</div>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <div class="carousel-date">Oct 14</div>
+                                <div class="carousel-preview">
+                                    <div class="carousel-image" style="background: linear-gradient(135deg, #4a4d68, #e7a690);"></div>
+                                    <div class="carousel-title">Night Routine</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="carousel-nav" onclick="scrollCarousel(1)">›</button>
+                    </div>
+
+                    <!-- Mobile Vertical Timeline (visible on mobile only) -->
+                    <div class="calendar-mobile-timeline">
+                        <div class="calendar-timeline-line"></div>
+
+                        <!-- Completed Event -->
+                        <div class="calendar-timeline-item completed">
+                            <div class="calendar-timeline-dot"></div>
+                            <div class="calendar-timeline-date">Oct 2, 2025</div>
+                            <div class="calendar-timeline-card">
+                                <div class="calendar-timeline-card-header">
+                                    <div class="calendar-timeline-icon">💧</div>
+                                    <div class="calendar-timeline-title">Deep Conditioning Treatment</div>
+                                </div>
+                                <div class="calendar-timeline-description">
+                                    Applied Shea Moisture Manuka Honey mask with heat for 30 minutes. Hair feels soft and manageable!
+                                </div>
+                                <div class="calendar-timeline-meta">
+                                    <span class="calendar-timeline-tag">Moisture</span>
+                                    <span class="calendar-timeline-tag">30 min</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Completed Event -->
+                        <div class="calendar-timeline-item completed">
+                            <div class="calendar-timeline-dot"></div>
+                            <div class="calendar-timeline-date">Oct 3, 2025</div>
+                            <div class="calendar-timeline-card">
+                                <div class="calendar-timeline-card-header">
+                                    <div class="calendar-timeline-icon">✂️</div>
+                                    <div class="calendar-timeline-title">Trim Session</div>
+                                </div>
+                                <div class="calendar-timeline-description">
+                                    Trimmed 0.5 inches of split ends. Hair looks healthier and the ends feel stronger!
+                                </div>
+                                <div class="calendar-timeline-meta">
+                                    <span class="calendar-timeline-tag">Trim</span>
+                                    <span class="calendar-timeline-tag">Salon</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Current/Active Event -->
+                        <div class="calendar-timeline-item current">
+                            <div class="calendar-timeline-dot"></div>
+                            <div class="calendar-step-indicator">Current Step</div>
+                            <div class="calendar-timeline-date">Oct 6, 2025</div>
+                            <div class="calendar-timeline-card">
+                                <div class="calendar-timeline-card-header">
+                                    <div class="calendar-timeline-icon">🌿</div>
+                                    <div class="calendar-timeline-title">Scalp Massage & Oil Treatment</div>
+                                </div>
+                                <div class="calendar-timeline-description">
+                                    Apply custom oil blend and massage scalp for 15 minutes to stimulate growth and improve circulation.
+                                </div>
+                                <div class="calendar-timeline-meta">
+                                    <span class="calendar-timeline-tag">Growth</span>
+                                    <span class="calendar-timeline-tag">15 min</span>
+                                </div>
+                                <div class="calendar-timeline-actions">
+                                    <button class="calendar-timeline-btn calendar-timeline-btn-primary">Complete</button>
+                                    <button class="calendar-timeline-btn calendar-timeline-btn-secondary">More Info</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Future Event -->
+                        <div class="calendar-timeline-item future">
+                            <div class="calendar-timeline-dot"></div>
+                            <div class="calendar-timeline-date">Oct 9, 2025</div>
+                            <div class="calendar-timeline-card">
+                                <div class="calendar-timeline-card-header">
+                                    <div class="calendar-timeline-icon">🚿</div>
+                                    <div class="calendar-timeline-title">Full Wash Day Routine</div>
+                                </div>
+                                <div class="calendar-timeline-description">
+                                    Complete wash day with pre-poo, shampoo, deep condition, and styling. Full cleanse and reset.
+                                </div>
+                                <div class="calendar-timeline-meta">
+                                    <span class="calendar-timeline-tag">Wash</span>
+                                    <span class="calendar-timeline-tag">90 min</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Future Event -->
+                        <div class="calendar-timeline-item future">
+                            <div class="calendar-timeline-dot"></div>
+                            <div class="calendar-timeline-date">Oct 11, 2025</div>
+                            <div class="calendar-timeline-card">
+                                <div class="calendar-timeline-card-header">
+                                    <div class="calendar-timeline-icon">✨</div>
+                                    <div class="calendar-timeline-title">Protein Treatment</div>
+                                </div>
+                                <div class="calendar-timeline-description">
+                                    Strengthen hair with Aphogee protein treatment. Important for maintaining hair integrity.
+                                </div>
+                                <div class="calendar-timeline-meta">
+                                    <span class="calendar-timeline-tag">Protein</span>
+                                    <span class="calendar-timeline-tag">45 min</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Future Event -->
+                        <div class="calendar-timeline-item future">
+                            <div class="calendar-timeline-dot"></div>
+                            <div class="calendar-timeline-date">Oct 14, 2025</div>
+                            <div class="calendar-timeline-card">
+                                <div class="calendar-timeline-card-header">
+                                    <div class="calendar-timeline-icon">🌙</div>
+                                    <div class="calendar-timeline-title">Night Protection Routine</div>
+                                </div>
+                                <div class="calendar-timeline-description">
+                                    Prepare hair for bed with moisturizing spray, oil sealing, and satin bonnet protection.
+                                </div>
+                                <div class="calendar-timeline-meta">
+                                    <span class="calendar-timeline-tag">Night</span>
+                                    <span class="calendar-timeline-tag">10 min</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div> 
+
+                <!-- Slider View -->
+                <div id="sliderView" class="view-content slider-view">
+                    <div class="diary-header">
+                        <h1 class="myavana-h1">MY HAIR JOURNEY</h1>
+                        <p class="myavana-body">Document your transformation with our beautiful horizontal timeline</p>
+                    </div>
+
+                    <div class="timeline-slider">
+                        <div class="splide" id="hairJourneySlider">
+                            <div class="splide__track">
+                                <div class="splide__list">
+                                    <div class="splide__slide">
+                                        <div class="main-entry">
+                                            <div class="entry-image-container">
+                                                <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'><rect fill='%23e7a690' width='400' height='400'/><circle cx='200' cy='200' r='100' fill='%23fce5d7'/></svg>" alt="Hair progress" class="entry-image">
+                                            </div>
+                                            
+                                            <div class="entry-details">
+                                                <div class="entry-date">
+                                                    <div class="entry-time">October 14, 2025 9:30 AM</div>
+                                                </div>
+                                                <h3 class="entry-title">Deep Conditioning Treatment</h3>
+                                                <p class="entry-text">Applied my favorite deep conditioner with heat for 30 minutes. Hair feels incredibly soft and manageable! The moisture retention is getting better each week.</p>
+                                                <div class="entry-meta">
+                                                    <div class="entry-mood">
+                                                        😊 Feeling great about my progress
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="splide__slide">
+                                        <div class="main-entry">
+                                            <div class="entry-image-container">
+                                                <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'><rect fill='%234a4d68' width='400' height='400'/><circle cx='200' cy='200' r='120' fill='%23e7a690'/></svg>" alt="Hair progress" class="entry-image">
+                                            </div>
+                                            
+                                            <div class="entry-details">
+                                                <div class="entry-date">
+                                                    <div class="entry-time">October 10, 2025 2:15 PM</div>
+                                                </div>
+                                                <h3 class="entry-title">Trim Day</h3>
+                                                <p class="entry-text">Finally got my trim! Removed about half an inch of split ends. My hair looks so much healthier now. The stylist recommended protein treatments.</p>
+                                                <div class="entry-meta">
+                                                    <div class="entry-mood">
+                                                        ✨ Excited for healthy ends
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="splide__slide">
+                                        <div class="main-entry">
+                                            <div class="entry-image-container">
+                                                <div class="no-image-placeholder">
+                                                    <i>📸</i>
+                                                    <span>No Photo</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="entry-details">
+                                                <div class="entry-date">
+                                                    <div class="entry-time">October 5, 2025 8:00 AM</div>
+                                                </div>
+                                                <h3 class="entry-title">Morning Routine</h3>
+                                                <p class="entry-text">Started my day with a light moisturizing session. Applied leave-in conditioner and sealed with jojoba oil. Hair is responding well to this routine!</p>
+                                                <div class="entry-meta">
+                                                    <div class="entry-mood">
+                                                        ☀️ Ready for the day
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="timeline-nav">
+                            <div class="timeline-track">
+                                <div class="timeline-progress" id="progress"></div>
+                            </div>
+                            <div class="timeline-dates" id="timelineDates">
+                                <div class="date-marker" data-index="0">
+                                    <div class="mini-card">
+                                        <a href="#" class="timeline-small-card-image mini-card-image" style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 50 50%22><rect fill=%22%23e7a690%22 width=%2250%22 height=%2250%22/></svg>');"></a>
+                                        <div class="mini-card-title">Deep Conditioning</div>
+                                    </div>
+                                    <div class="marker-dot"></div>
+                                    <div class="marker-date">Oct 14</div>
+                                </div>
+                                <div class="date-marker" data-index="1">
+                                    <div class="mini-card">
+                                        <a href="#" class="timeline-small-card-image mini-card-image" style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 50 50%22><rect fill=%22%234a4d68%22 width=%2250%22 height=%2250%22/></svg>');"></a>
+                                        <div class="mini-card-title">Trim Day</div>
+                                    </div>
+                                    <div class="marker-dot"></div>
+                                    <div class="marker-date">Oct 10</div>
+                                </div>
+                                <div class="date-marker" data-index="2">
+                                    <div class="mini-card">
+                                        <a href="#" class="timeline-small-card-image mini-card-image" style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 50 50%22><rect fill=%22%23eeece1%22 width=%2250%22 height=%2250%22/></svg>');"></a>
+                                        <div class="mini-card-title">Morning Routine</div>
+                                    </div>
+                                    <div class="marker-dot"></div>
+                                    <div class="marker-date">Oct 5</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- List View -->
+                <div id="listView" class="view-content list-view">
+                    <div class="calendar-header">
+                        <h2 class="calendar-title">Journey List</h2>
+                        <p class="calendar-description">All your goals, entries, and routines in a comprehensive list view.</p>
+                    </div>
+
+                    <div class="list-container">
+                        <div class="list-item">
+                            <div class="list-item-type">🎯</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Grow 6 inches</div>
+                                <div class="list-item-subtitle">Jan 15 - Oct 15, 2025</div>
+                                <div class="list-item-meta">
+                                    <span class="list-meta-tag">Hair Goal</span>
+                                    <span class="list-meta-tag">75% Complete</span>
+                                    <span class="list-meta-tag">In Progress</span>
+                                </div>
+                            </div>
+                            <button class="list-item-action">View Details</button>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="list-item-type">📸</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Deep Conditioning Treatment</div>
+                                <div class="list-item-subtitle">October 14, 2025 at 9:30 AM</div>
+                                <div class="list-item-meta">
+                                    <span class="list-meta-tag">Journey Entry</span>
+                                    <span class="list-meta-tag">Moisture</span>
+                                    <span class="list-meta-tag">30 min</span>
+                                </div>
+                            </div>
+                            <button class="list-item-action">View Details</button>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="list-item-type">🔄</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Morning Moisturizing Routine</div>
+                                <div class="list-item-subtitle">Daily at 8:00 AM</div>
+                                <div class="list-item-meta">
+                                    <span class="list-meta-tag">Haircare Routine</span>
+                                    <span class="list-meta-tag">Daily</span>
+                                    <span class="list-meta-tag">Morning</span>
+                                </div>
+                            </div>
+                            <button class="list-item-action">View Details</button>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="list-item-type">🎯</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Reduce Breakage</div>
+                                <div class="list-item-subtitle">Mar 1 - Dec 1, 2025</div>
+                                <div class="list-item-meta">
+                                    <span class="list-meta-tag">Hair Goal</span>
+                                    <span class="list-meta-tag">60% Complete</span>
+                                    <span class="list-meta-tag">Active</span>
+                                </div>
+                            </div>
+                            <button class="list-item-action">View Details</button>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="list-item-type">📸</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Trim Session</div>
+                                <div class="list-item-subtitle">October 10, 2025 at 11:00 AM</div>
+                                <div class="list-item-meta">
+                                    <span class="list-meta-tag">Journey Entry</span>
+                                    <span class="list-meta-tag">Trim</span>
+                                    <span class="list-meta-tag">Salon</span>
+                                </div>
+                            </div>
+                            <button class="list-item-action">View Details</button>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="list-item-type">🔄</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Night Protection Routine</div>
+                                <div class="list-item-subtitle">Daily at 9:00 PM</div>
+                                <div class="list-item-meta">
+                                    <span class="list-meta-tag">Haircare Routine</span>
+                                    <span class="list-meta-tag">Daily</span>
+                                    <span class="list-meta-tag">Night</span>
+                                </div>
+                            </div>
+                            <button class="list-item-action">View Details</button>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="list-item-type">🔄</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Weekly Deep Conditioning</div>
+                                <div class="list-item-subtitle">Every Sunday at 10:00 AM</div>
+                                <div class="list-item-meta">
+                                    <span class="list-meta-tag">Haircare Routine</span>
+                                    <span class="list-meta-tag">Weekly</span>
+                                    <span class="list-meta-tag">Treat</span>
+                                </div>
+                            </div>
+                            <button class="list-item-action">View Details</button>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="list-item-type">🎯</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Moisture Retention</div>
+                                <div class="list-item-subtitle">Feb 1 - Nov 1, 2025</div>
+                                <div class="list-item-meta">
+                                    <span class="list-meta-tag">Hair Goal</span>
+                                    <span class="list-meta-tag">85% Complete</span>
+                                    <span class="list-meta-tag">Almost There</span>
+                                </div>
+                            </div>
+                            <button class="list-item-action">View Details</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Offcanvas Overlay -->
+    <div class="offcanvas-overlay" id="offcanvasOverlay" onclick="closeOffcanvas()"></div>
+
+    <!-- Entry Offcanvas -->
+    <div class="offcanvas" id="entryOffcanvas">
+        <div class="offcanvas-header">
+            <h2 class="offcanvas-title">New Hair Journey Entry</h2>
+            <button class="offcanvas-close" onclick="closeOffcanvas()">&times;</button>
+        </div>
+
+        <div class="offcanvas-body">
+            <form id="entryForm">
+                <div class="form-group">
+                    <label class="form-label">Entry Title</label>
+                    <input type="text" class="form-input" placeholder="e.g., Week 4 Progress Update" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Date</label>
+                        <input type="date" class="form-input" id="entryDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" required>
+                            <option value="">Select category</option>
+                            <option value="progress">Progress Update</option>
+                            <option value="routine">Routine</option>
+                            <option value="product">Product Review</option>
+                            <option value="milestone">Milestone</option>
+                            <option value="note">General Note</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-textarea" placeholder="Describe your progress, observations, or thoughts about your hair..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Hair Health Rating</label>
+                    <div class="rating-selector" id="entryRatingSelector">
+                        <span class="rating-star" data-rating="1">★</span>
+                        <span class="rating-star" data-rating="2">★</span>
+                        <span class="rating-star" data-rating="3">★</span>
+                        <span class="rating-star" data-rating="4">★</span>
+                        <span class="rating-star" data-rating="5">★</span>
+                        <span class="rating-star" data-rating="6">★</span>
+                        <span class="rating-star" data-rating="7">★</span>
+                        <span class="rating-star" data-rating="8">★</span>
+                        <span class="rating-star" data-rating="9">★</span>
+                        <span class="rating-star" data-rating="10">★</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mood <span class="form-label-optional">(Optional)</span></label>
+                    <div class="chip-group">
+                        <button type="button" class="chip" data-mood="excited">😊 Excited</button>
+                        <button type="button" class="chip" data-mood="happy">😀 Happy</button>
+                        <button type="button" class="chip" data-mood="neutral">😐 Neutral</button>
+                        <button type="button" class="chip" data-mood="frustrated">😤 Frustrated</button>
+                        <button type="button" class="chip" data-mood="discouraged">😔 Discouraged</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Products Used <span class="form-label-optional">(Optional)</span></label>
+                    <input type="text" class="form-input" placeholder="e.g., Shea Moisture Conditioner">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Photos <span class="form-label-optional">(Optional)</span></label>
+                    <div class="photo-upload-area" onclick="document.getElementById('entryFileInput').click()">
+                        <div class="photo-upload-icon">📷</div>
+                        <p class="photo-upload-text">Tap to upload photos</p>
+                        <p class="photo-upload-hint">PNG, JPG up to 10MB each</p>
+                    </div>
+                    <input type="file" id="entryFileInput" accept="image/*" multiple style="display: none;">
+                    <div class="photo-preview-grid" id="entryPreviewGrid"></div>
+                </div>
+            </form>
+        </div>
+
+        <div class="offcanvas-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeOffcanvas()">Cancel</button>
+            <button type="submit" class="btn btn-primary" onclick="submitEntry()">Save Entry</button>
+        </div>
+    </div>
+
+    <!-- Goal Offcanvas -->
+    <div class="offcanvas" id="goalOffcanvas">
+        <div class="offcanvas-header">
+            <h2 class="offcanvas-title">New Hair Goal</h2>
+            <button class="offcanvas-close" onclick="closeOffcanvas()">&times;</button>
+        </div>
+
+        <div class="offcanvas-body">
+            <form id="goalForm">
+                <div class="form-group">
+                    <label class="form-label">Goal Title</label>
+                    <input type="text" class="form-input" placeholder="e.g., Grow hair to waist length" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select class="form-select" required>
+                        <option value="">Select a category</option>
+                        <option value="growth">Growth</option>
+                        <option value="health">Health</option>
+                        <option value="moisture">Moisture</option>
+                        <option value="strength">Strength</option>
+                        <option value="styling">Styling</option>
+                        <option value="retention">Retention</option>
+                        <option value="volume">Volume</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" class="form-input" id="goalStartDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Target Date</label>
+                        <input type="date" class="form-input" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description <span class="form-label-optional">(Optional)</span></label>
+                    <textarea class="form-textarea" placeholder="Describe your goal and why it's important to you..."></textarea>
+                </div>
+            </form>
+        </div>
+
+        <div class="offcanvas-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeOffcanvas()">Cancel</button>
+            <button type="submit" class="btn btn-primary" onclick="submitGoal()">Save Goal</button>
+        </div>
+    </div>
+
+    <!-- Routine Offcanvas -->
+    <div class="offcanvas" id="routineOffcanvas">
+        <div class="offcanvas-header">
+            <h2 class="offcanvas-title">New Hair Care Routine</h2>
+            <button class="offcanvas-close" onclick="closeOffcanvas()">&times;</button>
+        </div>
+
+        <div class="offcanvas-body">
+            <form id="routineForm">
+                <div class="form-group">
+                    <label class="form-label">Routine Name</label>
+                    <input type="text" class="form-input" placeholder="e.g., My Wash Day Routine" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Frequency</label>
+                        <select class="form-select" required>
+                            <option value="">Select frequency</option>
+                            <option value="Daily">Daily</option>
+                            <option value="Every Other Day">Every Other Day</option>
+                            <option value="Weekly">Weekly</option>
+                            <option value="Bi-Weekly">Bi-Weekly</option>
+                            <option value="Monthly">Monthly</option>
+                            <option value="As Needed">As Needed</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Duration (min)</label>
+                        <input type="number" class="form-input" placeholder="30" min="5" step="5">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Time of Day</label>
+                    <div class="chip-group">
+                        <button type="button" class="chip" data-time="Morning">🌅 Morning</button>
+                        <button type="button" class="chip" data-time="Afternoon">☀️ Afternoon</button>
+                        <button type="button" class="chip" data-time="Evening">🌆 Evening</button>
+                        <button type="button" class="chip" data-time="Night">🌙 Night</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-textarea" placeholder="Describe your routine steps..."></textarea>
+                </div>
+            </form>
+        </div>
+
+        <div class="offcanvas-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeOffcanvas()">Cancel</button>
+            <button type="submit" class="btn btn-primary" onclick="submitRoutine()">Save Routine</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/js/splide.min.js"></script>
+    <script src="../../assets/js/new-timeline.js"></script>
+</body>
+</html>

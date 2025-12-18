@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entry Modal Component - MYAVANA</title>
+    <link rel="stylesheet" href="../../assets/css/timeline.css">
+    <style>
+        body {
+            background: var(--myavana-stone);
+            padding: 40px 24px;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .demo-title {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 28px;
+            text-transform: uppercase;
+            color: var(--myavana-onyx);
+            margin: 0 0 8px 0;
+        }
+
+        .demo-description {
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            color: var(--myavana-onyx);
+            opacity: 0.7;
+        }
+
+        .demo-trigger {
+            text-align: center;
+            padding: 40px;
+            background: var(--myavana-white);
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+
+        .btn-trigger {
+            padding: 16px 32px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--myavana-coral);
+            color: var(--myavana-white);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-trigger:hover {
+            background: #d4956f;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(34, 35, 35, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 24px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-container {
+            background: var(--myavana-white);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 32px;
+            border-bottom: 2px solid var(--myavana-stone);
+        }
+
+        .modal-title {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 20px;
+            text-transform: uppercase;
+            color: var(--myavana-onyx);
+            margin: 0;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            font-size: 28px;
+            color: var(--myavana-onyx);
+            opacity: 0.5;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .modal-close:hover {
+            opacity: 1;
+        }
+
+        .modal-body {
+            padding: 32px;
+            overflow-y: auto;
+            max-height: calc(90vh - 180px);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-onyx);
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 12px 14px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            border: 2px solid var(--myavana-stone);
+            border-radius: 8px;
+            background: var(--myavana-white);
+            color: var(--myavana-onyx);
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--myavana-coral);
+            box-shadow: 0 0 0 3px rgba(231, 166, 144, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .rating-selector {
+            display: flex;
+            gap: 8px;
+        }
+
+        .rating-star {
+            font-size: 32px;
+            cursor: pointer;
+            color: var(--myavana-stone);
+            transition: all 0.2s ease;
+        }
+
+        .rating-star.active,
+        .rating-star:hover {
+            color: var(--myavana-coral);
+            transform: scale(1.1);
+        }
+
+        .file-upload {
+            border: 2px dashed var(--myavana-stone);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: var(--myavana-coral);
+            background: var(--myavana-light-coral);
+        }
+
+        .file-upload-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .file-upload-text {
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            color: var(--myavana-onyx);
+            margin: 0 0 8px 0;
+        }
+
+        .file-upload-hint {
+            font-family: 'Archivo', sans-serif;
+            font-size: 12px;
+            color: var(--myavana-onyx);
+            opacity: 0.6;
+            margin: 0;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .preview-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--myavana-stone);
+        }
+
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-remove {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 24px;
+            height: 24px;
+            background: var(--myavana-coral);
+            color: var(--myavana-white);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 24px 32px;
+            border-top: 2px solid var(--myavana-stone);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary {
+            background: var(--myavana-stone);
+            color: var(--myavana-onyx);
+        }
+
+        .btn-secondary:hover {
+            background: var(--myavana-sand);
+        }
+
+        .btn-primary {
+            background: var(--myavana-coral);
+            color: var(--myavana-white);
+        }
+
+        .btn-primary:hover {
+            background: #d4956f;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        @media (max-width: 768px) {
+            .modal-body {
+                padding: 24px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .preview-grid {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1 class="demo-title">Entry Modal Component</h1>
+            <p class="demo-description">Reusable modal for creating and editing hair journey entries</p>
+        </div>
+
+        <div class="demo-trigger">
+            <button class="btn-trigger" onclick="openModal()">Open Entry Modal</button>
+        </div>
+    </div>
+
+    <!-- Entry Modal -->
+    <div class="modal-overlay" id="entryModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 class="modal-title">New Hair Journey Entry</h2>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+
+            <div class="modal-body">
+                <form id="entryForm">
+                    <div class="form-group">
+                        <label class="form-label">Entry Title</label>
+                        <input
+                            type="text"
+                            class="form-input"
+                            placeholder="e.g., Week 4 Progress Update"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Date</label>
+                            <input
+                                type="date"
+                                class="form-input"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Category</label>
+                            <select class="form-select" required>
+                                <option value="">Select category</option>
+                                <option value="progress">Progress Update</option>
+                                <option value="routine">Routine</option>
+                                <option value="product">Product Review</option>
+                                <option value="milestone">Milestone</option>
+                                <option value="note">General Note</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea
+                            class="form-textarea"
+                            placeholder="Describe your progress, observations, or thoughts about your hair..."
+                            required
+                        ></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Hair Health Rating</label>
+                        <div class="rating-selector" id="ratingSelector">
+                            <span class="rating-star" data-rating="1">★</span>
+                            <span class="rating-star" data-rating="2">★</span>
+                            <span class="rating-star" data-rating="3">★</span>
+                            <span class="rating-star" data-rating="4">★</span>
+                            <span class="rating-star" data-rating="5">★</span>
+                            <span class="rating-star" data-rating="6">★</span>
+                            <span class="rating-star" data-rating="7">★</span>
+                            <span class="rating-star" data-rating="8">★</span>
+                            <span class="rating-star" data-rating="9">★</span>
+                            <span class="rating-star" data-rating="10">★</span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Mood</label>
+                            <select class="form-select">
+                                <option value="">Select mood</option>
+                                <option value="excited">😊 Excited</option>
+                                <option value="happy">😀 Happy</option>
+                                <option value="neutral">😐 Neutral</option>
+                                <option value="frustrated">😤 Frustrated</option>
+                                <option value="discouraged">😔 Discouraged</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Products Used</label>
+                            <input
+                                type="text"
+                                class="form-input"
+                                placeholder="e.g., Shea Moisture Conditioner"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Photos</label>
+                        <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                            <div class="file-upload-icon">📷</div>
+                            <p class="file-upload-text">Click to upload photos</p>
+                            <p class="file-upload-hint">Support for PNG, JPG up to 10MB each</p>
+                        </div>
+                        <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+                        <div class="preview-grid" id="previewGrid"></div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" onclick="submitEntry()">Save Entry</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedRating = 0;
+        let uploadedFiles = [];
+
+        // Modal controls
+        function openModal() {
+            document.getElementById('entryModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            // Set default date to today
+            document.querySelector('input[type="date"]').valueAsDate = new Date();
+        }
+
+        function closeModal() {
+            document.getElementById('entryModal').classList.remove('active');
+            document.body.style.overflow = '';
+            // Reset form
+            document.getElementById('entryForm').reset();
+            selectedRating = 0;
+            uploadedFiles = [];
+            updateRatingDisplay();
+            document.getElementById('previewGrid').innerHTML = '';
+        }
+
+        // Close modal on overlay click
+        document.getElementById('entryModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Rating selector
+        const ratingStars = document.querySelectorAll('.rating-star');
+        ratingStars.forEach(star => {
+            star.addEventListener('click', function() {
+                selectedRating = parseInt(this.getAttribute('data-rating'));
+                updateRatingDisplay();
+            });
+
+            star.addEventListener('mouseenter', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                highlightStars(rating);
+            });
+        });
+
+        document.getElementById('ratingSelector').addEventListener('mouseleave', function() {
+            updateRatingDisplay();
+        });
+
+        function highlightStars(rating) {
+            ratingStars.forEach(star => {
+                const starRating = parseInt(star.getAttribute('data-rating'));
+                star.classList.toggle('active', starRating <= rating);
+            });
+        }
+
+        function updateRatingDisplay() {
+            highlightStars(selectedRating);
+        }
+
+        // File upload
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            files.forEach(file => {
+                if (file.type.startsWith('image/') && file.size <= 10 * 1024 * 1024) {
+                    uploadedFiles.push(file);
+                    displayPreview(file);
+                }
+            });
+        });
+
+        function displayPreview(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewGrid = document.getElementById('previewGrid');
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                previewItem.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview">
+                    <button class="preview-remove" onclick="removePreview(this, '${file.name}')">×</button>
+                `;
+                previewGrid.appendChild(previewItem);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        window.removePreview = function(btn, fileName) {
+            btn.parentElement.remove();
+            uploadedFiles = uploadedFiles.filter(f => f.name !== fileName);
+        };
+
+        // Form submission
+        function submitEntry() {
+            const formData = {
+                title: document.querySelector('.form-input').value,
+                date: document.querySelector('input[type="date"]').value,
+                category: document.querySelector('.form-select').value,
+                description: document.querySelector('.form-textarea').value,
+                rating: selectedRating,
+                mood: document.querySelectorAll('.form-select')[1].value,
+                products: document.querySelectorAll('.form-input')[2].value,
+                photos: uploadedFiles.map(f => f.name)
+            };
+
+            console.log('Entry data:', formData);
+            alert('Entry saved successfully!');
+            closeModal();
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--myavana-white);
+    border-radius: 1.25rem;
+    padding: 2.5rem;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.modal-close {
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+}
+
+/* Dependency Lines */
+.dependency-line {
+    position: absolute;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.dependency-path {
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.dependency-node {
+    fill: white;
+    stroke-width: 2;
+}
+
+.dependency-green .dependency-path {
+    stroke: #4ade80;
+}
+
+.dependency-green .dependency-node {
+    stroke: #4ade80;
+}
+
+.dependency-blue .dependency-path {
+    stroke: var(--myavana-blueberry);
+}
+
+.dependency-blue .dependency-node {
+    stroke: var(--myavana-blueberry);
+}
+
+.dependency-red .dependency-path {
+    stroke: var(--myavana-coral);
+}
+
+.dependency-red .dependency-node {
+    stroke: var(--myavana-coral);
+}

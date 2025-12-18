@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - MYAVANA</title>
+    <link rel="stylesheet" href="../../assets/css/timeline.css">
+    <style>
+        body {
+            background: var(--myavana-stone);
+        }
+
+        .profile-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .profile-header {
+            background: var(--myavana-white);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            gap: 32px;
+            align-items: center;
+            position: relative;
+        }
+
+        .profile-avatar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--myavana-coral), var(--myavana-blueberry));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 48px;
+            color: var(--myavana-white);
+            position: relative;
+        }
+
+        .profile-avatar-upload {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 36px;
+            height: 36px;
+            background: var(--myavana-coral);
+            border-radius: 50%;
+            border: 3px solid var(--myavana-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 32px;
+            text-transform: uppercase;
+            color: var(--myavana-onyx);
+            margin: 0 0 8px 0;
+        }
+
+        .profile-meta {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .profile-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            color: var(--myavana-onyx);
+            opacity: 0.7;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 32px;
+            padding-top: 16px;
+            border-top: 1px solid var(--myavana-stone);
+        }
+
+        .profile-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .profile-stat-number {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 28px;
+            color: var(--myavana-coral);
+        }
+
+        .profile-stat-label {
+            font-family: 'Archivo', sans-serif;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-onyx);
+            opacity: 0.6;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Profile Header Styles */
+        .profile-header-old {
+            background-color: var(--myavana-white);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(34, 35, 35, 0.08);
+            padding: 30px 40px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--myavana-coral) 0%, var(--myavana-blueberry) 100%);
+        }
+
+        .profile-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+        }
+
+        .profile-identity {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid var(--myavana-white);
+            box-shadow: 0 4px 12px rgba(34, 35, 35, 0.15);
+            position: relative;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .profile-name {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 32px;
+            text-transform: uppercase;
+            color: var(--myavana-onyx);
+            margin-bottom: 5px;
+        }
+
+        .profile-handle {
+            font-family: 'Archivo', sans-serif;
+            font-size: 16px;
+            color: var(--myavana-blueberry);
+            margin-bottom: 10px;
+        }
+
+        .profile-bio {
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            color: var(--myavana-onyx);
+            max-width: 400px;
+            line-height: 1.5;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+
+        .btn {
+            padding: 12px 24px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--myavana-coral);
+            color: var(--myavana-white);
+        }
+
+        .btn-primary:hover {
+            background: #d4956f;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--myavana-stone);
+            color: var(--myavana-onyx);
+        }
+
+        .btn-secondary:hover {
+            background: var(--myavana-sand);
+        }
+
+        .profile-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        .profile-section {
+            background: var(--myavana-white);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-family: 'Archivo', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-onyx);
+            margin: 0;
+        }
+
+        .section-action {
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--myavana-coral);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .section-action:hover {
+            text-decoration: underline;
+        }
+
+        .goal-card {
+            background: var(--myavana-light-coral);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .goal-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .goal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .goal-title {
+            font-family: 'Archivo', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--myavana-onyx);
+            margin: 0 0 4px 0;
+        }
+
+        .goal-category {
+            font-family: 'Archivo', sans-serif;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-coral);
+            background: var(--myavana-white);
+            padding: 4px 12px;
+            border-radius: 12px;
+        }
+
+        .goal-progress {
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--myavana-white);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--myavana-coral);
+            transition: width 0.3s ease;
+        }
+
+        .goal-dates {
+            font-family: 'Archivo', sans-serif;
+            font-size: 12px;
+            color: var(--myavana-onyx);
+            opacity: 0.7;
+        }
+
+        .hair-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .hair-info-item {
+            padding: 16px;
+            background: var(--myavana-stone);
+            border-radius: 8px;
+        }
+
+        .hair-info-label {
+            font-family: 'Archivo', sans-serif;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-onyx);
+            opacity: 0.6;
+            margin-bottom: 8px;
+        }
+
+        .hair-info-value {
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--myavana-onyx);
+        }
+
+        .routine-card {
+            padding: 16px;
+            background: var(--myavana-stone);
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .routine-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .routine-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .routine-name {
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--myavana-onyx);
+            margin: 0;
+        }
+
+        .routine-frequency {
+            font-family: 'Archivo', sans-serif;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-coral);
+            background: var(--myavana-white);
+            padding: 4px 12px;
+            border-radius: 12px;
+        }
+
+        .routine-steps {
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            color: var(--myavana-onyx);
+            opacity: 0.7;
+        }
+
+        @media (max-width: 968px) {
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-stats {
+                justify-content: center;
+            }
+
+            .profile-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .profile-content {
+                grid-template-columns: 1fr;
+            }
+
+            .hair-info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+       
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-avatar-section">
+                <div class="profile-avatar">
+                    S
+                    <div class="profile-avatar-upload" title="Upload photo">📷</div>
+                </div>
+            </div>
+
+            <div class="profile-info">
+                <h1 class="profile-name">Sarah Johnson</h1>
+
+                <div class="profile-meta">
+                    <div class="profile-meta-item">
+                        <span>📍</span>
+                        <span>Atlanta, GA</span>
+                    </div>
+                    <div class="profile-meta-item">
+                        <span>🗓️</span>
+                        <span>Joined January 2025</span>
+                    </div>
+                    <div class="profile-meta-item">
+                        <span>⚡</span>
+                        <span>7 Day Streak</span>
+                    </div>
+                </div>
+
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <div class="profile-stat-number">24</div>
+                        <div class="profile-stat-label">Entries</div>
+                    </div>
+
+                    <div class="profile-stat">
+                        <div class="profile-stat-number">3</div>
+                        <div class="profile-stat-label">Active Goals</div>
+                    </div>
+
+                    <div class="profile-stat">
+                        <div class="profile-stat-number">8.2</div>
+                        <div class="profile-stat-label">Health Score</div>
+                    </div>
+
+                    <div class="profile-stat">
+                        <div class="profile-stat-number">5</div>
+                        <div class="profile-stat-label">Routines</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-actions">
+                <button class="btn btn-primary">Edit Profile</button>
+                <button class="btn btn-secondary">Settings</button>
+            </div>
+        </div>
+
+
+        <!-- Profile Content -->
+        <div class="profile-content">
+            <!-- Left Column -->
+            <div>
+                <!-- Hair Goals Section -->
+                <div class="profile-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Hair Goals</h2>
+                        <a href="#" class="section-action">+ Add Goal</a>
+                    </div>
+
+                    <div class="goal-card">
+                        <div class="goal-header">
+                            <div>
+                                <h3 class="goal-title">Length Growth</h3>
+                            </div>
+                            <div class="goal-category">Growth</div>
+                        </div>
+
+                        <div class="goal-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 75%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="goal-dates">
+                            Started Feb 1, 2025 • Target: Apr 30, 2025 • 75% Complete
+                        </div>
+                    </div>
+
+                    <div class="goal-card">
+                        <div class="goal-header">
+                            <div>
+                                <h3 class="goal-title">Moisture Retention</h3>
+                            </div>
+                            <div class="goal-category">Health</div>
+                        </div>
+
+                        <div class="goal-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 60%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="goal-dates">
+                            Started Jan 15, 2025 • Target: Jun 15, 2025 • 60% Complete
+                        </div>
+                    </div>
+
+                    <div class="goal-card">
+                        <div class="goal-header">
+                            <div>
+                                <h3 class="goal-title">Reduce Breakage</h3>
+                            </div>
+                            <div class="goal-category">Strength</div>
+                        </div>
+
+                        <div class="goal-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 40%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="goal-dates">
+                            Started Jan 1, 2025 • Target: Jul 1, 2025 • 40% Complete
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hair Care Routines Section -->
+                <div class="profile-section" style="margin-top: 24px;">
+                    <div class="section-header">
+                        <h2 class="section-title">Hair Care Routines</h2>
+                        <a href="#" class="section-action">+ Add Routine</a>
+                    </div>
+
+                    <div class="routine-card">
+                        <div class="routine-header">
+                            <h3 class="routine-name">Wash Day Routine</h3>
+                            <div class="routine-frequency">Weekly</div>
+                        </div>
+                        <div class="routine-steps">
+                            5 steps • 2 hours • Sunday evenings
+                        </div>
+                    </div>
+
+                    <div class="routine-card">
+                        <div class="routine-header">
+                            <h3 class="routine-name">Daily Moisture Refresh</h3>
+                            <div class="routine-frequency">Daily</div>
+                        </div>
+                        <div class="routine-steps">
+                            3 steps • 15 minutes • Morning
+                        </div>
+                    </div>
+
+                    <div class="routine-card">
+                        <div class="routine-header">
+                            <h3 class="routine-name">Deep Conditioning</h3>
+                            <div class="routine-frequency">Bi-Weekly</div>
+                        </div>
+                        <div class="routine-steps">
+                            4 steps • 45 minutes • Saturday morning
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div>
+                <!-- Hair Information Section -->
+                <div class="profile-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Hair Information</h2>
+                        <a href="#" class="section-action">Edit</a>
+                    </div>
+
+                    <div class="hair-info-grid">
+                        <div class="hair-info-item">
+                            <div class="hair-info-label">Hair Type</div>
+                            <div class="hair-info-value">4B/4C</div>
+                        </div>
+
+                        <div class="hair-info-item">
+                            <div class="hair-info-label">Current Length</div>
+                            <div class="hair-info-value">12 inches</div>
+                        </div>
+
+                        <div class="hair-info-item">
+                            <div class="hair-info-label">Porosity</div>
+                            <div class="hair-info-value">High</div>
+                        </div>
+
+                        <div class="hair-info-item">
+                            <div class="hair-info-label">Density</div>
+                            <div class="hair-info-value">Medium</div>
+                        </div>
+
+                        <div class="hair-info-item">
+                            <div class="hair-info-label">Journey Stage</div>
+                            <div class="hair-info-value">Growth Phase</div>
+                        </div>
+
+                        <div class="hair-info-item">
+                            <div class="hair-info-label">Health Rating</div>
+                            <div class="hair-info-value">8.2 / 10</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hair Concerns Section -->
+                <div class="profile-section" style="margin-top: 24px;">
+                    <div class="section-header">
+                        <h2 class="section-title">Main Concerns</h2>
+                        <a href="#" class="section-action">Edit</a>
+                    </div>
+
+                    <div class="goal-card">
+                        <div class="goal-title">🔥 Heat Damage</div>
+                        <div style="font-family: 'Archivo', sans-serif; font-size: 13px; color: var(--myavana-onyx); opacity: 0.7; margin-top: 8px;">
+                            Working on repairing damage from flat iron use
+                        </div>
+                    </div>
+
+                    <div class="goal-card">
+                        <div class="goal-title">💧 Dryness</div>
+                        <div style="font-family: 'Archivo', sans-serif; font-size: 13px; color: var(--myavana-onyx); opacity: 0.7; margin-top: 8px;">
+                            Focusing on moisture retention strategies
+                        </div>
+                    </div>
+
+                    <div class="goal-card">
+                        <div class="goal-title">💔 Breakage</div>
+                        <div style="font-family: 'Archivo', sans-serif; font-size: 13px; color: var(--myavana-onyx); opacity: 0.7; margin-top: 8px;">
+                            Strengthening hair to prevent snapping
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Analysis Limit Section -->
+                <div class="profile-section" style="margin-top: 24px;">
+                    <div class="section-header">
+                        <h2 class="section-title">AI Analysis</h2>
+                    </div>
+
+                    <div style="text-align: center; padding: 24px;">
+                        <div style="font-family: 'Archivo Black', sans-serif; font-size: 48px; color: var(--myavana-coral); margin-bottom: 8px;">
+                            22/30
+                        </div>
+                        <div style="font-family: 'Archivo', sans-serif; font-size: 13px; color: var(--myavana-onyx); opacity: 0.7;">
+                            AI analyses remaining this week
+                        </div>
+                        <div class="progress-bar" style="margin-top: 16px;">
+                            <div class="progress-fill" style="width: 73%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

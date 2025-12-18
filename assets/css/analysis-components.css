@@ -1,0 +1,314 @@
+/* Hair Analysis Slider Styles */
+.analysis-slider-container {
+    margin: -1rem;
+    padding: 1rem;
+    position: relative;
+}
+
+.analysis-splide {
+    background: var(--myavana-white);
+    border-radius: 16px;
+    overflow: visible;
+    position: relative;
+    padding: 1rem 0;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+[data-theme="dark"] .analysis-splide {
+    background: var(--myavana-dark-bg, #1a1a1a);
+    color: var(--myavana-dark-text, #ffffff);
+}
+
+.analysis-slide {
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    max-width: 300px;
+    margin: 0 auto;
+    transition: background-color 0.3s ease;
+}
+
+/* Slide Content */
+.analysis-slide-visual {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    height: 200px; /* Taller images for vertical cards */
+    margin-bottom: 1rem;
+    background: var(--myavana-cloud);
+}
+
+.analysis-slide-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.analysis-slide-placeholder {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--myavana-blueberry);
+    opacity: 0.5;
+}
+
+.analysis-slide-date {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+/* Slide Content */
+.analysis-slide-content {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .analysis-slide-content {
+    background: var(--myavana-dark-card-bg, #2d2d2d);
+    border: 1px solid var(--myavana-dark-border, #3d3d3d);
+}
+
+.analysis-hair-type {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--myavana-cloud);
+    transition: border-color 0.3s ease;
+}
+
+[data-theme="dark"] .analysis-hair-type {
+    border-bottom-color: var(--myavana-dark-border, #3d3d3d);
+}
+
+.hair-type-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--myavana-coral);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hair-type-icon img {
+    width: 24px;
+    height: 24px;
+    filter: brightness(0) invert(1);
+}
+
+.hair-type-info h3 {
+    font-size: 1.125rem;
+    margin: 0;
+    color: var(--myavana-onyx);
+    transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .hair-type-info h3 {
+    color: var(--myavana-dark-heading, #ffffff);
+}
+
+.hair-type-info p {
+    font-size: 0.875rem;
+    margin: 0;
+    color: var(--myavana-blueberry);
+    transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .hair-type-info p {
+    color: var(--myavana-dark-text-secondary, #a0a0a0);
+}
+
+/* Metrics Grid */
+.analysis-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.analysis-metric {
+    text-align: center;
+    padding: 0.75rem 0.5rem;
+    background: var(--myavana-cloud);
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+}
+
+[data-theme="dark"] .analysis-metric {
+    background: var(--myavana-dark-metric-bg, #363636);
+}
+
+.metric-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--myavana-coral);
+    margin-bottom: 0.25rem;
+}
+
+.metric-label {
+    font-size: 0.75rem;
+    color: var(--myavana-blueberry);
+}
+
+.metric-progress {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 2px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+}
+
+.metric-progress-fill {
+    height: 100%;
+    background: var(--myavana-coral);
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Summary */
+.analysis-summary {
+    font-size: 0.875rem;
+    color: var(--myavana-blueberry);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: var(--myavana-cloud);
+    border-radius: 8px;
+}
+
+/* Actions */
+.analysis-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.analysis-action-btn {
+    flex: 1;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-view {
+    background: var(--myavana-coral);
+    color: white;
+}
+
+.action-view:hover {
+    background: var(--myavana-coral-dark);
+}
+
+.action-compare {
+    background: var(--myavana-cloud);
+    color: var(--myavana-blueberry);
+}
+
+.action-compare:hover {
+    background: var(--myavana-cloud-dark);
+}
+
+/* Splide Customization */
+.analysis-splide .splide__arrows {
+    position: absolute;
+    bottom: -60px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.analysis-splide .splide__arrow {
+    background: var(--myavana-coral);
+    opacity: 1;
+    width: 40px;
+    height: 40px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    position: relative;
+    pointer-events: auto;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .analysis-splide .splide__arrow {
+    background: var(--myavana-dark-button, #404040);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .analysis-splide .splide__arrow:hover {
+    background: var(--myavana-coral);
+}
+
+.analysis-splide .splide__arrow--prev {
+    position: relative; /* Reset position */
+    left: auto;
+}
+
+.analysis-splide .splide__arrow--next {
+    position: relative; /* Reset position */
+    right: auto;
+}
+
+/* Update slider container to accommodate bottom arrows */
+.analysis-slider-container {
+    margin: -1rem;
+    padding: 1rem 1rem 4rem 1rem; /* Added bottom padding for arrows */
+    position: relative;
+}
+
+.analysis-splide .splide__arrow svg {
+    fill: white;  /* White icon for better contrast */
+    width: 1.5em;  /* Larger icon */
+    height: 1.5em;
+    transition: transform 0.3s ease;
+}
+
+.analysis-splide .splide__arrow:hover {
+    background: var(--myavana-coral-dark);
+    transform: scale(1.1);  /* Slight scale on hover */
+}
+
+.analysis-splide .splide__arrow:hover svg {
+    fill: white;
+}
+
+.analysis-splide .splide__pagination {
+    bottom: -30px; /* Position above the arrows */
+    display: flex;
+    justify-content: center;
+    margin-bottom: 8px; /* Add space between pagination and arrows */
+}
+
+.analysis-splide .splide__pagination__page {
+    background: var(--myavana-cloud);
+    opacity: 1;
+    width: 8px;
+    height: 8px;
+}
+
+.analysis-splide .splide__pagination__page.is-active {
+    background: var(--myavana-coral);
+    transform: scale(1);
+}

@@ -1,0 +1,374 @@
+:root {
+    --primary: #e7a690;
+    --secondary: #222323;
+    --light: #F9F4FF;
+    --dark: #222323;
+    --text: #222323;
+    --white: #FFFFFF;
+    --shadow: 0 4px 12px rgba(34, 35, 35, 0.15);
+    --shadow-lg: 0 8px 24px rgba(34, 35, 35, 0.2);
+    --onyx: #222323;
+    --stone: #f5f5f7;
+    --sand: #eeece1;
+    --coral: #e7a690;
+    --light-coral: #fce5d7;
+    --blueberry: #4a4d68;
+}
+.text-coral{
+    color: var(--coral);
+}
+.text-onyx{
+    color: var(--onyx);
+}
+.text-light-coral{
+    color: var(--light-coral);
+}
+.bg-coral{
+    background-color: var(--coral);
+}
+.p-4{
+    padding: 24px;
+}
+
+.myavana-analysis {
+    font-family: 'Archivo', sans-serif;
+    background: var(--sand);
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.analysis-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 1rem;
+}
+
+.analysis-header {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(34, 35, 35, 0.1);
+}
+
+.analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.analysis-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 20px 40px rgba(34, 35, 35, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.analysis-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 25px 50px rgba(34, 35, 35, 0.15);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.card-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 1.5rem;
+    color: white;
+    background: var(--coral);
+}
+
+.card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--onyx);
+    text-transform: uppercase;
+}
+.card-title:after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: var(--coral);
+}
+.card-title:after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: var(--coral);
+}
+
+.health-score {
+    font-size: 3rem;
+    font-weight: 800;
+    margin: 1rem 0;
+}
+
+.health-excellent { color: var(--coral); }
+.health-good { color: var(--coral); }
+.health-fair { color: var(--blueberry); }
+.health-poor { color: var(--onyx); }
+
+.progress-ring {
+    width: 120px;
+    height: 120px;
+    margin: 1rem auto;
+}
+
+.progress-ring-circle {
+    stroke: var(--stone);
+    stroke-width: 10;
+    fill: transparent;
+    r: 45;
+    cx: 60;
+    cy: 60;
+}
+
+.progress-ring-progress {
+    stroke: var(--coral);
+    stroke-width: 10;
+    fill: transparent;
+    r: 45;
+    cx: 60;
+    cy: 60;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 0.5s ease;
+}
+
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.metric-item {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 12px;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--onyx);
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    color: var(--blueberry);
+    margin-top: 0.25rem;
+}
+
+.recommendation-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
+.recommendation-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: white;
+    background: var(--coral);
+}
+
+.routine-timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.routine-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0.75rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--coral), var(--blueberry));
+}
+
+.routine-step {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.routine-step::before {
+    content: '';
+    position: absolute;
+    left: -1.75rem;
+    top: 0.5rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--coral);
+    border: 3px solid white;
+}
+
+.ai-insight {
+    background: var(--stone);
+    color: var(--onyx);
+    padding: 1.5rem;
+    border-radius: 16px;
+    margin: 1.5rem 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+
+
+.ai-insight::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    pointer-events: none;
+}
+
+.ai-insight-content {
+    position: relative;
+    z-index: 1;
+    color: var(--onyx);
+}
+.ai-insight-content h3{
+    color: var(--onyx);
+    opacity: 0.7;
+    
+}
+
+.loading-shimmer {
+    background: linear-gradient(90deg, var(--stone) 25%, var(--sand) 50%, var(--stone) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--coral) 0%, var(--blueberry) 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(231, 166, 144, 0.3);
+}
+
+.hairstyle-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.hairstyle-card {
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.hairstyle-card:hover {
+    transform: scale(1.05);
+}
+
+.hairstyle-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.hairstyle-info {
+    padding: 1rem;
+}
+
+.trend-indicator {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.trend-improving {
+    background: rgba(231, 166, 144, 0.1);
+    color: var(--coral);
+}
+
+.trend-declining {
+    background: rgba(34, 35, 35, 0.1);
+    color: var(--onyx);
+}
+
+.trend-stable {
+    background: rgba(74, 77, 104, 0.1);
+    color: var(--blueberry);
+}
+
+.analysis-tabs {
+    display: flex;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 16px;
+    padding: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.tab-button {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: transparent;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-button.active {
+    background: var(--light-coral);
+    color: var(--onyx);
+}

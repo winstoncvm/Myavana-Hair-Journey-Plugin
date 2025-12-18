@@ -1,0 +1,607 @@
+/**
+ * MYAVANA Sidebar Analytics Tab Styles
+ * Responsive, mobile-first design
+ */
+
+/* ================================================
+   ANALYTICS CONTAINER
+   ================================================ */
+
+.myavana-analytics-container {
+    padding: 1.5rem;
+    background: var(--myavana-white);
+    overflow-x: hidden; /* Prevent horizontal overflow */
+}
+
+/* [data-theme="dark"] .myavana-analytics-container {
+    background: var(--myavana-onyx);
+} */
+
+/* ================================================
+   ANALYTICS HEADER
+   ================================================ */
+
+.myavana-analytics-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--myavana-coral);
+}
+
+.myavana-analytics-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.myavana-analytics-title h2 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--myavana-onyx);
+    margin: 0;
+}
+
+/* [data-theme="dark"] .myavana-analytics-title h2 {
+    color: var(--myavana-white);
+} */
+
+.myavana-analytics-icon {
+    flex-shrink: 0;
+}
+
+.myavana-analytics-period {
+    width: 100%;
+}
+
+.myavana-period-select {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    background: var(--myavana-stone);
+    border: 1px solid rgba(231, 166, 144, 0.2);
+    border-radius: 8px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--myavana-onyx);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.myavana-period-select:hover {
+    border-color: var(--myavana-coral);
+}
+
+[data-theme="dark"] .myavana-period-select {
+    background: rgba(74, 77, 104, 0.2);
+    color: var(--myavana-white);
+    border-color: rgba(74, 77, 104, 0.3);
+}
+
+/* ================================================
+   STATS GRID
+   ================================================ */
+
+.myavana-analytics-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.myavana-stat-card {
+    background: var(--myavana-stone);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.myavana-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .myavana-stat-card {
+    background: rgba(74, 77, 104, 0.15);
+}
+
+.myavana-stat-primary {
+    border-color: rgba(231, 166, 144, 0.3);
+}
+
+.myavana-stat-success {
+    border-color: rgba(74, 205, 144, 0.3);
+}
+
+.myavana-stat-info {
+    border-color: rgba(74, 77, 104, 0.3);
+}
+
+.myavana-stat-warning {
+    border-color: rgba(255, 193, 7, 0.3);
+}
+
+.myavana-stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.myavana-stat-primary .myavana-stat-icon {
+    background: rgba(231, 166, 144, 0.2);
+    color: var(--myavana-coral);
+}
+
+.myavana-stat-success .myavana-stat-icon {
+    background: rgba(74, 205, 144, 0.2);
+    color: #4acd90;
+}
+
+.myavana-stat-info .myavana-stat-icon {
+    background: rgba(74, 77, 104, 0.2);
+    color: var(--myavana-blueberry);
+}
+
+.myavana-stat-warning .myavana-stat-icon {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+}
+
+.myavana-stat-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.myavana-stat-number {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--myavana-onyx);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+/* [data-theme="dark"] .myavana-stat-number {
+    color: var(--myavana-white);
+} */
+
+.myavana-stat-label {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--myavana-blueberry);
+    opacity: 0.8;
+}
+
+[data-theme="dark"] .myavana-stat-label {
+    color: rgba(245, 245, 247, 0.6);
+}
+
+/* ================================================
+   CHARTS GRID - RESPONSIVE
+   ================================================ */
+
+.myavana-analytics-charts-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.myavana-chart-card {
+    background: var(--myavana-stone);
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid rgba(231, 166, 144, 0.1);
+}
+
+[data-theme="dark"] .myavana-chart-card {
+    background: rgba(74, 77, 104, 0.15);
+    border-color: rgba(74, 77, 104, 0.2);
+}
+
+.myavana-chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.myavana-chart-header h3 {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--myavana-onyx);
+    margin: 0;
+}
+
+
+.myavana-chart-legend {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.myavana-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.6875rem;
+    color: var(--myavana-blueberry);
+}
+
+[data-theme="dark"] .myavana-legend-item {
+    color: rgba(245, 245, 247, 0.7);
+}
+
+.myavana-legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+.myavana-chart-container {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.myavana-chart-container canvas {
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+/* ================================================
+   PROGRESS RING (NEW COMPONENT)
+   ================================================ */
+
+.myavana-progress-ring-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: var(--myavana-stone);
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+[data-theme="dark"] .myavana-progress-ring-container {
+    background: rgba(74, 77, 104, 0.15);
+}
+
+.myavana-progress-ring {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+.myavana-progress-ring-circle {
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+}
+
+.myavana-progress-ring-bg {
+    fill: none;
+    stroke: rgba(231, 166, 144, 0.1);
+    stroke-width: 8;
+}
+
+.myavana-progress-ring-progress {
+    fill: none;
+    stroke: var(--myavana-coral);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s ease;
+}
+
+.myavana-progress-ring-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.myavana-progress-ring-value {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: var(--myavana-coral);
+    line-height: 1;
+}
+
+.myavana-progress-ring-label {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--myavana-blueberry);
+    margin-top: 0.25rem;
+}
+
+/* ================================================
+   INSIGHTS SECTION
+   ================================================ */
+
+.myavana-analytics-insights {
+    margin-bottom: 1.5rem;
+}
+
+.myavana-insight-card {
+    background: var(--myavana-stone);
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid rgba(231, 166, 144, 0.1);
+}
+
+[data-theme="dark"] .myavana-insight-card {
+    background: rgba(74, 77, 104, 0.15);
+    border-color: rgba(74, 77, 104, 0.2);
+}
+
+.myavana-insight-card h3 {
+    display: flex;
+    align-items: center;
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--myavana-onyx);
+    margin: 0 0 1rem 0;
+}
+
+[data-theme="dark"] .myavana-chart-container canvas {
+    color: #fff;
+}
+
+.myavana-insights-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+
+.myavana-insight-item {
+    background: var(--myavana-white);
+    border-radius: 8px;
+    padding: 0.75rem;
+    text-align: center;
+    border: 1px solid rgba(231, 166, 144, 0.1);
+}
+
+[data-theme="dark"] .myavana-insight-item {
+    background: rgba(34, 35, 35, 0.3);
+    border-color: rgba(74, 77, 104, 0.2);
+}
+
+.myavana-insight-label {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--myavana-blueberry);
+    opacity: 0.8;
+    margin-bottom: 0.375rem;
+}
+
+[data-theme="dark"] .myavana-insight-label {
+    color: rgba(245, 245, 247, 0.6);
+}
+
+.myavana-insight-value {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 1.125rem;
+    font-weight: 900;
+    color: var(--myavana-coral);
+}
+
+[data-theme="dark"] .myavana-insight-value {
+    color: var(--myavana-coral);
+}
+
+.myavana-progress-score {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
+.myavana-score-number {
+    font-size: 1.5rem;
+}
+
+.myavana-score-label {
+    font-size: 0.875rem;
+    opacity: 0.7;
+}
+
+/* ================================================
+   HEATMAP CALENDAR (NEW COMPONENT)
+   ================================================ */
+
+.myavana-heatmap-container {
+    background: var(--myavana-stone);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+[data-theme="dark"] .myavana-heatmap-container {
+    background: rgba(74, 77, 104, 0.15);
+}
+
+.myavana-heatmap-title {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--myavana-onyx);
+    margin: 0 0 1rem 0;
+}
+
+/* [data-theme="dark"] .myavana-heatmap-title {
+    color: var(--myavana-white);
+} */
+
+.myavana-heatmap-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.myavana-heatmap-day {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    background: rgba(231, 166, 144, 0.1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.myavana-heatmap-day:hover {
+    transform: scale(1.1);
+}
+
+.myavana-heatmap-day[data-level="0"] {
+    background: rgba(231, 166, 144, 0.1);
+}
+
+.myavana-heatmap-day[data-level="1"] {
+    background: rgba(231, 166, 144, 0.3);
+}
+
+.myavana-heatmap-day[data-level="2"] {
+    background: rgba(231, 166, 144, 0.6);
+}
+
+.myavana-heatmap-day[data-level="3"] {
+    background: var(--myavana-coral);
+}
+
+/* ================================================
+   ACTION BUTTONS
+   ================================================ */
+
+.myavana-analytics-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.myavana-analytics-btn {
+    flex: 1;
+    min-width: 0;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: none;
+}
+
+.myavana-btn-primary {
+    background: var(--myavana-coral);
+    color: var(--myavana-white);
+}
+
+.myavana-btn-primary:hover {
+    background: #d4956f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(231, 166, 144, 0.3);
+}
+
+.myavana-btn-outline {
+    background: transparent;
+    color: var(--myavana-coral);
+    border: 2px solid var(--myavana-coral);
+}
+
+.myavana-btn-outline:hover {
+    background: var(--myavana-coral);
+    color: var(--myavana-white);
+}
+
+[data-theme="dark"] .myavana-btn-outline {
+    color: var(--myavana-coral);
+    border-color: rgba(231, 166, 144, 0.5);
+}
+
+/* ================================================
+   RESPONSIVE BREAKPOINTS
+   ================================================ */
+
+@media (min-width: 400px) {
+    .myavana-analytics-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .myavana-analytics-period {
+        width: auto;
+        min-width: 160px;
+    }
+}
+
+@media (max-width: 380px) {
+    .myavana-analytics-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .myavana-stat-number {
+        font-size: 1.25rem;
+    }
+
+    .myavana-insights-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ================================================
+   DARK MODE ENHANCEMENTS
+   ================================================ */
+
+[data-theme="dark"] .myavana-heatmap-day {
+    background: rgba(231, 166, 144, 0.05);
+}
+
+[data-theme="dark"] .myavana-heatmap-day[data-level="1"] {
+    background: rgba(231, 166, 144, 0.2);
+}
+
+[data-theme="dark"] .myavana-heatmap-day[data-level="2"] {
+    background: rgba(231, 166, 144, 0.4);
+}
+
+[data-theme="dark"] .myavana-heatmap-day[data-level="3"] {
+    background: rgba(231, 166, 144, 0.8);
+}

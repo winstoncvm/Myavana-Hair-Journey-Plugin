@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - MYAVANA Hair Journey</title>
+    <link rel="stylesheet" href="../../assets/css/timeline.css">
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            background: linear-gradient(135deg, var(--myavana-light-coral) 0%, var(--myavana-stone) 100%);
+        }
+
+        .auth-split {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .auth-brand-section {
+            flex: 1;
+            background: var(--myavana-onyx);
+            color: var(--myavana-white);
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .auth-brand-logo {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 48px;
+            text-transform: uppercase;
+            color: var(--myavana-coral);
+            margin-bottom: 24px;
+        }
+
+        .auth-brand-tagline {
+            font-family: 'Archivo', sans-serif;
+            font-size: 24px;
+            font-weight: 300;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .auth-brand-features {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            max-width: 400px;
+        }
+
+        .auth-feature {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            text-align: left;
+        }
+
+        .auth-feature-icon {
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+
+        .auth-feature-text h3 {
+            font-family: 'Archivo', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+            color: var(--myavana-coral);
+        }
+
+        .auth-feature-text p {
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            margin: 0;
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+
+        .auth-form-section {
+            flex: 1;
+            background: var(--myavana-white);
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .auth-form-container {
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .auth-form-header {
+            margin-bottom: 40px;
+        }
+
+        .auth-form-header h1 {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 32px;
+            text-transform: uppercase;
+            color: var(--myavana-onyx);
+            margin: 0 0 8px 0;
+        }
+
+        .auth-form-header p {
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            color: var(--myavana-onyx);
+            opacity: 0.7;
+            margin: 0;
+        }
+
+        .auth-form-group {
+            margin-bottom: 24px;
+        }
+
+        .auth-form-label {
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-onyx);
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .auth-form-input {
+            width: 100%;
+            padding: 14px 16px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            border: 2px solid var(--myavana-stone);
+            border-radius: 8px;
+            background: var(--myavana-white);
+            color: var(--myavana-onyx);
+            transition: all 0.3s ease;
+        }
+
+        .auth-form-input:focus {
+            outline: none;
+            border-color: var(--myavana-coral);
+            box-shadow: 0 0 0 3px rgba(231, 166, 144, 0.1);
+        }
+
+        .auth-form-checkbox-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .auth-form-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            color: var(--myavana-onyx);
+            cursor: pointer;
+        }
+
+        .auth-form-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .auth-form-link {
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            color: var(--myavana-coral);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-form-link:hover {
+            text-decoration: underline;
+        }
+
+        .auth-form-button {
+            width: 100%;
+            padding: 16px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-white);
+            background: var(--myavana-coral);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 24px;
+        }
+
+        .auth-form-button:hover {
+            background: #d4956f;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .auth-form-divider {
+            text-align: center;
+            position: relative;
+            margin: 32px 0;
+        }
+
+        .auth-form-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--myavana-stone);
+        }
+
+        .auth-form-divider span {
+            position: relative;
+            background: var(--myavana-white);
+            padding: 0 16px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 12px;
+            color: var(--myavana-onyx);
+            opacity: 0.5;
+        }
+
+        .auth-social-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .auth-social-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 14px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            border: 2px solid var(--myavana-stone);
+            border-radius: 8px;
+            background: var(--myavana-white);
+            color: var(--myavana-onyx);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .auth-social-button:hover {
+            border-color: var(--myavana-coral);
+            background: var(--myavana-light-coral);
+        }
+
+        .auth-social-icon {
+            font-size: 20px;
+        }
+
+        .auth-form-footer {
+            text-align: center;
+            margin-top: 32px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            color: var(--myavana-onyx);
+        }
+
+        @media (max-width: 968px) {
+            .auth-split {
+                flex-direction: column;
+            }
+
+            .auth-brand-section {
+                padding: 40px 24px;
+            }
+
+            .auth-form-section {
+                padding: 40px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-split">
+            <!-- Brand Section -->
+            <div class="auth-brand-section">
+                <div class="auth-brand-logo">MYAVANA</div>
+                <div class="auth-brand-tagline">Your Hair Journey, Tracked & Analyzed</div>
+
+                <div class="auth-brand-features">
+                    <div class="auth-feature">
+                        <div class="auth-feature-icon">📊</div>
+                        <div class="auth-feature-text">
+                            <h3>Track Your Progress</h3>
+                            <p>Document every step of your hair journey with photos, notes, and ratings</p>
+                        </div>
+                    </div>
+
+                    <div class="auth-feature">
+                        <div class="auth-feature-icon">🤖</div>
+                        <div class="auth-feature-text">
+                            <h3>AI Hair Analysis</h3>
+                            <p>Get personalized insights powered by advanced AI technology</p>
+                        </div>
+                    </div>
+
+                    <div class="auth-feature">
+                        <div class="auth-feature-icon">🎯</div>
+                        <div class="auth-feature-text">
+                            <h3>Set & Achieve Goals</h3>
+                            <p>Create custom hair goals and track progress with visual milestones</p>
+                        </div>
+                    </div>
+
+                    <div class="auth-feature">
+                        <div class="auth-feature-icon">👥</div>
+                        <div class="auth-feature-text">
+                            <h3>Join the Community</h3>
+                            <p>Connect with others on similar hair journeys and share your success</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Section -->
+            <div class="auth-form-section">
+                <div class="auth-form-container">
+                    <div class="auth-form-header">
+                        <h1>Welcome Back</h1>
+                        <p>Sign in to continue your hair journey</p>
+                    </div>
+
+                    <form class="auth-form" id="loginForm">
+                        <div class="auth-form-group">
+                            <label class="auth-form-label" for="email">Email Address</label>
+                            <input
+                                type="email"
+                                id="email"
+                                class="auth-form-input"
+                                placeholder="your.email@example.com"
+                                required
+                            >
+                        </div>
+
+                        <div class="auth-form-group">
+                            <label class="auth-form-label" for="password">Password</label>
+                            <input
+                                type="password"
+                                id="password"
+                                class="auth-form-input"
+                                placeholder="Enter your password"
+                                required
+                            >
+                        </div>
+
+                        <div class="auth-form-checkbox-group">
+                            <label class="auth-form-checkbox-label">
+                                <input type="checkbox" class="auth-form-checkbox" id="remember">
+                                Remember me
+                            </label>
+                            <a href="forgot-password.html" class="auth-form-link">Forgot password?</a>
+                        </div>
+
+                        <button type="submit" class="auth-form-button">Sign In</button>
+
+                        <div class="auth-form-divider">
+                            <span>or continue with</span>
+                        </div>
+
+                        <div class="auth-social-buttons">
+                            <button type="button" class="auth-social-button">
+                                <span class="auth-social-icon">G</span>
+                                Continue with Google
+                            </button>
+                            <button type="button" class="auth-social-button">
+                                <span class="auth-social-icon">f</span>
+                                Continue with Facebook
+                            </button>
+                        </div>
+
+                        <div class="auth-form-footer">
+                            Don't have an account? <a href="register.html" class="auth-form-link">Sign up</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const remember = document.getElementById('remember').checked;
+
+            console.log('Login attempt:', { email, remember });
+
+            // Simulate login success
+            setTimeout(() => {
+                window.location.href = '../../index.html';
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Step 2: Set Your Goals - MYAVANA</title>
+    <link rel="stylesheet" href="../../assets/css/timeline.css">
+    <style>
+        .onboarding-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--myavana-light-coral) 0%, var(--myavana-stone) 100%);
+            padding: 40px 24px;
+        }
+
+        .onboarding-card {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--myavana-white);
+            border-radius: 16px;
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+        }
+
+        .onboarding-header {
+            background: var(--myavana-onyx);
+            color: var(--myavana-white);
+            padding: 32px 40px;
+            text-align: center;
+        }
+
+        .onboarding-logo {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 24px;
+            text-transform: uppercase;
+            color: var(--myavana-coral);
+            margin-bottom: 16px;
+        }
+
+        .onboarding-progress {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .progress-step {
+            width: 80px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+
+        .progress-step.active {
+            background: var(--myavana-coral);
+        }
+
+        .onboarding-header h1 {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 28px;
+            text-transform: uppercase;
+            margin: 0 0 8px 0;
+        }
+
+        .onboarding-header p {
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            opacity: 0.8;
+            margin: 0;
+        }
+
+        .onboarding-body {
+            padding: 48px 40px;
+        }
+
+        .form-section-title {
+            font-family: 'Archivo', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-onyx);
+            margin: 0 0 16px 0;
+        }
+
+        .form-section-description {
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            color: var(--myavana-onyx);
+            opacity: 0.7;
+            margin: 0 0 32px 0;
+            line-height: 1.6;
+        }
+
+        .goal-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .goal-card {
+            background: var(--myavana-stone);
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+        }
+
+        .goal-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .goal-number {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 14px;
+            color: var(--myavana-coral);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .goal-remove {
+            background: transparent;
+            border: none;
+            color: var(--myavana-onyx);
+            opacity: 0.5;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s ease;
+        }
+
+        .goal-remove:hover {
+            opacity: 1;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            font-family: 'Archivo', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-onyx);
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 12px 14px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            border: 2px solid var(--myavana-sand);
+            border-radius: 8px;
+            background: var(--myavana-white);
+            color: var(--myavana-onyx);
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--myavana-coral);
+            box-shadow: 0 0 0 3px rgba(231, 166, 144, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .add-goal-btn {
+            width: 100%;
+            padding: 16px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-coral);
+            background: var(--myavana-white);
+            border: 2px dashed var(--myavana-coral);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .add-goal-btn:hover {
+            background: var(--myavana-light-coral);
+            transform: translateY(-2px);
+        }
+
+        .popular-goals {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .popular-goal-chip {
+            padding: 8px 16px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--myavana-onyx);
+            background: var(--myavana-white);
+            border: 2px solid var(--myavana-stone);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .popular-goal-chip:hover {
+            border-color: var(--myavana-coral);
+            background: var(--myavana-light-coral);
+        }
+
+        .onboarding-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 40px;
+            background: var(--myavana-stone);
+            border-top: 1px solid var(--myavana-sand);
+        }
+
+        .btn {
+            padding: 14px 32px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary {
+            background: var(--myavana-white);
+            color: var(--myavana-onyx);
+            border: 2px solid var(--myavana-stone);
+        }
+
+        .btn-secondary:hover {
+            background: var(--myavana-sand);
+        }
+
+        .btn-primary {
+            background: var(--myavana-coral);
+            color: var(--myavana-white);
+        }
+
+        .btn-primary:hover {
+            background: #d4956f;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .step-indicator {
+            font-family: 'Archivo', sans-serif;
+            font-size: 12px;
+            color: var(--myavana-onyx);
+            opacity: 0.6;
+        }
+
+        @media (max-width: 768px) {
+            .onboarding-body {
+                padding: 32px 24px;
+            }
+
+            .onboarding-footer {
+                flex-direction: column;
+                gap: 16px;
+                padding: 24px;
+            }
+
+            .step-indicator {
+                order: -1;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="onboarding-container">
+        <div class="onboarding-card">
+            <div class="onboarding-header">
+                <div class="onboarding-logo">MYAVANA</div>
+
+                <div class="onboarding-progress">
+                    <div class="progress-step active"></div>
+                    <div class="progress-step active"></div>
+                    <div class="progress-step"></div>
+                </div>
+
+                <h1>Set Your Hair Goals</h1>
+                <p>What do you want to achieve with your hair?</p>
+            </div>
+
+            <div class="onboarding-body">
+                <h2 class="form-section-title">Your Hair Goals</h2>
+                <p class="form-section-description">
+                    Add up to 3 goals to focus on. You can always add or modify goals later from your profile.
+                </p>
+
+                <form id="onboardingForm">
+                    <div class="goal-list" id="goalList">
+                        <!-- Goal 1 (default) -->
+                        <div class="goal-card" data-goal-index="0">
+                            <div class="goal-card-header">
+                                <span class="goal-number">Goal 1</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Goal Title</label>
+                                <input
+                                    type="text"
+                                    class="form-input goal-title"
+                                    placeholder="e.g., Grow hair to waist length"
+                                    required
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Category</label>
+                                <select class="form-select goal-category" required>
+                                    <option value="">Select a category</option>
+                                    <option value="growth">Growth</option>
+                                    <option value="health">Health</option>
+                                    <option value="moisture">Moisture</option>
+                                    <option value="strength">Strength</option>
+                                    <option value="styling">Styling</option>
+                                    <option value="retention">Retention</option>
+                                    <option value="volume">Volume</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Start Date</label>
+                                    <input
+                                        type="date"
+                                        class="form-input goal-start-date"
+                                        required
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Target Date</label>
+                                    <input
+                                        type="date"
+                                        class="form-input goal-target-date"
+                                        required
+                                    >
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Description (Optional)</label>
+                                <textarea
+                                    class="form-textarea goal-description"
+                                    placeholder="Describe your goal and why it's important to you..."
+                                ></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="add-goal-btn" id="addGoalBtn">
+                        <span>+</span>
+                        <span>Add Another Goal</span>
+                    </button>
+
+                    <div class="popular-goals">
+                        <div class="form-label" style="width: 100%; margin-bottom: 8px;">Popular Goals:</div>
+                        <button type="button" class="popular-goal-chip" data-goal="Grow hair 6 inches">Grow 6 inches</button>
+                        <button type="button" class="popular-goal-chip" data-goal="Achieve healthy scalp">Healthy scalp</button>
+                        <button type="button" class="popular-goal-chip" data-goal="Reduce breakage">Reduce breakage</button>
+                        <button type="button" class="popular-goal-chip" data-goal="Increase moisture retention">More moisture</button>
+                        <button type="button" class="popular-goal-chip" data-goal="Define natural curls">Define curls</button>
+                        <button type="button" class="popular-goal-chip" data-goal="Strengthen hair">Strengthen hair</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="onboarding-footer">
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='onboarding-step1.html'">
+                    Back
+                </button>
+
+                <div class="step-indicator">Step 2 of 3</div>
+
+                <button type="button" class="btn btn-primary" id="nextBtn">
+                    Next: Create Routine
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let goalCount = 1;
+        const maxGoals = 3;
+
+        // Set default start date to today
+        document.querySelector('.goal-start-date').valueAsDate = new Date();
+
+        // Add goal button
+        document.getElementById('addGoalBtn').addEventListener('click', function() {
+            if (goalCount >= maxGoals) {
+                alert('You can add up to 3 goals during onboarding. You can add more later!');
+                return;
+            }
+
+            goalCount++;
+            const goalList = document.getElementById('goalList');
+            const goalCard = createGoalCard(goalCount - 1);
+            goalList.appendChild(goalCard);
+
+            // Hide button if max reached
+            if (goalCount >= maxGoals) {
+                this.style.display = 'none';
+            }
+        });
+
+        // Create goal card
+        function createGoalCard(index) {
+            const card = document.createElement('div');
+            card.className = 'goal-card';
+            card.setAttribute('data-goal-index', index);
+            card.innerHTML = `
+                <div class="goal-card-header">
+                    <span class="goal-number">Goal ${index + 1}</span>
+                    <button type="button" class="goal-remove" onclick="removeGoal(this)">×</button>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Goal Title</label>
+                    <input
+                        type="text"
+                        class="form-input goal-title"
+                        placeholder="e.g., Grow hair to waist length"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select class="form-select goal-category" required>
+                        <option value="">Select a category</option>
+                        <option value="growth">Growth</option>
+                        <option value="health">Health</option>
+                        <option value="moisture">Moisture</option>
+                        <option value="strength">Strength</option>
+                        <option value="styling">Styling</option>
+                        <option value="retention">Retention</option>
+                        <option value="volume">Volume</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Start Date</label>
+                        <input
+                            type="date"
+                            class="form-input goal-start-date"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Target Date</label>
+                        <input
+                            type="date"
+                            class="form-input goal-target-date"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description (Optional)</label>
+                    <textarea
+                        class="form-textarea goal-description"
+                        placeholder="Describe your goal and why it's important to you..."
+                    ></textarea>
+                </div>
+            `;
+
+            // Set default start date
+            card.querySelector('.goal-start-date').valueAsDate = new Date();
+
+            return card;
+        }
+
+        // Remove goal
+        window.removeGoal = function(btn) {
+            if (goalCount <= 1) {
+                alert('You must have at least one goal!');
+                return;
+            }
+
+            btn.closest('.goal-card').remove();
+            goalCount--;
+
+            // Show add button if under max
+            if (goalCount < maxGoals) {
+                document.getElementById('addGoalBtn').style.display = 'flex';
+            }
+
+            // Renumber goals
+            document.querySelectorAll('.goal-card').forEach((card, index) => {
+                card.setAttribute('data-goal-index', index);
+                card.querySelector('.goal-number').textContent = `Goal ${index + 1}`;
+            });
+        };
+
+        // Popular goals quick add
+        document.querySelectorAll('.popular-goal-chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                const goalTitle = this.getAttribute('data-goal');
+                const firstEmptyInput = document.querySelector('.goal-title:invalid, .goal-title[value=""]');
+
+                if (firstEmptyInput) {
+                    firstEmptyInput.value = goalTitle;
+                    firstEmptyInput.focus();
+                }
+            });
+        });
+
+        // Form submission
+        document.getElementById('nextBtn').addEventListener('click', function() {
+            const goals = [];
+            const goalCards = document.querySelectorAll('.goal-card');
+
+            let isValid = true;
+
+            goalCards.forEach((card, index) => {
+                const title = card.querySelector('.goal-title').value.trim();
+                const category = card.querySelector('.goal-category').value;
+                const startDate = card.querySelector('.goal-start-date').value;
+                const targetDate = card.querySelector('.goal-target-date').value;
+                const description = card.querySelector('.goal-description').value.trim();
+
+                if (!title || !category || !startDate || !targetDate) {
+                    isValid = false;
+                    alert(`Please complete all required fields for Goal ${index + 1}`);
+                    return;
+                }
+
+                goals.push({
+                    title,
+                    category,
+                    startDate,
+                    targetDate,
+                    description,
+                    progress: 0
+                });
+            });
+
+            if (!isValid) return;
+
+            console.log('Step 2 data:', { goals });
+
+            // Store in sessionStorage
+            sessionStorage.setItem('onboarding_step2', JSON.stringify({ goals }));
+
+            // Proceed to next step
+            window.location.href = 'onboarding-step3.html';
+        });
+    </script>
+</body>
+</html>

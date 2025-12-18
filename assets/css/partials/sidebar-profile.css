@@ -1,0 +1,1271 @@
+/**
+ * MYAVANA Sidebar Profile Tab Styles
+ * Luxury UI with premium design and full dark mode support
+ */
+
+/* ========================================
+   Profile Header - Luxury Design
+   ======================================== */
+
+.sidebar-profile-header {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    background: linear-gradient(135deg, var(--myavana-white) 0%, var(--myavana-stone) 100%);
+    border-bottom: 1px solid rgba(231, 166, 144, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar-profile-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: radial-gradient(circle at 50% -20%, rgba(231, 166, 144, 0.15), transparent 70%);
+    pointer-events: none;
+}
+
+[data-theme="dark"] .sidebar-profile-header {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+    border-bottom-color: rgba(231, 166, 144, 0.3);
+}
+
+[data-theme="dark"] .sidebar-profile-header::before {
+    background: radial-gradient(circle at 50% -20%, rgba(231, 166, 144, 0.25), transparent 70%);
+}
+
+.sidebar-profile-avatar-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 1.25rem;
+    z-index: 1;
+}
+
+.sidebar-profile-avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid var(--myavana-coral);
+    box-shadow:
+        0 8px 24px rgba(231, 166, 144, 0.25),
+        0 4px 12px rgba(0, 0, 0, 0.1),
+        inset 0 2px 4px rgba(255, 255, 255, 0.5);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.sidebar-profile-avatar::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    padding: 4px;
+    background: linear-gradient(135deg, var(--myavana-coral), #d4956f);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-profile-avatar:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow:
+        0 12px 32px rgba(231, 166, 144, 0.35),
+        0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-profile-avatar:hover::after {
+    opacity: 1;
+}
+
+[data-theme="dark"] .sidebar-profile-avatar {
+    box-shadow:
+        0 8px 24px rgba(231, 166, 144, 0.4),
+        0 4px 12px rgba(0, 0, 0, 0.4),
+        inset 0 2px 4px rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-profile-avatar img,
+.sidebar-profile-avatar .avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.sidebar-avatar-edit {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--myavana-coral), #d4956f);
+    border: 3px solid var(--myavana-white);
+    color: var(--myavana-white);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+    box-shadow: 0 4px 12px rgba(231, 166, 144, 0.4);
+}
+
+.sidebar-avatar-edit:hover {
+    background: linear-gradient(135deg, #d4956f, var(--myavana-blueberry));
+    transform: scale(1.15) rotate(90deg);
+    box-shadow: 0 6px 16px rgba(231, 166, 144, 0.5);
+}
+
+[data-theme="dark"] .sidebar-avatar-edit {
+    border-color: #1a1a1a;
+    box-shadow: 0 4px 12px rgba(231, 166, 144, 0.6);
+}
+
+.sidebar-avatar-edit svg {
+    width: 16px;
+    height: 16px;
+}
+
+.sidebar-profile-name {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 1.375rem;
+    font-weight: 900;
+    color: var(--myavana-onyx);
+    margin-bottom: 0.25rem;
+    letter-spacing: -0.02em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .sidebar-profile-name {
+    text-shadow: 0 2px 8px rgba(231, 166, 144, 0.3);
+}
+
+.sidebar-profile-handle {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.875rem;
+    color: var(--myavana-blueberry);
+    margin-bottom: 0.875rem;
+    opacity: 0.8;
+}
+
+[data-theme="dark"] .sidebar-profile-handle {
+    color: var(--myavana-coral);
+    opacity: 0.9;
+}
+
+.sidebar-profile-bio {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.813rem;
+    line-height: 1.6;
+    color: var(--myavana-onyx);
+    margin-bottom: 1.25rem;
+    padding: 0 0.5rem;
+    opacity: 0.85;
+}
+
+[data-theme="dark"] .sidebar-profile-bio {
+    color: #d1d5db;
+    opacity: 0.9;
+}
+
+/* ========================================
+   Profile Stats - Luxury Cards
+   ======================================== */
+
+.sidebar-profile-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(231, 166, 144, 0.15);
+    margin-top: 1rem;
+}
+
+[data-theme="dark"] .sidebar-profile-stats {
+    border-top-color: rgba(231, 166, 144, 0.25);
+}
+
+.sidebar-stat-item {
+    text-align: center;
+    padding: 0.75rem 0.5rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(231, 166, 144, 0.08), rgba(231, 166, 144, 0.03));
+    backdrop-filter: blur(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar-stat-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(231, 166, 144, 0.3), transparent);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-stat-item:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, rgba(231, 166, 144, 0.15), rgba(231, 166, 144, 0.08));
+    box-shadow: 0 4px 12px rgba(231, 166, 144, 0.2);
+}
+
+.sidebar-stat-item:hover::before {
+    opacity: 1;
+}
+
+[data-theme="dark"] .sidebar-stat-item {
+    background: linear-gradient(135deg, rgba(231, 166, 144, 0.15), rgba(231, 166, 144, 0.08));
+}
+
+[data-theme="dark"] .sidebar-stat-item:hover {
+    background: linear-gradient(135deg, rgba(231, 166, 144, 0.25), rgba(231, 166, 144, 0.15));
+    box-shadow: 0 4px 12px rgba(231, 166, 144, 0.3);
+}
+
+.sidebar-stat-value {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 1.75rem;
+    background: linear-gradient(135deg, var(--myavana-coral), #d4956f);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.25rem;
+    font-weight: 900;
+}
+
+[data-theme="dark"] .sidebar-stat-value {
+    background: linear-gradient(135deg, var(--myavana-coral), #fca5a5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.sidebar-stat-label {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.688rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--myavana-blueberry);
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+[data-theme="dark"] .sidebar-stat-label {
+    color: #9ca3af;
+    opacity: 0.9;
+}
+
+/* ========================================
+   Profile Cards - Premium Glass Design
+   ======================================== */
+
+.sidebar-profile-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(245, 245, 247, 0.9));
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(231, 166, 144, 0.15);
+    border-radius: 16px;
+    padding: 1.5rem 1.25rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.04),
+        0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.sidebar-profile-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--myavana-coral), #d4956f, var(--myavana-coral));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-profile-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(231, 166, 144, 0.3);
+    box-shadow:
+        0 8px 24px rgba(231, 166, 144, 0.15),
+        0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.sidebar-profile-card:hover::before {
+    opacity: 1;
+}
+
+[data-theme="dark"] .sidebar-profile-card {
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.95), rgba(15, 15, 15, 0.9));
+    border-color: rgba(231, 166, 144, 0.25);
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .sidebar-profile-card:hover {
+    border-color: rgba(231, 166, 144, 0.4);
+    box-shadow:
+        0 8px 24px rgba(231, 166, 144, 0.2),
+        0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.sidebar-card-title {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.813rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--myavana-onyx);
+    margin-bottom: 1.25rem;
+    position: relative;
+    padding-left: 0.75rem;
+}
+
+.sidebar-card-title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 16px;
+    background: linear-gradient(180deg, var(--myavana-coral), #d4956f);
+    border-radius: 2px;
+}
+
+/* [data-theme="dark"] .sidebar-card-title {
+    color: var(--myavana-white);
+} */
+
+/* ========================================
+   Hair Profile Grid - Luxury Layout
+   ======================================== */
+
+.sidebar-profile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.sidebar-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.875rem;
+    background: linear-gradient(135deg, rgba(231, 166, 144, 0.05), rgba(231, 166, 144, 0.02));
+    border-radius: 10px;
+    border: 1px solid rgba(231, 166, 144, 0.1);
+    transition: all 0.3s ease;
+}
+
+.sidebar-detail-item:hover {
+    background: linear-gradient(135deg, rgba(231, 166, 144, 0.1), rgba(231, 166, 144, 0.05));
+    border-color: rgba(231, 166, 144, 0.2);
+    transform: translateX(2px);
+}
+
+[data-theme="dark"] .sidebar-detail-item {
+    background: linear-gradient(135deg, rgba(231, 166, 144, 0.1), rgba(231, 166, 144, 0.05));
+    border-color: rgba(231, 166, 144, 0.15);
+}
+
+[data-theme="dark"] .sidebar-detail-item:hover {
+    background: linear-gradient(135deg, rgba(231, 166, 144, 0.15), rgba(231, 166, 144, 0.08));
+    border-color: rgba(231, 166, 144, 0.3);
+}
+
+.sidebar-detail-label {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.688rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--myavana-blueberry);
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+[data-theme="dark"] .sidebar-detail-label {
+    color: var(--myavana-coral);
+    opacity: 0.9;
+}
+
+.sidebar-detail-value {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.938rem;
+    font-weight: 700;
+    color: var(--myavana-onyx);
+}
+
+/* [data-theme="dark"] .sidebar-detail-value {
+    color: var(--myavana-white);
+} */
+
+/* ========================================
+   Goals - Premium Chip Design
+   ======================================== */
+
+.sidebar-goals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+.sidebar-goal-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, rgba(231, 166, 144, 0.12), rgba(231, 166, 144, 0.06));
+    border-radius: 10px;
+    border: 1px solid rgba(231, 166, 144, 0.2);
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.813rem;
+    font-weight: 600;
+    color: var(--myavana-onyx);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar-goal-chip::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--myavana-coral), #d4956f);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-goal-chip:hover {
+    background: linear-gradient(135deg, var(--myavana-coral), #d4956f);
+    color: var(--myavana-white);
+    transform: translateX(4px);
+    border-color: var(--myavana-coral);
+    box-shadow: 0 4px 12px rgba(231, 166, 144, 0.3);
+}
+
+.sidebar-goal-chip:hover::before {
+    opacity: 1;
+}
+
+[data-theme="dark"] .sidebar-goal-chip {
+    background: linear-gradient(135deg, rgba(231, 166, 144, 0.2), rgba(231, 166, 144, 0.1));
+  
+    border-color: rgba(231, 166, 144, 0.3);
+}
+
+[data-theme="dark"] .sidebar-goal-chip:hover {
+    background: linear-gradient(135deg, var(--myavana-coral), #d4956f);
+    box-shadow: 0 4px 12px rgba(231, 166, 144, 0.4);
+}
+
+.sidebar-goal-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.sidebar-empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+}
+
+.sidebar-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.4;
+    filter: grayscale(100%);
+}
+
+[data-theme="dark"] .sidebar-empty-icon {
+    opacity: 0.3;
+}
+
+.sidebar-empty-text {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.875rem;
+    color: var(--myavana-blueberry);
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+}
+
+[data-theme="dark"] .sidebar-empty-text {
+    color: #9ca3af;
+}
+
+.sidebar-empty-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, var(--myavana-coral), #d4956f);
+    color: var(--myavana-white);
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.813rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(231, 166, 144, 0.3);
+}
+
+.sidebar-empty-cta:hover {
+    background: linear-gradient(135deg, #d4956f, var(--myavana-blueberry));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(231, 166, 144, 0.4);
+}
+
+.sidebar-empty-cta svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* ========================================
+   Routine - Premium List Design
+   ======================================== */
+
+.sidebar-routine-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.sidebar-routine-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(245, 245, 247, 0.8), rgba(238, 236, 225, 0.5));
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    border: 1px solid rgba(231, 166, 144, 0.15);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar-routine-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, var(--myavana-coral), #d4956f);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-routine-item:hover {
+    background: linear-gradient(135deg, var(--myavana-light-coral), rgba(231, 166, 144, 0.2));
+    transform: translateX(4px);
+    border-color: rgba(231, 166, 144, 0.3);
+    box-shadow: 0 4px 12px rgba(231, 166, 144, 0.2);
+}
+
+.sidebar-routine-item:hover::before {
+    opacity: 1;
+}
+
+[data-theme="dark"] .sidebar-routine-item {
+    background: linear-gradient(135deg, rgba(42, 42, 42, 0.8), rgba(26, 26, 26, 0.5));
+    border-color: rgba(231, 166, 144, 0.2);
+}
+
+[data-theme="dark"] .sidebar-routine-item:hover {
+    background: linear-gradient(135deg, rgba(58, 42, 36, 0.8), rgba(42, 42, 42, 0.6));
+    border-color: rgba(231, 166, 144, 0.4);
+    box-shadow: 0 4px 12px rgba(231, 166, 144, 0.25);
+}
+
+.sidebar-routine-name {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--myavana-onyx);
+}
+
+[data-theme="dark"] .sidebar-routine-freq {
+    color: #fff;
+    opacity: 0.7;
+}
+
+.sidebar-routine-frequency {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.688rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.375rem 0.75rem;
+    border-radius: 8px;
+    background: var(--myavana-white);
+    color: var(--myavana-blueberry);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .sidebar-routine-frequency {
+    background: #1a1a1a;
+    color: #e0f2fe;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Frequency color variants - Luxury */
+.sidebar-routine-frequency.freq-daily {
+    background: linear-gradient(135deg, #dbeafe, #e0f2fe);
+    color: #0369a1;
+    box-shadow: 0 2px 8px rgba(3, 105, 161, 0.2);
+}
+
+[data-theme="dark"] .sidebar-routine-frequency.freq-daily {
+    background: linear-gradient(135deg, #1e3a4c, #0c2d3d);
+    color: #7dd3fc;
+}
+
+.sidebar-routine-frequency.freq-weekly {
+    background: linear-gradient(135deg, #dcfce7, #f0fdf4);
+    color: #15803d;
+    box-shadow: 0 2px 8px rgba(21, 128, 61, 0.2);
+}
+
+[data-theme="dark"] .sidebar-routine-frequency.freq-weekly {
+    background: linear-gradient(135deg, #1e3a2a, #0f2619);
+    color: #86efac;
+}
+
+.sidebar-routine-frequency.freq-biweekly {
+    background: linear-gradient(135deg, #fef3c7, #fef9e7);
+    color: #b45309;
+    box-shadow: 0 2px 8px rgba(180, 83, 9, 0.2);
+}
+
+[data-theme="dark"] .sidebar-routine-frequency.freq-biweekly {
+    background: linear-gradient(135deg, #3a2e1a, #2d2210);
+    color: #fcd34d;
+}
+
+.sidebar-routine-frequency.freq-monthly {
+    background: linear-gradient(135deg, #fce7f3, #fdf2f8);
+    color: #be185d;
+    box-shadow: 0 2px 8px rgba(190, 24, 93, 0.2);
+}
+
+[data-theme="dark"] .sidebar-routine-frequency.freq-monthly {
+    background: linear-gradient(135deg, #3a1a2e, #2d1424);
+    color: #f9a8d4;
+}
+
+.sidebar-routine-frequency.freq-asneeded {
+    background: linear-gradient(135deg, var(--myavana-light-coral), rgba(231, 166, 144, 0.3));
+    color: var(--myavana-onyx);
+    box-shadow: 0 2px 8px rgba(231, 166, 144, 0.3);
+}
+
+[data-theme="dark"] .sidebar-routine-frequency.freq-asneeded {
+    background: linear-gradient(135deg, #3a2a24, #2d1f19);
+    color: var(--myavana-coral);
+}
+
+/* ========================================
+   Milestones - Luxury Achievement Badges
+   ======================================== */
+
+.sidebar-milestones-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.875rem;
+}
+
+.sidebar-milestone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.25rem 1rem;
+    background: linear-gradient(135deg, rgba(245, 245, 247, 0.9), rgba(238, 236, 225, 0.6));
+    backdrop-filter: blur(10px);
+    border-radius: 14px;
+    border: 2px solid rgba(231, 166, 144, 0.15);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.5;
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar-milestone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(231, 166, 144, 0.1), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+[data-theme="dark"] .sidebar-milestone {
+    background: linear-gradient(135deg, rgba(42, 42, 42, 0.9), rgba(26, 26, 26, 0.6));
+    border-color: rgba(231, 166, 144, 0.2);
+}
+
+.sidebar-milestone.completed {
+    opacity: 1;
+    border-color: var(--myavana-coral);
+    background: linear-gradient(135deg, var(--myavana-light-coral), rgba(252, 229, 215, 0.8));
+    box-shadow: 0 4px 16px rgba(231, 166, 144, 0.3);
+}
+
+.sidebar-milestone.completed::before {
+    opacity: 1;
+}
+
+[data-theme="dark"] .sidebar-milestone.completed {
+    background: linear-gradient(135deg, rgba(58, 42, 36, 0.9), rgba(42, 30, 24, 0.7));
+    box-shadow: 0 4px 16px rgba(231, 166, 144, 0.4);
+}
+
+.sidebar-milestone.completed::after {
+    content: '✓';
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, var(--myavana-coral), #d4956f);
+    color: var(--myavana-white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(231, 166, 144, 0.4);
+    animation: checkmarkPop 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes checkmarkPop {
+    0% {
+        transform: scale(0) rotate(-180deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2) rotate(10deg);
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+.sidebar-milestone-icon {
+    font-size: 2rem;
+    margin-bottom: 0.625rem;
+    filter: grayscale(100%) brightness(0.7);
+    transition: all 0.4s ease;
+}
+.milestone-icon{
+    color: var(--myavana-onyx);
+}
+.milestone-text{
+    color: var(--myavana-onyx);
+    opacity: 0.8;
+
+}
+
+
+.sidebar-milestone.completed .sidebar-milestone-icon {
+    filter: grayscale(0%) brightness(1);
+    animation: iconGlow 0.6s ease;
+}
+
+@keyframes iconGlow {
+    0%, 100% {
+        filter: grayscale(0%) brightness(1);
+    }
+    50% {
+        filter: grayscale(0%) brightness(1.3) drop-shadow(0 0 8px rgba(231, 166, 144, 0.6));
+    }
+}
+
+.sidebar-milestone-title {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.813rem;
+    font-weight: 700;
+    color: var(--myavana-onyx);
+    margin-bottom: 0.25rem;
+}
+
+[data-theme="dark"] .sidebar-milestone-title {
+    color: var(--myavana-white);
+}
+
+.sidebar-milestone-desc {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.688rem;
+    color: var(--myavana-blueberry);
+    opacity: 0.8;
+}
+
+[data-theme="dark"] .sidebar-milestone-desc {
+    color: #9ca3af;
+    opacity: 0.9;
+}
+
+/* ========================================
+   Edit Offcanvas Form Styles - Luxury
+   ======================================== */
+
+.sidebar-edit-section {
+    margin-bottom: 2rem;
+}
+
+.sidebar-edit-section:last-child {
+    margin-bottom: 0;
+}
+
+.sidebar-edit-title {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--myavana-onyx);
+    margin-bottom: 1rem;
+    position: relative;
+    padding-left: 0.75rem;
+}
+
+.sidebar-edit-title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 16px;
+    background: linear-gradient(180deg, var(--myavana-coral), #d4956f);
+    border-radius: 2px;
+}
+
+[data-theme="dark"] .sidebar-edit-title {
+    color: var(--myavana-white);
+}
+
+.sidebar-edit-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.sidebar-edit-textarea,
+.sidebar-edit-select {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid rgba(231, 166, 144, 0.2);
+    border-radius: 10px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.875rem;
+    color: var(--myavana-onyx);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] .sidebar-edit-textarea,
+[data-theme="dark"] .sidebar-edit-select {
+    background: rgba(42, 42, 42, 0.8);
+    border-color: rgba(231, 166, 144, 0.3);
+    color: var(--myavana-white);
+}
+
+.sidebar-edit-textarea:focus,
+.sidebar-edit-select:focus {
+    outline: none;
+    border-color: var(--myavana-coral);
+    box-shadow: 0 0 0 4px rgba(231, 166, 144, 0.15), 0 4px 12px rgba(231, 166, 144, 0.2);
+    background: var(--myavana-white);
+}
+
+[data-theme="dark"] .sidebar-edit-textarea:focus,
+[data-theme="dark"] .sidebar-edit-select:focus {
+    background: rgba(42, 42, 42, 0.95);
+    box-shadow: 0 0 0 4px rgba(231, 166, 144, 0.25), 0 4px 12px rgba(231, 166, 144, 0.3);
+}
+
+.sidebar-edit-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.sidebar-edit-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.sidebar-edit-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.sidebar-edit-label {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--myavana-blueberry);
+}
+
+[data-theme="dark"] .sidebar-edit-label {
+    color: var(--myavana-coral);
+}
+
+.sidebar-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background: linear-gradient(135deg, var(--myavana-coral), #d4956f);
+    color: var(--myavana-white);
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(231, 166, 144, 0.3);
+}
+
+.sidebar-add-btn:hover {
+    background: linear-gradient(135deg, #d4956f, var(--myavana-blueberry));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(231, 166, 144, 0.4);
+}
+
+.sidebar-add-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+.sidebar-edit-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.sidebar-goal-edit-item,
+.sidebar-routine-edit-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1rem;
+    background: linear-gradient(135deg, rgba(245, 245, 247, 0.8), rgba(238, 236, 225, 0.5));
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    border: 2px solid rgba(231, 166, 144, 0.15);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] .sidebar-goal-edit-item,
+[data-theme="dark"] .sidebar-routine-edit-item {
+    background: linear-gradient(135deg, rgba(42, 42, 42, 0.8), rgba(26, 26, 26, 0.5));
+    border-color: rgba(231, 166, 144, 0.25);
+}
+
+.sidebar-goal-edit-item:hover,
+.sidebar-routine-edit-item:hover {
+    border-color: var(--myavana-coral);
+    background: linear-gradient(135deg, rgba(231, 166, 144, 0.15), rgba(231, 166, 144, 0.08));
+    box-shadow: 0 2px 8px rgba(231, 166, 144, 0.2);
+}
+
+[data-theme="dark"] .sidebar-goal-edit-item:hover,
+[data-theme="dark"] .sidebar-routine-edit-item:hover {
+    background: linear-gradient(135deg, rgba(231, 166, 144, 0.2), rgba(231, 166, 144, 0.1));
+}
+
+.sidebar-goal-edit-text,
+.sidebar-routine-edit-name {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--myavana-onyx);
+}
+
+[data-theme="dark"] .sidebar-goal-edit-text,
+[data-theme="dark"] .sidebar-routine-edit-name {
+    color: var(--myavana-white);
+}
+
+.sidebar-routine-edit-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.sidebar-routine-edit-freq {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.688rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--myavana-coral);
+    opacity: 0.9;
+}
+
+.sidebar-goal-remove-btn,
+.sidebar-routine-remove-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(245, 245, 247, 0.8));
+    border: 2px solid rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+    padding: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .sidebar-goal-remove-btn,
+[data-theme="dark"] .sidebar-routine-remove-btn {
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.9), rgba(15, 15, 15, 0.8));
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #f87171;
+}
+
+.sidebar-goal-remove-btn:hover,
+.sidebar-routine-remove-btn:hover {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border-color: #ef4444;
+    color: var(--myavana-white);
+    transform: scale(1.15) rotate(90deg);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.sidebar-goal-remove-btn svg,
+.sidebar-routine-remove-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* ========================================
+   Notification Styles - Luxury Toast
+   ======================================== */
+
+.sidebar-notification {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    padding: 1.25rem 1.75rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(245, 245, 247, 0.95));
+    backdrop-filter: blur(20px);
+    border-left: 4px solid var(--myavana-coral);
+    border-radius: 12px;
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.12),
+        0 4px 12px rgba(231, 166, 144, 0.2);
+    z-index: 10002;
+    opacity: 0;
+    transform: translateX(400px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: 400px;
+    border: 1px solid rgba(231, 166, 144, 0.3);
+}
+
+.sidebar-notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+[data-theme="dark"] .sidebar-notification {
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.98), rgba(15, 15, 15, 0.95));
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.4),
+        0 4px 12px rgba(231, 166, 144, 0.3);
+}
+
+.sidebar-notification-text {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--myavana-onyx);
+}
+
+[data-theme="dark"] .sidebar-notification-text {
+    color: var(--myavana-white);
+}
+
+.sidebar-notification-success {
+    border-left-color: #10b981;
+}
+
+.sidebar-notification-error {
+    border-left-color: #ef4444;
+}
+
+.sidebar-notification-info {
+    border-left-color: var(--myavana-coral);
+}
+
+/* ========================================
+   Animations - Luxury Transitions
+   ======================================== */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sidebar-profile-card {
+    animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-profile-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.sidebar-profile-card:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.sidebar-profile-card:nth-child(4) {
+    animation-delay: 0.3s;
+}
+
+.sidebar-profile-card:nth-child(5) {
+    animation-delay: 0.4s;
+}
+
+/* ========================================
+   Responsive Design - Mobile Luxury
+   ======================================== */
+
+@media (max-width: 400px) {
+    .sidebar-profile-header {
+        padding: 1.5rem 1rem;
+    }
+
+    .sidebar-profile-avatar {
+        width: 90px;
+        height: 90px;
+    }
+
+    .sidebar-avatar-edit {
+        width: 32px;
+        height: 32px;
+    }
+
+    .sidebar-avatar-edit svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .sidebar-profile-name {
+        font-size: 1.125rem;
+    }
+
+    .sidebar-profile-stats {
+        gap: 0.5rem;
+    }
+
+    .sidebar-stat-value {
+        font-size: 1.5rem;
+    }
+
+    .sidebar-profile-card {
+        padding: 1.25rem 1rem;
+    }
+
+    .sidebar-profile-grid {
+        gap: 0.75rem;
+    }
+
+    .sidebar-milestones-grid {
+        gap: 0.5rem;
+    }
+
+    .sidebar-milestone {
+        padding: 1rem 0.75rem;
+    }
+
+    .sidebar-milestone-icon {
+        font-size: 1.75rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .sidebar-profile-stats {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .sidebar-stat-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .sidebar-stat-value {
+        margin-bottom: 0;
+    }
+
+    .sidebar-milestones-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar-edit-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar-notification {
+        top: 12px;
+        right: 12px;
+        left: 12px;
+        max-width: none;
+    }
+}
+
+/* Dark mode smooth transitions */
+[data-theme="dark"] * {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}

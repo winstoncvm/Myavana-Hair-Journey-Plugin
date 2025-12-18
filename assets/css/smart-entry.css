@@ -1,0 +1,477 @@
+/**
+ * MYAVANA Smart Entry AI Workflow Styles
+ * Camera-first interface with AI analysis
+ * @version 2.3.5
+ */
+
+/* ============================================
+   SMART ENTRY MODAL
+   ============================================ */
+.myavana-smart-entry-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(34, 35, 35, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100001;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.myavana-smart-entry-modal.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.smart-entry-content {
+    background: var(--myavana-white, #fff);
+    border-radius: 20px;
+    max-width: 600px;
+    width: calc(100vw - 40px);
+    max-height: calc(100vh - 80px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+    animation: slideUp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.smart-entry-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--myavana-stone, #f5f5f7);
+}
+
+.smart-entry-title {
+    margin: 0;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 24px;
+    text-transform: uppercase;
+    color: var(--myavana-onyx, #222323);
+}
+
+.smart-entry-close {
+    background: none;
+    border: none;
+    font-size: 32px;
+    color: var(--myavana-onyx, #222323);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+}
+
+.smart-entry-close:hover {
+    color: var(--myavana-coral, #e7a690);
+}
+
+/* ============================================
+   BODY & STEPS
+   ============================================ */
+.smart-entry-body {
+    padding: 32px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.smart-entry-step {
+    display: none;
+}
+
+/* ============================================
+   STEP 1: CAMERA CAPTURE
+   ============================================ */
+.camera-prompt {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.camera-icon {
+    font-size: 80px;
+    line-height: 1;
+    margin-bottom: 24px;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.camera-prompt h3 {
+    margin: 0 0 12px 0;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 22px;
+    color: var(--myavana-onyx, #222323);
+}
+
+.camera-prompt p {
+    margin: 0;
+    font-family: 'Archivo', sans-serif;
+    font-size: 15px;
+    color: var(--myavana-blueberry, #4a4d68);
+}
+
+.camera-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 32px;
+}
+
+.btn-camera, .btn-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 28px 20px;
+    background: var(--myavana-stone, #f5f5f7);
+    border: 2px solid transparent;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Archivo', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--myavana-onyx, #222323);
+}
+
+.btn-camera:hover, .btn-upload:hover {
+    border-color: var(--myavana-coral, #e7a690);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(231, 166, 144, 0.2);
+}
+
+.btn-camera svg, .btn-upload svg {
+    color: var(--myavana-coral, #e7a690);
+}
+
+.btn-capture-overlay {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 16px 48px;
+    background: var(--myavana-coral, #e7a690);
+    color: var(--myavana-white, #fff);
+    border: none;
+    border-radius: 50px;
+    font-family: 'Archivo', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(231, 166, 144, 0.4);
+    z-index: 10;
+    transition: all 0.2s ease;
+}
+
+.btn-capture-overlay:hover {
+    background: #d4956f;
+    transform: translateX(-50%) translateY(-2px);
+}
+
+/* ============================================
+   STEP 2: PREVIEW
+   ============================================ */
+.photo-preview-container {
+    margin-bottom: 24px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(34, 35, 35, 0.1);
+}
+
+#smart-entry-preview {
+    width: 100%;
+    display: block;
+}
+
+.preview-actions {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 12px;
+}
+
+/* ============================================
+   STEP 3: AI RESULTS
+   ============================================ */
+.ai-results-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.results-header {
+    text-align: center;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--myavana-stone, #f5f5f7);
+}
+
+.results-icon {
+    font-size: 60px;
+    line-height: 1;
+    margin-bottom: 16px;
+    animation: pulse 2s infinite;
+}
+
+.results-header h3 {
+    margin: 0;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 20px;
+    text-transform: uppercase;
+    color: var(--myavana-coral, #e7a690);
+}
+
+.results-content {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.result-card {
+    background: var(--myavana-stone, #f5f5f7);
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.result-card.full-width {
+    grid-column: 1 / -1;
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.result-label {
+    font-family: 'Archivo', sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--myavana-blueberry, #4a4d68);
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.result-value {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 24px;
+    color: var(--myavana-coral, #e7a690);
+}
+
+.health-bar {
+    height: 8px;
+    background: var(--myavana-white, #fff);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.health-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #e7a690, #d4956f);
+    border-radius: 4px;
+    transition: width 1s ease;
+}
+
+.result-summary {
+    margin: 12px 0 0 0;
+    font-family: 'Archivo', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--myavana-onyx, #222323);
+}
+
+.recommendations-list {
+    margin: 12px 0 0 0;
+    padding-left: 20px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--myavana-onyx, #222323);
+}
+
+.recommendations-list li {
+    margin-bottom: 8px;
+}
+
+.results-actions {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 12px;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.btn-primary, .btn-secondary {
+    padding: 14px 24px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Archivo', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: var(--myavana-coral, #e7a690);
+    color: var(--myavana-white, #fff);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #d4956f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(231, 166, 144, 0.4);
+}
+
+.btn-primary:disabled {
+    background: var(--myavana-stone, #f5f5f7);
+    color: var(--myavana-blueberry, #4a4d68);
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: var(--myavana-stone, #f5f5f7);
+    color: var(--myavana-onyx, #222323);
+}
+
+.btn-secondary:hover {
+    background: #e0e0e2;
+}
+
+/* ============================================
+   LOADING SPINNER
+   ============================================ */
+.spinner-small {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--myavana-white, #fff);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   NOTIFICATIONS
+   ============================================ */
+.myavana-notification {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--myavana-white, #fff);
+    padding: 16px 24px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 100002;
+    transition: top 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.myavana-notification.visible {
+    top: 24px;
+}
+
+.notification-icon {
+    font-size: 20px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.myavana-notification.success .notification-icon {
+    background: #d4edda;
+    color: #155724;
+}
+
+.myavana-notification.error .notification-icon {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.myavana-notification.info .notification-icon {
+    background: var(--myavana-light-coral, #fce5d7);
+    color: var(--myavana-coral, #e7a690);
+}
+
+.notification-message {
+    font-family: 'Archivo', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--myavana-onyx, #222323);
+}
+
+/* ============================================
+   MOBILE RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+    .smart-entry-content {
+        width: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .smart-entry-header {
+        padding: 20px 24px;
+    }
+
+    .smart-entry-body {
+        padding: 24px;
+    }
+
+    .camera-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .results-content {
+        grid-template-columns: 1fr;
+    }
+
+    .preview-actions,
+    .results-actions {
+        grid-template-columns: 1fr;
+    }
+}

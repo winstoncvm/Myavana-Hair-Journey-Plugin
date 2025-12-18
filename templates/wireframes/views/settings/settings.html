@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - MYAVANA</title>
+    <link rel="stylesheet" href="../../assets/css/timeline.css">
+    <style>
+        body {
+            background: var(--myavana-stone);
+        }
+
+        .settings-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .settings-header {
+            margin-bottom: 32px;
+        }
+
+        .settings-title {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 32px;
+            text-transform: uppercase;
+            color: var(--myavana-onyx);
+            margin: 0 0 8px 0;
+        }
+
+        .settings-subtitle {
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            color: var(--myavana-onyx);
+            opacity: 0.7;
+            margin: 0;
+        }
+
+        .settings-section {
+            background: var(--myavana-white);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .section-title {
+            font-family: 'Archivo', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-onyx);
+            margin: 0 0 24px 0;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--myavana-stone);
+        }
+
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--myavana-stone);
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-item-info {
+            flex: 1;
+        }
+
+        .settings-item-title {
+            font-family: 'Archivo', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--myavana-onyx);
+            margin: 0 0 4px 0;
+        }
+
+        .settings-item-description {
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            color: var(--myavana-onyx);
+            opacity: 0.7;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .settings-item-control {
+            margin-left: 24px;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 56px;
+            height: 30px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--myavana-stone);
+            transition: 0.3s;
+            border-radius: 30px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--myavana-coral);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 10px 20px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary {
+            background: var(--myavana-stone);
+            color: var(--myavana-onyx);
+        }
+
+        .btn-secondary:hover {
+            background: var(--myavana-sand);
+        }
+
+        .btn-danger {
+            background: #ff4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #cc0000;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-onyx);
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 12px 14px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            border: 2px solid var(--myavana-stone);
+            border-radius: 8px;
+            background: var(--myavana-white);
+            color: var(--myavana-onyx);
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--myavana-coral);
+            box-shadow: 0 0 0 3px rgba(231, 166, 144, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .save-section {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 2px solid var(--myavana-stone);
+        }
+
+        .btn-primary {
+            background: var(--myavana-coral);
+            color: var(--myavana-white);
+            padding: 14px 32px;
+        }
+
+        .btn-primary:hover {
+            background: #d4956f;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        @media (max-width: 768px) {
+            .settings-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+
+            .settings-item-control {
+                margin-left: 0;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .save-section {
+                flex-direction: column-reverse;
+            }
+
+            .btn-primary {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="settings-container">
+        <div class="settings-header">
+            <h1 class="settings-title">Settings</h1>
+            <p class="settings-subtitle">Manage your account and preferences</p>
+        </div>
+
+        <!-- Account Settings -->
+        <div class="settings-section">
+            <h2 class="section-title">Account Settings</h2>
+
+            <form id="accountForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">First Name</label>
+                        <input type="text" class="form-input" value="Sarah" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" class="form-input" value="Johnson" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-input" value="sarah.johnson@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <input type="text" class="form-input" value="Atlanta, GA" placeholder="City, State">
+                </div>
+
+                <div class="save-section">
+                    <button type="button" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Notification Settings -->
+        <div class="settings-section">
+            <h2 class="section-title">Notifications</h2>
+
+            <div class="settings-item">
+                <div class="settings-item-info">
+                    <h3 class="settings-item-title">Email Notifications</h3>
+                    <p class="settings-item-description">Receive email updates about your hair journey progress</p>
+                </div>
+                <div class="settings-item-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-item">
+                <div class="settings-item-info">
+                    <h3 class="settings-item-title">Goal Reminders</h3>
+                    <p class="settings-item-description">Get reminded about your hair goals and milestones</p>
+                </div>
+                <div class="settings-item-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-item">
+                <div class="settings-item-info">
+                    <h3 class="settings-item-title">Routine Reminders</h3>
+                    <p class="settings-item-description">Reminders for scheduled hair care routines</p>
+                </div>
+                <div class="settings-item-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-item">
+                <div class="settings-item-info">
+                    <h3 class="settings-item-title">Community Updates</h3>
+                    <p class="settings-item-description">Notifications about community posts and interactions</p>
+                </div>
+                <div class="settings-item-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-item">
+                <div class="settings-item-info">
+                    <h3 class="settings-item-title">Marketing Communications</h3>
+                    <p class="settings-item-description">Receive tips, product recommendations, and special offers</p>
+                </div>
+                <div class="settings-item-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Privacy Settings -->
+        <div class="settings-section">
+            <h2 class="section-title">Privacy</h2>
+
+            <div class="settings-item">
+                <div class="settings-item-info">
+                    <h3 class="settings-item-title">Profile Visibility</h3>
+                    <p class="settings-item-description">Make your profile visible to other community members</p>
+                </div>
+                <div class="settings-item-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-item">
+                <div class="settings-item-info">
+                    <h3 class="settings-item-title">Share Progress</h3>
+                    <p class="settings-item-description">Allow others to see your hair journey progress</p>
+                </div>
+                <div class="settings-item-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-item">
+                <div class="settings-item-info">
+                    <h3 class="settings-item-title">Data Collection</h3>
+                    <p class="settings-item-description">Help improve MYAVANA by sharing anonymous usage data</p>
+                </div>
+                <div class="settings-item-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- App Preferences -->
+        <div class="settings-section">
+            <h2 class="section-title">App Preferences</h2>
+
+            <div class="form-group">
+                <label class="form-label">Theme</label>
+                <select class="form-select">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="auto">Auto (System Default)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Date Format</label>
+                <select class="form-select">
+                    <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Measurement System</label>
+                <select class="form-select">
+                    <option value="imperial">Imperial (inches)</option>
+                    <option value="metric">Metric (centimeters)</option>
+                </select>
+            </div>
+
+            <div class="save-section">
+                <button type="button" class="btn btn-primary">Save Preferences</button>
+            </div>
+        </div>
+
+        <!-- Security Settings -->
+        <div class="settings-section">
+            <h2 class="section-title">Security</h2>
+
+            <div class="settings-item">
+                <div class="settings-item-info">
+                    <h3 class="settings-item-title">Change Password</h3>
+                    <p class="settings-item-description">Update your password to keep your account secure</p>
+                </div>
+                <div class="settings-item-control">
+                    <button class="btn btn-secondary">Change</button>
+                </div>
+            </div>
+
+            <div class="settings-item">
+                <div class="settings-item-info">
+                    <h3 class="settings-item-title">Two-Factor Authentication</h3>
+                    <p class="settings-item-description">Add an extra layer of security to your account</p>
+                </div>
+                <div class="settings-item-control">
+                    <button class="btn btn-secondary">Enable</button>
+                </div>
+            </div>
+
+            <div class="settings-item">
+                <div class="settings-item-info">
+                    <h3 class="settings-item-title">Active Sessions</h3>
+                    <p class="settings-item-description">Manage devices where you're currently logged in</p>
+                </div>
+                <div class="settings-item-control">
+                    <button class="btn btn-secondary">Manage</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Management -->
+        <div class="settings-section">
+            <h2 class="section-title">Data Management</h2>
+
+            <div class="settings-item">
+                <div class="settings-item-info">
+                    <h3 class="settings-item-title">Export Your Data</h3>
+                    <p class="settings-item-description">Download a copy of all your hair journey data</p>
+                </div>
+                <div class="settings-item-control">
+                    <button class="btn btn-secondary">Export</button>
+                </div>
+            </div>
+
+            <div class="settings-item">
+                <div class="settings-item-info">
+                    <h3 class="settings-item-title">Delete Account</h3>
+                    <p class="settings-item-description">Permanently delete your account and all associated data</p>
+                </div>
+                <div class="settings-item-control">
+                    <button class="btn btn-danger">Delete</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legal Links -->
+        <div class="settings-section">
+            <h2 class="section-title">Legal</h2>
+
+            <div class="settings-item">
+                <div class="settings-item-info">
+                    <h3 class="settings-item-title">Terms of Service</h3>
+                    <p class="settings-item-description">Read our terms and conditions</p>
+                </div>
+                <div class="settings-item-control">
+                    <button class="btn btn-secondary" onclick="window.location.href='../legal/terms.html'">View</button>
+                </div>
+            </div>
+
+            <div class="settings-item">
+                <div class="settings-item-info">
+                    <h3 class="settings-item-title">Privacy Policy</h3>
+                    <p class="settings-item-description">Learn how we protect your data</p>
+                </div>
+                <div class="settings-item-control">
+                    <button class="btn btn-secondary" onclick="window.location.href='../legal/privacy.html'">View</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Form submission handlers
+        document.getElementById('accountForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Account settings saved!');
+        });
+
+        // Toggle switches
+        document.querySelectorAll('.toggle-switch input').forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                console.log('Toggle changed:', this.parentElement.parentElement.parentElement.querySelector('.settings-item-title').textContent, this.checked);
+            });
+        });
+    </script>
+</body>
+</html>

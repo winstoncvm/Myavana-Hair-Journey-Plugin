@@ -1,0 +1,607 @@
+/**
+ * MYAVANA Hair Journey Timeline - Modal Styles
+ * Unique modal classes to prevent conflicts with site CSS
+ *
+ * @package Myavana_Hair_Journey
+ * @version 2.3.7
+ */
+
+/* ============================================
+   MODAL OVERLAY - Base Layer
+   ============================================ */
+.myavana-timeline-modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(34, 35, 35, 0.85) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 999999 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    padding: 20px !important;
+    overflow-y: auto !important;
+}
+
+.myavana-timeline-modal-overlay.active {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* ============================================
+   MODAL CONTAINER
+   ============================================ */
+.myavana-timeline-modal-container {
+    background: #ffffff !important;
+    border-radius: 16px !important;
+    max-width: 800px !important;
+    width: 100% !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    box-shadow: 0 20px 60px rgba(34, 35, 35, 0.3) !important;
+    position: relative !important;
+    transform: scale(0.9) translateY(20px) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    margin: auto !important;
+}
+
+.myavana-timeline-modal-overlay.active .myavana-timeline-modal-container {
+    transform: scale(1) translateY(0) !important;
+}
+
+/* Add Entry Modal - Specific styling */
+.myavana-timeline-modal-bg {
+    padding: 32px !important;
+}
+
+/* ============================================
+   MODAL HEADER
+   ============================================ */
+.myavana-modal-header {
+    padding: 32px 32px 24px !important;
+    border-bottom: 2px solid #f5f5f7 !important;
+    position: relative !important;
+}
+
+.myavana-modal-title {
+    font-family: 'Archivo Black', sans-serif !important;
+    font-size: 28px !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    color: #222323 !important;
+    margin: 0 0 8px 0 !important;
+    letter-spacing: 0 !important;
+}
+
+.myavana-modal-subtitle {
+    font-family: 'Archivo', sans-serif !important;
+    font-size: 14px !important;
+    color: #4a4d68 !important;
+    margin: 0 !important;
+    font-weight: 400 !important;
+}
+
+.myavana-modal-close,
+.myavana-timeline-modal-close {
+    position: absolute !important;
+    top: 24px !important;
+    right: 24px !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    background: #f5f5f7 !important;
+    border: none !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    color: #222323 !important;
+    font-size: 20px !important;
+    z-index: 10 !important;
+}
+
+.myavana-modal-close:hover,
+.myavana-timeline-modal-close:hover {
+    background: #e7a690 !important;
+    color: #ffffff !important;
+    transform: rotate(90deg) !important;
+}
+
+/* ============================================
+   MODAL CONTENT
+   ============================================ */
+.myavana-modal-content {
+    padding: 32px !important;
+    max-height: calc(90vh - 200px) !important;
+    overflow-y: auto !important;
+}
+
+/* View Entry Specific Content */
+.view-entry-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 24px !important;
+}
+
+.view-entry-image {
+    width: 100% !important;
+    height: auto !important;
+    border-radius: 12px !important;
+    object-fit: cover !important;
+    max-height: 400px !important;
+}
+
+.view-entry-meta {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+    gap: 16px !important;
+    padding: 20px !important;
+    background: #f5f5f7 !important;
+    border-radius: 12px !important;
+}
+
+.view-entry-meta-item {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+}
+
+.view-entry-meta-label {
+    font-family: 'Archivo', sans-serif !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    color: #4a4d68 !important;
+    font-weight: 600 !important;
+}
+
+.view-entry-meta-value {
+    font-family: 'Archivo', sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #222323 !important;
+}
+
+.view-entry-description {
+    font-family: 'Archivo', sans-serif !important;
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+    color: #222323 !important;
+}
+
+.view-entry-tags {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+}
+
+.view-entry-tag {
+    display: inline-flex !important;
+    padding: 6px 12px !important;
+    background: #fce5d7 !important;
+    color: #e7a690 !important;
+    border-radius: 20px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    font-family: 'Archivo', sans-serif !important;
+}
+
+/* ============================================
+   MODAL ACTIONS (Footer Buttons)
+   ============================================ */
+.myavana-modal-actions {
+    padding: 24px 32px !important;
+    border-top: 2px solid #f5f5f7 !important;
+    display: flex !important;
+    gap: 12px !important;
+    justify-content: flex-end !important;
+    flex-wrap: wrap !important;
+}
+
+.myavana-modal-btn {
+    font-family: 'Archivo', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.myavana-modal-btn.primary {
+    background: #e7a690 !important;
+    color: #ffffff !important;
+}
+
+.myavana-modal-btn.primary:hover {
+    background: #d4956f !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(231, 166, 144, 0.4) !important;
+}
+
+.myavana-modal-btn.secondary {
+    background: #f5f5f7 !important;
+    color: #222323 !important;
+}
+
+.myavana-modal-btn.secondary:hover {
+    background: #eeece1 !important;
+}
+
+.myavana-modal-btn.danger {
+    background: #dc3545 !important;
+    color: #ffffff !important;
+}
+
+.myavana-modal-btn.danger:hover {
+    background: #c82333 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4) !important;
+}
+
+/* ============================================
+   FORM ELEMENTS IN MODALS
+   ============================================ */
+.edit-entry-form,
+.add-entry-form {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+}
+
+.edit-form-group,
+.form-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+}
+
+.form-label {
+    font-family: 'Archivo', sans-serif !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    color: #4a4d68 !important;
+}
+
+.form-control,
+.form-input {
+    font-family: 'Archivo', sans-serif !important;
+    font-size: 15px !important;
+    padding: 12px 16px !important;
+    border: 2px solid #f5f5f7 !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+    background: #ffffff !important;
+    color: #222323 !important;
+}
+
+.form-control:focus,
+.form-input:focus {
+    border-color: #e7a690 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(231, 166, 144, 0.1) !important;
+}
+
+textarea.form-control,
+textarea.form-input {
+    min-height: 100px !important;
+    resize: vertical !important;
+}
+
+/* ============================================
+   SHARE MODAL SPECIFIC STYLES
+   ============================================ */
+.share-preview {
+    padding: 20px !important;
+    background: #f5f5f7 !important;
+    border-radius: 12px !important;
+    margin-bottom: 24px !important;
+}
+
+.share-preview-title {
+    font-family: 'Archivo Black', sans-serif !important;
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    color: #222323 !important;
+    margin-bottom: 8px !important;
+}
+
+.share-preview-text {
+    font-family: 'Archivo', sans-serif !important;
+    font-size: 14px !important;
+    color: #4a4d68 !important;
+    line-height: 1.5 !important;
+}
+
+.share-options {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+    gap: 12px !important;
+}
+
+.share-option-btn {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 20px !important;
+    background: #ffffff !important;
+    border: 2px solid #f5f5f7 !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    font-family: 'Archivo', sans-serif !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #222323 !important;
+}
+
+.share-option-btn:hover {
+    border-color: #e7a690 !important;
+    background: #fce5d7 !important;
+    transform: translateY(-2px) !important;
+}
+
+.share-option-icon {
+    font-size: 32px !important;
+    line-height: 1 !important;
+}
+
+/* ============================================
+   DELETE MODAL SPECIFIC STYLES
+   ============================================ */
+.delete-warning {
+    text-align: center !important;
+    padding: 32px !important;
+}
+
+.delete-warning-icon {
+    font-size: 64px !important;
+    margin-bottom: 16px !important;
+}
+
+.delete-warning-text {
+    font-family: 'Archivo', sans-serif !important;
+    font-size: 16px !important;
+    color: #222323 !important;
+    margin-bottom: 24px !important;
+}
+
+.delete-entry-preview {
+    padding: 16px !important;
+    background: #f5f5f7 !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+}
+
+.delete-entry-image-small {
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 8px !important;
+    object-fit: cover !important;
+}
+
+.delete-entry-info {
+    flex: 1 !important;
+}
+
+.delete-entry-title-small {
+    font-family: 'Archivo', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #222323 !important;
+    margin-bottom: 4px !important;
+}
+
+.delete-entry-date-small {
+    font-family: 'Archivo', sans-serif !important;
+    font-size: 12px !important;
+    color: #4a4d68 !important;
+}
+
+/* ============================================
+   MOBILE RESPONSIVENESS
+   ============================================ */
+@media (max-width: 768px) {
+    .myavana-timeline-modal-overlay {
+        padding: 10px !important;
+        align-items: flex-start !important;
+    }
+
+    .myavana-timeline-modal-container {
+        max-width: 100% !important;
+        max-height: 100% !important;
+        border-radius: 12px !important;
+        margin-top: 20px !important;
+    }
+
+    .myavana-timeline-modal-bg {
+        padding: 20px !important;
+    }
+
+    .myavana-modal-header {
+        padding: 20px 20px 16px !important;
+    }
+
+    .myavana-modal-title {
+        font-size: 22px !important;
+        padding-right: 40px !important;
+    }
+
+    .myavana-modal-subtitle {
+        font-size: 13px !important;
+    }
+
+    .myavana-modal-content {
+        padding: 20px !important;
+    }
+
+    .myavana-modal-actions {
+        padding: 16px 20px !important;
+        flex-direction: column !important;
+    }
+
+    .myavana-modal-btn {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+
+    .view-entry-meta {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+        padding: 16px !important;
+    }
+
+    .share-options {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .myavana-modal-title {
+        font-size: 18px !important;
+    }
+
+    .view-entry-meta {
+        grid-template-columns: 1fr !important;
+    }
+
+    .share-options {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+.modal-loading {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    min-height: 200px !important;
+}
+
+.modal-spinner {
+    width: 40px !important;
+    height: 40px !important;
+    border: 4px solid #f5f5f7 !important;
+    border-top-color: #e7a690 !important;
+    border-radius: 50% !important;
+    animation: modal-spin 0.8s linear infinite !important;
+}
+
+@keyframes modal-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   SCROLLBAR STYLING FOR MODALS
+   ============================================ */
+.myavana-timeline-modal-container::-webkit-scrollbar,
+.myavana-modal-content::-webkit-scrollbar {
+    width: 8px !important;
+}
+
+.myavana-timeline-modal-container::-webkit-scrollbar-track,
+.myavana-modal-content::-webkit-scrollbar-track {
+    background: #f5f5f7 !important;
+    border-radius: 4px !important;
+}
+
+.myavana-timeline-modal-container::-webkit-scrollbar-thumb,
+.myavana-modal-content::-webkit-scrollbar-thumb {
+    background: #e7a690 !important;
+    border-radius: 4px !important;
+}
+
+.myavana-timeline-modal-container::-webkit-scrollbar-thumb:hover,
+.myavana-modal-content::-webkit-scrollbar-thumb:hover {
+    background: #d4956f !important;
+}
+
+/* ============================================
+   PREVENT BODY SCROLL WHEN MODAL IS OPEN
+   ============================================ */
+body.myavana-modal-open {
+    overflow: hidden !important;
+}
+
+/* ============================================
+   EXISTING IMAGES GALLERY (EDIT MODE)
+   ============================================ */
+#existingImagesGallery {
+    margin-bottom: 20px;
+}
+
+.existing-images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.existing-image-item-hjn {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--myavana-stone);
+    aspect-ratio: 1 / 1;
+}
+
+.existing-image-wrapper-hjn {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.existing-image-hjn {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.remove-existing-image-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(34, 35, 35, 0.8);
+    color: var(--myavana-white);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 2;
+}
+
+.remove-existing-image-btn:hover {
+    background: var(--myavana-coral);
+    transform: scale(1.1);
+}
+
+.remove-existing-image-btn svg {
+    width: 16px;
+    height: 16px;
+}

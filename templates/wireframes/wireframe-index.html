@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Myavana Hair Journey - Wireframe Library</title>
+    <link rel="stylesheet" href="assets/css/timeline.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f7;
+        }
+
+        .wireframe-library {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .library-header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #fce5d7 0%, #f5f5f7 100%);
+            border-radius: 20px;
+        }
+
+        .library-title {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #222323;
+            margin-bottom: 16px;
+        }
+
+        .library-subtitle {
+            font-size: 1.25rem;
+            color: #6b7280;
+            margin-bottom: 32px;
+        }
+
+        .library-stats {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #e7a690;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .wireframe-sections {
+            display: grid;
+            gap: 40px;
+        }
+
+        .section-group {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #f5f5f7;
+        }
+
+        .section-icon {
+            font-size: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #222323;
+            margin: 0;
+        }
+
+        .section-description {
+            color: #6b7280;
+            font-size: 0.95rem;
+            margin-top: 4px;
+        }
+
+        .wireframe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .wireframe-card {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+
+        .wireframe-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(231, 166, 144, 0.2);
+            border-color: #e7a690;
+        }
+
+        .wireframe-card-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        .wireframe-card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #222323;
+            margin-bottom: 8px;
+        }
+
+        .wireframe-card-description {
+            font-size: 0.875rem;
+            color: #6b7280;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .wireframe-card-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .meta-badge {
+            font-size: 0.75rem;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .badge-status {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-priority {
+            background: #fce5d7;
+            color: #92400e;
+        }
+
+        .badge-responsive {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .search-bar {
+            margin-bottom: 32px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 20px 16px 52px;
+            font-size: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #e7a690;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 1.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .library-title {
+                font-size: 2rem;
+            }
+
+            .wireframe-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wireframe-library">
+        <!-- Header -->
+        <div class="library-header">
+            <h1 class="library-title">Myavana Wireframe Library</h1>
+            <p class="library-subtitle">Complete UI/UX Design System & Interactive Prototypes</p>
+
+            <div class="library-stats">
+                <div class="stat-box">
+                    <div class="stat-number">15</div>
+                    <div class="stat-label">Wireframes</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">6</div>
+                    <div class="stat-label">User Flows</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Responsive</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">5,500+</div>
+                    <div class="stat-label">Lines of Code</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" placeholder="Search wireframes..." id="searchInput" oninput="searchWireframes()">
+        </div>
+
+        <!-- Wireframe Sections -->
+        <div class="wireframe-sections">
+            <!-- Authentication & Onboarding -->
+            <div class="section-group" data-category="auth">
+                <div class="section-header">
+                    <div class="section-icon">🔐</div>
+                    <div>
+                        <h2 class="section-title">Authentication & Onboarding</h2>
+                        <p class="section-description">User registration, login, and guided onboarding experience</p>
+                    </div>
+                </div>
+
+                <div class="wireframe-grid">
+                    <a href="views/auth/login.html" class="wireframe-card">
+                        <div class="wireframe-card-icon">🔑</div>
+                        <div class="wireframe-card-title">Login Page</div>
+                        <div class="wireframe-card-description">Split-screen login with brand showcase, social auth, and password recovery</div>
+                        <div class="wireframe-card-meta">
+                            <span class="meta-badge badge-status">✓ Complete</span>
+                            <span class="meta-badge badge-responsive">📱 Responsive</span>
+                            <span class="meta-badge badge-priority">⭐ Core</span>
+                        </div>
+                    </a>
+
+                    <a href="views/auth/register.html" class="wireframe-card">
+                        <div class="wireframe-card-icon">📝</div>
+                        <div class="wireframe-card-title">Registration</div>
+                        <div class="wireframe-card-description">Account creation with password strength indicator and social signup</div>
+                        <div class="wireframe-card-meta">
+                            <span class="meta-badge badge-status">✓ Complete</span>
+                            <span class="meta-badge badge-responsive">📱 Responsive</span>
+                            <span class="meta-badge badge-priority">⭐ Core</span>
+                        </div>
+                    </a>
+
+                    <a href="views/auth/onboarding-step1.html" class="wireframe-card">
+                        <div class="wireframe-card-icon">💇</div>
+                        <div class="wireframe-card-title">Onboarding: Hair Profile</div>
+                        <div class="wireframe-card-description">Step 1 - Collect hair type, concerns, and current state information</div>
+                        <div class="wireframe-card-meta">
+                            <span class="meta-badge badge-status">✓ Complete</span>
+                            <span class="meta-badge badge-responsive">📱 Responsive</span>
+                            <span class="meta-badge badge-priority">⭐ Core</span>
+                        </div>
+                    </a>
+
+                    <a href="views/auth/onboarding-step2.html" class="wireframe-card">
+                        <div class="wireframe-card-icon">🎯</div>
+                        <div class="wireframe-card-title">Onboarding: Set Goals</div>
+                        <div class="wireframe-card-description">Step 2 - Create up to 3 hair goals with timelines and milestones</div>
+                        <div class="wireframe-card-meta">
+                            <span class="meta-badge badge-status">✓ Complete</span>
+                            <span class="meta-badge badge-responsive">📱 Responsive</span>
+                            <span class="meta-badge badge-priority">⭐ Core</span>
+                        </div>
+                    </a>
+
+                    <a href="views/auth/onboarding-step3.html" class="wireframe-card">
+                        <div class="wireframe-card-icon">🧴</div>
+                        <div class="wireframe-card-title">Onboarding: Create Routine</div>
+                        <div class="wireframe-card-description">Step 3 - Build first hair care routine with steps and schedule</div>
+                        <div class="wireframe-card-meta">
+                            <span class="meta-badge badge-status">✓ Complete</span>
+                            <span class="meta-badge badge-responsive">📱 Responsive</span>
+                            <span class="meta-badge badge-priority">⭐ Core</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Hair Journey Timeline -->
+            <div class="section-group" data-category="timeline">
+                <div class="section-header">
+                    <div class="section-icon">📅</div>
+                    <div>
+                        <h2 class="section-title">Hair Journey Timeline</h2>
+                        <p class="section-description">Multiple view modes for tracking and visualizing hair journey progress</p>
+                    </div>
+                </div>
+
+                <div class="wireframe-grid">
+                    <a href="views/timeline/timeline-full.html" class="wireframe-card">
+                        <div class="wireframe-card-icon">🎨</div>
+                        <div class="wireframe-card-title">Full Interactive Timeline</div>
+                        <div class="wireframe-card-description">Complete timeline with sidebar, 4 view modes (Timeline/Calendar/Slider/List), dark mode, filters, and search</div>
+                        <div class="wireframe-card-meta">
+                            <span class="meta-badge badge-status">✓ Complete</span>
+                            <span class="meta-badge badge-priority">⭐⭐⭐ Featured</span>
+                            <span class="meta-badge badge-responsive">📱 Responsive</span>
+                        </div>
+                    </a>
+
+                    <a href="index.html" class="wireframe-card">
+                        <div class="wireframe-card-icon">🧩</div>
+                        <div class="wireframe-card-title">Modular Timeline Demo</div>
+                        <div class="wireframe-card-description">Separated CSS/JS version for easy customization and integration</div>
+                        <div class="wireframe-card-meta">
+                            <span class="meta-badge badge-status">✓ Complete</span>
+                            <span class="meta-badge badge-priority">⭐ Core</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Profile & Analytics -->
+            <div class="section-group" data-category="profile">
+                <div class="section-header">
+                    <div class="section-icon">👤</div>
+                    <div>
+                        <h2 class="section-title">Profile & Analytics</h2>
+                        <p class="section-description">User profiles, hair goals, routines, and AI-powered analytics</p>
+                    </div>
+                </div>
+
+                <div class="wireframe-grid">
+                    <a href="views/profile/profile-v2.html" class="wireframe-card">
+                        <div class="wireframe-card-icon">👤</div>
+                        <div class="wireframe-card-title">User Profile</div>
+                        <div class="wireframe-card-description">WordPress-integrated profile with About Me, Hair Analysis, Goals, and Current Routine sections</div>
+                        <div class="wireframe-card-meta">
+                            <span class="meta-badge badge-status">✓ Complete</span>
+                            <span class="meta-badge badge-priority">⭐⭐ WordPress Sync</span>
+                            <span class="meta-badge badge-responsive">📱 Responsive</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Community & Social -->
+            <div class="section-group" data-category="community">
+                <div class="section-header">
+                    <div class="section-icon">👥</div>
+                    <div>
+                        <h2 class="section-title">Community & Social</h2>
+                        <p class="section-description">BuddyPress/Youzify integration, activity feeds, and user interactions</p>
+                    </div>
+                </div>
+
+                <div class="wireframe-grid">
+                    <a href="views/community/activity-feed.html" class="wireframe-card">
+                        <div class="wireframe-card-icon">📰</div>
+                        <div class="wireframe-card-title">Activity Feed</div>
+                        <div class="wireframe-card-description">Real-time updates, likes, comments, and share functionality</div>
+                        <div class="wireframe-card-meta">
+                            <span class="meta-badge badge-status">⏳ Planned</span>
+                        </div>
+                    </a>
+
+                    <a href="views/community/user-directory.html" class="wireframe-card">
+                        <div class="wireframe-card-icon">🔍</div>
+                        <div class="wireframe-card-title">User Directory</div>
+                        <div class="wireframe-card-description">Browse members by hair type, location, and goals</div>
+                        <div class="wireframe-card-meta">
+                            <span class="meta-badge badge-status">⏳ Planned</span>
+                        </div>
+                    </a>
+
+                    <a href="views/community/groups.html" class="wireframe-card">
+                        <div class="wireframe-card-icon">👨‍👩‍👧‍👦</div>
+                        <div class="wireframe-card-title">Groups</div>
+                        <div class="wireframe-card-description">Create and join hair care communities and discussions</div>
+                        <div class="wireframe-card-meta">
+                            <span class="meta-badge badge-status">⏳ Planned</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Settings & Legal -->
+            <div class="section-group" data-category="settings">
+                <div class="section-header">
+                    <div class="section-icon">⚙️</div>
+                    <div>
+                        <h2 class="section-title">Settings & Legal</h2>
+                        <p class="section-description">User preferences, privacy controls, and legal pages</p>
+                    </div>
+                </div>
+
+                <div class="wireframe-grid">
+                    <a href="views/settings/settings.html" class="wireframe-card">
+                        <div class="wireframe-card-icon">⚙️</div>
+                        <div class="wireframe-card-title">Settings</div>
+                        <div class="wireframe-card-description">Comprehensive settings: account, notifications, privacy, preferences, security, and data</div>
+                        <div class="wireframe-card-meta">
+                            <span class="meta-badge badge-status">✓ Complete</span>
+                            <span class="meta-badge badge-responsive">📱 Responsive</span>
+                        </div>
+                    </a>
+
+                    <a href="views/legal/privacy.html" class="wireframe-card">
+                        <div class="wireframe-card-icon">🔒</div>
+                        <div class="wireframe-card-title">Privacy Policy</div>
+                        <div class="wireframe-card-description">GDPR-compliant privacy policy with AI analysis and data handling details</div>
+                        <div class="wireframe-card-meta">
+                            <span class="meta-badge badge-status">✓ Complete</span>
+                        </div>
+                    </a>
+
+                    <a href="views/legal/terms.html" class="wireframe-card">
+                        <div class="wireframe-card-icon">📜</div>
+                        <div class="wireframe-card-title">Terms of Service</div>
+                        <div class="wireframe-card-description">Complete terms covering usage, AI features, liability, and dispute resolution</div>
+                        <div class="wireframe-card-meta">
+                            <span class="meta-badge badge-status">✓ Complete</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Components Library -->
+            <div class="section-group" data-category="components">
+                <div class="section-header">
+                    <div class="section-icon">🧩</div>
+                    <div>
+                        <h2 class="section-title">UI Components</h2>
+                        <p class="section-description">Reusable components and design patterns</p>
+                    </div>
+                </div>
+
+                <div class="wireframe-grid">
+                    <a href="views/components/entry-modal.html" class="wireframe-card">
+                        <div class="wireframe-card-icon">🪟</div>
+                        <div class="wireframe-card-title">Entry Modal</div>
+                        <div class="wireframe-card-description">Desktop modal for creating/editing entries with photo upload and rating system</div>
+                        <div class="wireframe-card-meta">
+                            <span class="meta-badge badge-status">✓ Complete</span>
+                            <span class="meta-badge badge-responsive">📱 Responsive</span>
+                        </div>
+                    </a>
+
+                    <a href="views/components/offcanvas-components.html" class="wireframe-card">
+                        <div class="wireframe-card-icon">📱</div>
+                        <div class="wireframe-card-title">Offcanvas Panels</div>
+                        <div class="wireframe-card-description">Mobile-optimized slide-in forms for Entry, Goal, and Routine creation/editing</div>
+                        <div class="wireframe-card-meta">
+                            <span class="meta-badge badge-status">✓ Complete</span>
+                            <span class="meta-badge badge-priority">⭐⭐ Featured</span>
+                            <span class="meta-badge badge-responsive">📱 Mobile First</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function searchWireframes() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.wireframe-card');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const title = card.querySelector('.wireframe-card-title').textContent.toLowerCase();
+                const description = card.querySelector('.wireframe-card-description').textContent.toLowerCase();
+
+                if (title.includes(query) || description.includes(query)) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Hide empty sections
+            document.querySelectorAll('.section-group').forEach(section => {
+                const visibleCards = section.querySelectorAll('.wireframe-card:not([style*="display: none"])').length;
+                section.style.display = visibleCards > 0 ? 'block' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

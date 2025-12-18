@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Step 1: Hair Profile - MYAVANA</title>
+    <link rel="stylesheet" href="../../assets/css/timeline.css">
+    <style>
+        .onboarding-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--myavana-light-coral) 0%, var(--myavana-stone) 100%);
+            padding: 40px 24px;
+        }
+
+        .onboarding-card {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--myavana-white);
+            border-radius: 16px;
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+        }
+
+        .onboarding-header {
+            background: var(--myavana-onyx);
+            color: var(--myavana-white);
+            padding: 32px 40px;
+            text-align: center;
+        }
+
+        .onboarding-logo {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 24px;
+            text-transform: uppercase;
+            color: var(--myavana-coral);
+            margin-bottom: 16px;
+        }
+
+        .onboarding-progress {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .progress-step {
+            width: 80px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+
+        .progress-step.active {
+            background: var(--myavana-coral);
+        }
+
+        .onboarding-header h1 {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 28px;
+            text-transform: uppercase;
+            margin: 0 0 8px 0;
+        }
+
+        .onboarding-header p {
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            opacity: 0.8;
+            margin: 0;
+        }
+
+        .onboarding-body {
+            padding: 48px 40px;
+        }
+
+        .form-section {
+            margin-bottom: 40px;
+        }
+
+        .form-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-section-title {
+            font-family: 'Archivo', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-onyx);
+            margin: 0 0 16px 0;
+        }
+
+        .form-section-description {
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            color: var(--myavana-onyx);
+            opacity: 0.7;
+            margin: 0 0 24px 0;
+            line-height: 1.6;
+        }
+
+        .option-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .option-card {
+            position: relative;
+            padding: 24px;
+            border: 2px solid var(--myavana-stone);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .option-card:hover {
+            border-color: var(--myavana-coral);
+            background: var(--myavana-light-coral);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .option-card.selected {
+            border-color: var(--myavana-coral);
+            background: var(--myavana-light-coral);
+        }
+
+        .option-card input[type="radio"],
+        .option-card input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .option-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .option-title {
+            font-family: 'Archivo', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--myavana-onyx);
+            margin-bottom: 4px;
+        }
+
+        .option-description {
+            font-family: 'Archivo', sans-serif;
+            font-size: 12px;
+            color: var(--myavana-onyx);
+            opacity: 0.7;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-onyx);
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            border: 2px solid var(--myavana-stone);
+            border-radius: 8px;
+            background: var(--myavana-white);
+            color: var(--myavana-onyx);
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--myavana-coral);
+            box-shadow: 0 0 0 3px rgba(231, 166, 144, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .onboarding-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 40px;
+            background: var(--myavana-stone);
+            border-top: 1px solid var(--myavana-sand);
+        }
+
+        .btn {
+            padding: 14px 32px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary {
+            background: var(--myavana-white);
+            color: var(--myavana-onyx);
+            border: 2px solid var(--myavana-stone);
+        }
+
+        .btn-secondary:hover {
+            background: var(--myavana-stone);
+        }
+
+        .btn-primary {
+            background: var(--myavana-coral);
+            color: var(--myavana-white);
+        }
+
+        .btn-primary:hover {
+            background: #d4956f;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .step-indicator {
+            font-family: 'Archivo', sans-serif;
+            font-size: 12px;
+            color: var(--myavana-onyx);
+            opacity: 0.6;
+        }
+
+        @media (max-width: 768px) {
+            .onboarding-body {
+                padding: 32px 24px;
+            }
+
+            .onboarding-footer {
+                flex-direction: column;
+                gap: 16px;
+                padding: 24px;
+            }
+
+            .step-indicator {
+                order: -1;
+            }
+
+            .option-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="onboarding-container">
+        <div class="onboarding-card">
+            <div class="onboarding-header">
+                <div class="onboarding-logo">MYAVANA</div>
+
+                <div class="onboarding-progress">
+                    <div class="progress-step active"></div>
+                    <div class="progress-step"></div>
+                    <div class="progress-step"></div>
+                </div>
+
+                <h1>Tell Us About Your Hair</h1>
+                <p>Help us personalize your experience</p>
+            </div>
+
+            <div class="onboarding-body">
+                <form id="onboardingForm">
+                    <!-- Hair Type Section -->
+                    <div class="form-section">
+                        <h2 class="form-section-title">What's Your Hair Type?</h2>
+                        <p class="form-section-description">
+                            Select the pattern that best matches your natural hair texture. This helps us provide personalized recommendations.
+                        </p>
+
+                        <div class="option-grid">
+                            <label class="option-card">
+                                <input type="radio" name="hairType" value="1A" required>
+                                <div class="option-icon">💧</div>
+                                <div class="option-title">Type 1 (Straight)</div>
+                                <div class="option-description">1A, 1B, 1C</div>
+                            </label>
+
+                            <label class="option-card">
+                                <input type="radio" name="hairType" value="2A" required>
+                                <div class="option-icon">〰️</div>
+                                <div class="option-title">Type 2 (Wavy)</div>
+                                <div class="option-description">2A, 2B, 2C</div>
+                            </label>
+
+                            <label class="option-card">
+                                <input type="radio" name="hairType" value="3A" required>
+                                <div class="option-icon">🌀</div>
+                                <div class="option-title">Type 3 (Curly)</div>
+                                <div class="option-description">3A, 3B, 3C</div>
+                            </label>
+
+                            <label class="option-card">
+                                <input type="radio" name="hairType" value="4A" required>
+                                <div class="option-icon">🔘</div>
+                                <div class="option-title">Type 4 (Coily)</div>
+                                <div class="option-description">4A, 4B, 4C</div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Hair Concerns Section -->
+                    <div class="form-section">
+                        <h2 class="form-section-title">What Are Your Main Hair Concerns?</h2>
+                        <p class="form-section-description">
+                            Select all that apply. We'll help you address these challenges.
+                        </p>
+
+                        <div class="option-grid">
+                            <label class="option-card">
+                                <input type="checkbox" name="concerns" value="dryness">
+                                <div class="option-icon">🏜️</div>
+                                <div class="option-title">Dryness</div>
+                                <div class="option-description">Lack of moisture</div>
+                            </label>
+
+                            <label class="option-card">
+                                <input type="checkbox" name="concerns" value="breakage">
+                                <div class="option-icon">💔</div>
+                                <div class="option-title">Breakage</div>
+                                <div class="option-description">Hair snapping</div>
+                            </label>
+
+                            <label class="option-card">
+                                <input type="checkbox" name="concerns" value="thinning">
+                                <div class="option-icon">📉</div>
+                                <div class="option-title">Thinning</div>
+                                <div class="option-description">Hair loss</div>
+                            </label>
+
+                            <label class="option-card">
+                                <input type="checkbox" name="concerns" value="scalp_health">
+                                <div class="option-icon">🔬</div>
+                                <div class="option-title">Scalp Health</div>
+                                <div class="option-description">Dandruff, itching</div>
+                            </label>
+
+                            <label class="option-card">
+                                <input type="checkbox" name="concerns" value="frizz">
+                                <div class="option-icon">⚡</div>
+                                <div class="option-title">Frizz</div>
+                                <div class="option-description">Unmanageable</div>
+                            </label>
+
+                            <label class="option-card">
+                                <input type="checkbox" name="concerns" value="damage">
+                                <div class="option-icon">🔥</div>
+                                <div class="option-title">Damage</div>
+                                <div class="option-description">Heat/chemical</div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Current Hair Length -->
+                    <div class="form-section">
+                        <h2 class="form-section-title">Current Hair Details</h2>
+
+                        <div class="form-group">
+                            <label class="form-label" for="hairLength">Current Hair Length (inches)</label>
+                            <input
+                                type="number"
+                                id="hairLength"
+                                class="form-input"
+                                placeholder="e.g., 12"
+                                min="0"
+                                step="0.5"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="additionalNotes">Additional Notes (Optional)</label>
+                            <textarea
+                                id="additionalNotes"
+                                class="form-input form-textarea"
+                                placeholder="Tell us anything else about your hair that might be helpful..."
+                            ></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="onboarding-footer">
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='login.html'">
+                    Back
+                </button>
+
+                <div class="step-indicator">Step 1 of 3</div>
+
+                <button type="button" class="btn btn-primary" id="nextBtn">
+                    Next: Set Your Goals
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Handle option card selection
+        document.querySelectorAll('.option-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const input = this.querySelector('input');
+
+                if (input.type === 'radio') {
+                    // Deselect all radio cards in the same group
+                    document.querySelectorAll(`input[name="${input.name}"]`).forEach(radio => {
+                        radio.closest('.option-card').classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                    input.checked = true;
+                } else if (input.type === 'checkbox') {
+                    input.checked = !input.checked;
+                    this.classList.toggle('selected', input.checked);
+                }
+            });
+        });
+
+        // Form validation and submission
+        document.getElementById('nextBtn').addEventListener('click', function() {
+            const form = document.getElementById('onboardingForm');
+            const hairTypeSelected = document.querySelector('input[name="hairType"]:checked');
+
+            if (!hairTypeSelected) {
+                alert('Please select your hair type to continue');
+                return;
+            }
+
+            // Collect data
+            const concerns = Array.from(document.querySelectorAll('input[name="concerns"]:checked'))
+                .map(cb => cb.value);
+
+            const onboardingData = {
+                hairType: hairTypeSelected.value,
+                concerns: concerns,
+                hairLength: document.getElementById('hairLength').value,
+                additionalNotes: document.getElementById('additionalNotes').value
+            };
+
+            console.log('Step 1 data:', onboardingData);
+
+            // Store in sessionStorage
+            sessionStorage.setItem('onboarding_step1', JSON.stringify(onboardingData));
+
+            // Proceed to next step
+            window.location.href = 'onboarding-step2.html';
+        });
+    </script>
+</body>
+</html>

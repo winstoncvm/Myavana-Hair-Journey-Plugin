@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Step 3: Create Your Routine - MYAVANA</title>
+    <link rel="stylesheet" href="../../assets/css/timeline.css">
+    <style>
+        .onboarding-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--myavana-light-coral) 0%, var(--myavana-stone) 100%);
+            padding: 40px 24px;
+        }
+
+        .onboarding-card {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--myavana-white);
+            border-radius: 16px;
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+        }
+
+        .onboarding-header {
+            background: var(--myavana-onyx);
+            color: var(--myavana-white);
+            padding: 32px 40px;
+            text-align: center;
+        }
+
+        .onboarding-logo {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 24px;
+            text-transform: uppercase;
+            color: var(--myavana-coral);
+            margin-bottom: 16px;
+        }
+
+        .onboarding-progress {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .progress-step {
+            width: 80px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+
+        .progress-step.active {
+            background: var(--myavana-coral);
+        }
+
+        .onboarding-header h1 {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 28px;
+            text-transform: uppercase;
+            margin: 0 0 8px 0;
+        }
+
+        .onboarding-header p {
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            opacity: 0.8;
+            margin: 0;
+        }
+
+        .onboarding-body {
+            padding: 48px 40px;
+        }
+
+        .form-section-title {
+            font-family: 'Archivo', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-onyx);
+            margin: 0 0 16px 0;
+        }
+
+        .form-section-description {
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            color: var(--myavana-onyx);
+            opacity: 0.7;
+            margin: 0 0 32px 0;
+            line-height: 1.6;
+        }
+
+        .routine-builder {
+            background: var(--myavana-stone);
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            font-family: 'Archivo', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-onyx);
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 12px 14px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            border: 2px solid var(--myavana-sand);
+            border-radius: 8px;
+            background: var(--myavana-white);
+            color: var(--myavana-onyx);
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--myavana-coral);
+            box-shadow: 0 0 0 3px rgba(231, 166, 144, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .time-of-day-selector {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .time-chip {
+            padding: 10px 20px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--myavana-onyx);
+            background: var(--myavana-white);
+            border: 2px solid var(--myavana-sand);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .time-chip:hover {
+            border-color: var(--myavana-coral);
+        }
+
+        .time-chip.selected {
+            background: var(--myavana-coral);
+            border-color: var(--myavana-coral);
+            color: var(--myavana-white);
+        }
+
+        .steps-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .step-item {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            background: var(--myavana-coral);
+            color: var(--myavana-white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .step-input {
+            flex: 1;
+        }
+
+        .step-remove {
+            background: transparent;
+            border: none;
+            color: var(--myavana-onyx);
+            opacity: 0.5;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 0;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .step-remove:hover {
+            opacity: 1;
+        }
+
+        .add-step-btn {
+            width: 100%;
+            padding: 12px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-coral);
+            background: var(--myavana-white);
+            border: 2px dashed var(--myavana-coral);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .add-step-btn:hover {
+            background: var(--myavana-light-coral);
+        }
+
+        .skip-option {
+            text-align: center;
+            padding: 24px;
+            background: var(--myavana-sand);
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .skip-option p {
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            color: var(--myavana-onyx);
+            opacity: 0.8;
+            margin: 0 0 16px 0;
+        }
+
+        .skip-btn {
+            padding: 10px 24px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--myavana-onyx);
+            background: var(--myavana-white);
+            border: 2px solid var(--myavana-stone);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .skip-btn:hover {
+            background: var(--myavana-stone);
+        }
+
+        .onboarding-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 40px;
+            background: var(--myavana-stone);
+            border-top: 1px solid var(--myavana-sand);
+        }
+
+        .btn {
+            padding: 14px 32px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary {
+            background: var(--myavana-white);
+            color: var(--myavana-onyx);
+            border: 2px solid var(--myavana-stone);
+        }
+
+        .btn-secondary:hover {
+            background: var(--myavana-sand);
+        }
+
+        .btn-primary {
+            background: var(--myavana-coral);
+            color: var(--myavana-white);
+        }
+
+        .btn-primary:hover {
+            background: #d4956f;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .step-indicator {
+            font-family: 'Archivo', sans-serif;
+            font-size: 12px;
+            color: var(--myavana-onyx);
+            opacity: 0.6;
+        }
+
+        @media (max-width: 768px) {
+            .onboarding-body {
+                padding: 32px 24px;
+            }
+
+            .routine-builder {
+                padding: 24px;
+            }
+
+            .onboarding-footer {
+                flex-direction: column;
+                gap: 16px;
+                padding: 24px;
+            }
+
+            .step-indicator {
+                order: -1;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="onboarding-container">
+        <div class="onboarding-card">
+            <div class="onboarding-header">
+                <div class="onboarding-logo">MYAVANA</div>
+
+                <div class="onboarding-progress">
+                    <div class="progress-step active"></div>
+                    <div class="progress-step active"></div>
+                    <div class="progress-step active"></div>
+                </div>
+
+                <h1>Create Your Routine</h1>
+                <p>Build your personalized hair care routine</p>
+            </div>
+
+            <div class="onboarding-body">
+                <h2 class="form-section-title">Your Hair Care Routine</h2>
+                <p class="form-section-description">
+                    Create a routine to help you stay consistent. You can always modify or add more routines later.
+                </p>
+
+                <form id="onboardingForm">
+                    <div class="routine-builder">
+                        <div class="form-group">
+                            <label class="form-label">Routine Name</label>
+                            <input
+                                type="text"
+                                id="routineName"
+                                class="form-input"
+                                placeholder="e.g., My Wash Day Routine"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Frequency</label>
+                                <select id="frequency" class="form-select" required>
+                                    <option value="">Select frequency</option>
+                                    <option value="Daily">Daily</option>
+                                    <option value="Every Other Day">Every Other Day</option>
+                                    <option value="Weekly">Weekly</option>
+                                    <option value="Bi-Weekly">Bi-Weekly</option>
+                                    <option value="Monthly">Monthly</option>
+                                    <option value="As Needed">As Needed</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Duration (minutes)</label>
+                                <input
+                                    type="number"
+                                    id="duration"
+                                    class="form-input"
+                                    placeholder="30"
+                                    min="5"
+                                    step="5"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Time of Day</label>
+                            <div class="time-of-day-selector">
+                                <button type="button" class="time-chip" data-time="Morning">🌅 Morning</button>
+                                <button type="button" class="time-chip" data-time="Afternoon">☀️ Afternoon</button>
+                                <button type="button" class="time-chip" data-time="Evening">🌆 Evening</button>
+                                <button type="button" class="time-chip" data-time="Night">🌙 Night</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Routine Steps</label>
+                            <div class="steps-list" id="stepsList">
+                                <div class="step-item">
+                                    <div class="step-number">1</div>
+                                    <input
+                                        type="text"
+                                        class="form-input step-input"
+                                        placeholder="e.g., Pre-poo with oil"
+                                        required
+                                    >
+                                </div>
+
+                                <div class="step-item">
+                                    <div class="step-number">2</div>
+                                    <input
+                                        type="text"
+                                        class="form-input step-input"
+                                        placeholder="e.g., Shampoo with sulfate-free cleanser"
+                                        required
+                                    >
+                                </div>
+
+                                <div class="step-item">
+                                    <div class="step-number">3</div>
+                                    <input
+                                        type="text"
+                                        class="form-input step-input"
+                                        placeholder="e.g., Deep condition for 30 minutes"
+                                        required
+                                    >
+                                </div>
+                            </div>
+
+                            <button type="button" class="add-step-btn" id="addStepBtn" style="margin-top: 12px;">
+                                <span>+</span>
+                                <span>Add Step</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="skip-option">
+                    <p>Not ready to create a routine yet? You can set this up later from your dashboard.</p>
+                    <button type="button" class="skip-btn" id="skipBtn">Skip for Now</button>
+                </div>
+            </div>
+
+            <div class="onboarding-footer">
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='onboarding-step2.html'">
+                    Back
+                </button>
+
+                <div class="step-indicator">Step 3 of 3</div>
+
+                <button type="button" class="btn btn-primary" id="finishBtn">
+                    Finish Setup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let stepCount = 3;
+        let selectedTime = null;
+
+        // Time of day selector
+        document.querySelectorAll('.time-chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                document.querySelectorAll('.time-chip').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedTime = this.getAttribute('data-time');
+            });
+        });
+
+        // Add step
+        document.getElementById('addStepBtn').addEventListener('click', function() {
+            stepCount++;
+            const stepsList = document.getElementById('stepsList');
+            const stepItem = document.createElement('div');
+            stepItem.className = 'step-item';
+            stepItem.innerHTML = `
+                <div class="step-number">${stepCount}</div>
+                <input
+                    type="text"
+                    class="form-input step-input"
+                    placeholder="Add another step..."
+                    required
+                >
+                <button type="button" class="step-remove" onclick="removeStep(this)">×</button>
+            `;
+            stepsList.appendChild(stepItem);
+        });
+
+        // Remove step
+        window.removeStep = function(btn) {
+            if (stepCount <= 1) {
+                alert('You must have at least one step!');
+                return;
+            }
+
+            btn.closest('.step-item').remove();
+            stepCount--;
+
+            // Renumber steps
+            document.querySelectorAll('.step-item').forEach((item, index) => {
+                item.querySelector('.step-number').textContent = index + 1;
+            });
+        };
+
+        // Skip button
+        document.getElementById('skipBtn').addEventListener('click', function() {
+            finishOnboarding(true);
+        });
+
+        // Finish button
+        document.getElementById('finishBtn').addEventListener('click', function() {
+            const routineName = document.getElementById('routineName').value.trim();
+            const frequency = document.getElementById('frequency').value;
+
+            if (!routineName || !frequency) {
+                alert('Please fill in the routine name and frequency');
+                return;
+            }
+
+            if (!selectedTime) {
+                alert('Please select a time of day for your routine');
+                return;
+            }
+
+            const steps = Array.from(document.querySelectorAll('.step-input'))
+                .map(input => input.value.trim())
+                .filter(value => value !== '');
+
+            if (steps.length === 0) {
+                alert('Please add at least one step to your routine');
+                return;
+            }
+
+            const routineData = {
+                name: routineName,
+                frequency: frequency,
+                duration: document.getElementById('duration').value,
+                timeOfDay: selectedTime,
+                steps: steps
+            };
+
+            finishOnboarding(false, routineData);
+        });
+
+        function finishOnboarding(skipped, routineData = null) {
+            // Retrieve all onboarding data
+            const step1Data = JSON.parse(sessionStorage.getItem('onboarding_step1') || '{}');
+            const step2Data = JSON.parse(sessionStorage.getItem('onboarding_step2') || '{}');
+
+            const completeData = {
+                ...step1Data,
+                ...step2Data,
+                routine: skipped ? null : routineData,
+                onboardingCompleted: true,
+                completedAt: new Date().toISOString()
+            };
+
+            console.log('Complete onboarding data:', completeData);
+
+            // Clear session storage
+            sessionStorage.removeItem('onboarding_step1');
+            sessionStorage.removeItem('onboarding_step2');
+
+            // In real app, this would save to backend
+            // For demo, redirect to timeline
+            setTimeout(() => {
+                window.location.href = '../../index.html';
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

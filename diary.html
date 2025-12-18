@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hair Journey Diary</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .sidebar-header h1 {
+            font-size: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stats-card h3 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .stats-card .number {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .quick-stats {
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .calendar-header h2 {
+            font-size: 28px;
+            color: #333;
+        }
+
+        .month-nav {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .month-nav button {
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .month-nav button:hover {
+            background: #764ba2;
+            transform: scale(1.1);
+        }
+
+        .month-nav span {
+            font-size: 18px;
+            font-weight: 600;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .day-header {
+            text-align: center;
+            font-weight: 600;
+            color: #667eea;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            border: 2px solid #f0f0f0;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            background: white;
+        }
+
+        .day-cell:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .day-cell.today {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+        }
+
+        .day-cell.has-entry {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .day-cell.has-entry::after {
+            content: '✨';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 12px;
+        }
+
+        .entry-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .entry-modal.active {
+            display: flex;
+        }
+
+        .entry-form {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #f0f0f0;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            background: #e0e0e0;
+            transform: rotate(90deg);
+        }
+
+        .entry-form h2 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #f0f0f0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .mood-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .mood-btn {
+            padding: 10px 20px;
+            border: 2px solid #f0f0f0;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 20px;
+        }
+
+        .mood-btn:hover {
+            border-color: #667eea;
+        }
+
+        .mood-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .slider-group {
+            margin-top: 10px;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #f0f0f0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            border: none;
+        }
+
+        .slider-value {
+            text-align: center;
+            margin-top: 5px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .sparkle {
+            animation: sparkle 1.5s ease-in-out infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <span style="font-size: 32px;">💆‍♀️</span>
+                <h1>Hair Journey</h1>
+            </div>
+            
+            <div class="stats-card">
+                <h3>Total Entries</h3>
+                <div class="number" id="totalEntries">0</div>
+            </div>
+
+            <div class="quick-stats">
+                <h3 style="margin-bottom: 15px; color: #333;">Quick Stats</h3>
+                <div class="stat-item">
+                    <span class="stat-label">This Month</span>
+                    <span class="stat-value" id="monthEntries">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Streak</span>
+                    <span class="stat-value" id="streak">0 days</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Avg Health</span>
+                    <span class="stat-value" id="avgHealth">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="calendar-header">
+                <h2>📅 Hair Care Calendar</h2>
+                <div class="month-nav">
+                    <button onclick="changeMonth(-1)">◀</button>
+                    <span id="currentMonth"></span>
+                    <button onclick="changeMonth(1)">▶</button>
+                </div>
+            </div>
+
+            <div class="calendar-grid" id="calendar">
+                <div class="day-header">Sun</div>
+                <div class="day-header">Mon</div>
+                <div class="day-header">Tue</div>
+                <div class="day-header">Wed</div>
+                <div class="day-header">Thu</div>
+                <div class="day-header">Fri</div>
+                <div class="day-header">Sat</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="entry-modal" id="entryModal">
+        <div class="entry-form">
+            <button class="close-btn" onclick="closeModal()">✕</button>
+            <h2 id="entryDate">Add Entry</h2>
+            
+            <div class="form-group">
+                <label>How's your hair feeling? 💫</label>
+                <div class="mood-selector">
+                    <button class="mood-btn" onclick="selectMood('amazing')">🌟</button>
+                    <button class="mood-btn" onclick="selectMood('good')">😊</button>
+                    <button class="mood-btn" onclick="selectMood('okay')">😐</button>
+                    <button class="mood-btn" onclick="selectMood('bad')">😔</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Hair Health (1-10)</label>
+                <div class="slider-group">
+                    <input type="range" min="1" max="10" value="5" class="slider" id="healthSlider" oninput="updateSliderValue()">
+                    <div class="slider-value" id="sliderValue">5/10</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Products Used 🧴</label>
+                <input type="text" id="products" placeholder="Shampoo, conditioner, oil...">
+            </div>
+
+            <div class="form-group">
+                <label>Routine 💇‍♀️</label>
+                <textarea id="routine" placeholder="Describe your hair care routine for today..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Notes & Observations 📝</label>
+                <textarea id="notes" placeholder="Any changes, concerns, or wins?"></textarea>
+            </div>
+
+            <button class="save-btn" onclick="saveEntry()">Save Entry ✨</button>
+        </div>
+    </div>
+
+    <script>
+        let currentDate = new Date();
+        let selectedDate = null;
+        let entries = {};
+        let selectedMood = '';
+
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+
+        function init() {
+            loadEntries();
+            renderCalendar();
+            updateStats();
+        }
+
+        function loadEntries() {
+            const stored = localStorage.getItem('hairJourneyEntries');
+            if (stored) {
+                entries = JSON.parse(stored);
+            }
+        }
+
+        function saveEntriesToStorage() {
+            localStorage.setItem('hairJourneyEntries', JSON.stringify(entries));
+        }
+
+        function formatDateKey(date) {
+            return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+        }
+
+        function renderCalendar() {
+            const calendar = document.getElementById('calendar');
+            const monthDisplay = document.getElementById('currentMonth');
+            
+            monthDisplay.textContent = `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+            
+            // Clear existing days (keep headers)
+            while (calendar.children.length > 7) {
+                calendar.removeChild(calendar.lastChild);
+            }
+            
+            const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
+            const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+            
+            // Empty cells
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                calendar.appendChild(emptyCell);
+            }
+            
+            // Day cells
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayCell = document.createElement('div');
+                dayCell.className = 'day-cell';
+                dayCell.textContent = day;
+                
+                const cellDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+                const key = formatDateKey(cellDate);
+                
+                if (entries[key]) {
+                    dayCell.classList.add('has-entry');
+                }
+                
+                if (new Date().toDateString() === cellDate.toDateString()) {
+                    dayCell.classList.add('today');
+                }
+                
+                dayCell.onclick = () => openEntry(cellDate);
+                calendar.appendChild(dayCell);
+            }
+        }
+
+        function changeMonth(delta) {
+            currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + delta, 1);
+            renderCalendar();
+            updateStats();
+        }
+
+        function openEntry(date) {
+            selectedDate = date;
+            const key = formatDateKey(date);
+            const modal = document.getElementById('entryModal');
+            const dateDisplay = document.getElementById('entryDate');
+            
+            dateDisplay.textContent = date.toDateString();
+            
+            if (entries[key]) {
+                const entry = entries[key];
+                document.getElementById('products').value = entry.products || '';
+                document.getElementById('routine').value = entry.routine || '';
+                document.getElementById('notes').value = entry.notes || '';
+                document.getElementById('healthSlider').value = entry.health || 5;
+                updateSliderValue();
+                
+                if (entry.mood) {
+                    selectMood(entry.mood);
+                }
+            } else {
+                clearForm();
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('entryModal').classList.remove('active');
+            clearForm();
+        }
+
+        function clearForm() {
+            document.getElementById('products').value = '';
+            document.getElementById('routine').value = '';
+            document.getElementById('notes').value = '';
+            document.getElementById('healthSlider').value = 5;
+            updateSliderValue();
+            selectedMood = '';
+            document.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('active'));
+        }
+
+        function selectMood(mood) {
+            selectedMood = mood;
+            document.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function updateSliderValue() {
+            const slider = document.getElementById('healthSlider');
+            const value = document.getElementById('sliderValue');
+            value.textContent = `${slider.value}/10`;
+        }
+
+        function saveEntry() {
+            if (!selectedDate) return;
+            
+            const key = formatDateKey(selectedDate);
+            entries[key] = {
+                date: selectedDate.toDateString(),
+                mood: selectedMood,
+                health: parseInt(document.getElementById('healthSlider').value),
+                products: document.getElementById('products').value,
+                routine: document.getElementById('routine').value,
+                notes: document.getElementById('notes').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            saveEntriesToStorage();
+            closeModal();
+            renderCalendar();
+            updateStats();
+        }
+
+        function updateStats() {
+            const totalEntries = Object.keys(entries).length;
+            document.getElementById('totalEntries').textContent = totalEntries;
+            
+            // Month entries
+            const monthEntries = Object.values(entries).filter(entry => {
+                const entryDate = new Date(entry.date);
+                return entryDate.getMonth() === currentDate.getMonth() && 
+                       entryDate.getFullYear() === currentDate.getFullYear();
+            }).length;
+            document.getElementById('monthEntries').textContent = monthEntries;
+            
+            // Average health
+            if (totalEntries > 0) {
+                const avgHealth = Object.values(entries)
+                    .reduce((sum, entry) => sum + (entry.health || 0), 0) / totalEntries;
+                document.getElementById('avgHealth').textContent = avgHealth.toFixed(1) + '/10';
+            }
+            
+            // Simple streak
+            document.getElementById('streak').textContent = `${totalEntries > 0 ? Math.min(totalEntries, 7) : 0} days`;
+        }
+
+        init();
+    </script>
+</body>
+</html>
