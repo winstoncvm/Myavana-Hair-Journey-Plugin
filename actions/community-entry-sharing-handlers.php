@@ -186,60 +186,79 @@ add_action('wp_ajax_myavana_share_selected_entry', 'myavana_share_selected_entry
 function myavana_bulk_share_entries() {
     check_ajax_referer('myavana_nonce', 'nonce');
 
+    error_log('=== BULK SHARE ENTRIES STARTED ===');
+
     if (!is_user_logged_in()) {
+        error_log('ERROR: User not authenticated');
         wp_send_json_error(['message' => 'User not authenticated']);
         return;
     }
 
+    $user_id = get_current_user_id();
+    error_log('User ID: ' . $user_id);
+
+    // Capture the bulk_privacy value from the form
     $entry_ids = isset($_POST['entry_ids']) ? $_POST['entry_ids'] : [];
     $privacy = isset($_POST['privacy']) ? sanitize_text_field($_POST['privacy']) : 'public';
 
-    if (empty($entry_ids) || !is_array($entry_ids)) {
-        wp_send_json_error(['message' => 'No entries selected']);
-        return;
-    }
+    error_log('Entry IDs received: ' . print_r($entry_ids, true));
+    error_log('Privacy level: ' . $privacy);
 
-    // Limit to 10 entries at once to prevent timeouts
-    if (count($entry_ids) > 10) {
-        wp_send_json_error(['message' => 'Maximum 10 entries can be shared at once']);
+    if (empty($entry_ids) || !is_array($entry_ids)) {
+        error_log('ERROR: No entries selected or not an array');
+        wp_send_json_error(['message' => 'No entries selected']);
         return;
     }
 
     $shared = [];
     $failed = [];
     $already_shared = [];
+    $debug_info = [];
 
     foreach ($entry_ids as $entry_id) {
         $entry_id = intval($entry_id);
+        error_log('--- Processing entry ID: ' . $entry_id);
 
-        if (!Myavana_Community_Integration::is_entry_shareable($entry_id)) {
+        $is_shareable = Myavana_Community_Integration::is_entry_shareable($entry_id);
+        error_log('Is shareable: ' . ($is_shareable ? 'YES' : 'NO'));
+
+        if (!$is_shareable) {
             $already_shared[] = $entry_id;
+            error_log('Entry ' . $entry_id . ' already shared - skipping');
             continue;
         }
 
+        error_log('Calling share_entry for entry ' . $entry_id);
         $post_id = Myavana_Community_Integration::share_entry($entry_id, $privacy);
 
         if (is_wp_error($post_id)) {
-            $failed[] = [
-                'entry_id' => $entry_id,
-                'error' => $post_id->get_error_message()
-            ];
+            error_log('ERROR: share_entry returned WP_Error: ' . $post_id->get_error_message());
+            $failed[] = ['entry_id' => $entry_id, 'error' => $post_id->get_error_message()];
         } else {
-            $shared[] = [
-                'entry_id' => $entry_id,
-                'post_id' => $post_id
-            ];
+            error_log('SUCCESS: Created community post ID: ' . $post_id);
+            $shared[] = ['entry_id' => $entry_id, 'post_id' => $post_id];
         }
     }
 
-    $total_points = count($shared) * 15;
+    error_log('SUMMARY - Shared: ' . count($shared) . ', Already shared: ' . count($already_shared) . ', Failed: ' . count($failed));
+
+    // Build success message
+    $message = '';
+    if (count($shared) > 0) {
+        $message = count($shared) . ' ' . (count($shared) === 1 ? 'entry' : 'entries') . ' shared to community!';
+    }
+    if (count($already_shared) > 0) {
+        $message .= (strlen($message) > 0 ? ' ' : '') . count($already_shared) . ' ' . (count($already_shared) === 1 ? 'entry was' : 'entries were') . ' already shared.';
+    }
+    if (count($failed) > 0) {
+        $message .= (strlen($message) > 0 ? ' ' : '') . count($failed) . ' ' . (count($failed) === 1 ? 'entry' : 'entries') . ' failed to share.';
+    }
 
     wp_send_json_success([
-        'message' => sprintf('%d entries shared successfully!', count($shared)),
+        'message' => $message ?: 'No new entries were shared.',
         'shared' => $shared,
-        'failed' => $failed,
         'already_shared' => $already_shared,
-        'total_points' => $total_points
+        'failed' => $failed
     ]);
 }
 add_action('wp_ajax_myavana_bulk_share_entries', 'myavana_bulk_share_entries');

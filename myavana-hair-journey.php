@@ -251,6 +251,7 @@ class Myavana_Hair_Journey {
 
         // COMMUNITY SOCIAL FEED
         wp_enqueue_style('myavana-social-feed-css', MYAVANA_URL . 'assets/css/social-feed.css', [], '1.0.0');
+        wp_enqueue_style('myavana-user-profile-css', MYAVANA_URL . 'assets/css/user-profile.css', [], '1.0.0');
         wp_enqueue_script('myavana-social-feed-js', MYAVANA_URL . 'assets/js/social-feed.js', ['jquery'], '1.0.0', true);
         wp_enqueue_script('myavana-share-to-community-js', MYAVANA_URL . 'assets/js/share-to-community.js', ['jquery'], '1.0.0', true);
 

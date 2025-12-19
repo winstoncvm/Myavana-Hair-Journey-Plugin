@@ -42,6 +42,202 @@
 }
 
 /* ==========================================================================
+   Profile Widget - Instagram-Quality User Card
+   ========================================================================== */
+.myavana-profile-widget {
+    background: linear-gradient(135deg, var(--myavana-white) 0%, var(--myavana-sand) 100%);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 32px;
+    box-shadow: 0 10px 40px rgba(34, 35, 35, 0.08);
+    border: 1px solid var(--myavana-border);
+    position: relative;
+    overflow: hidden;
+}
+
+.myavana-profile-widget::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--myavana-coral) 0%, var(--myavana-blueberry) 100%);
+}
+
+.myavana-profile-widget-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.myavana-profile-widget-avatar-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+}
+
+.myavana-profile-widget-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--myavana-coral);
+    box-shadow: 0 4px 12px rgba(231, 166, 144, 0.3);
+    transition: all 0.3s ease;
+}
+
+.myavana-profile-widget-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(231, 166, 144, 0.5);
+}
+
+.myavana-profile-widget-info {
+    flex: 1;
+}
+
+.myavana-profile-widget-name {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--myavana-onyx);
+    margin: 0 0 4px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+}
+
+.myavana-profile-widget-username {
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    color: var(--myavana-blueberry);
+    margin: 0;
+    opacity: 0.8;
+}
+
+.myavana-profile-widget-edit {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--myavana-coral);
+    background: transparent;
+    color: var(--myavana-coral);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.myavana-profile-widget-edit:hover {
+    background-color: var(--myavana-coral);
+    color: var(--myavana-white);
+    transform: rotate(15deg) scale(1.1);
+}
+
+.myavana-profile-widget-stats {
+    display: flex;
+    justify-content: space-around;
+    padding: 20px 0;
+    border-top: 1px solid var(--myavana-border);
+    border-bottom: 1px solid var(--myavana-border);
+    margin-bottom: 20px;
+}
+
+.myavana-profile-widget-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.myavana-widget-stat-number {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--myavana-coral);
+    line-height: 1;
+}
+
+.myavana-widget-stat-label {
+    font-family: 'Archivo', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--myavana-blueberry);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.myavana-profile-widget-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.myavana-profile-widget-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: var(--myavana-coral);
+    color: var(--myavana-white);
+    border: none;
+    border-radius: 12px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(231, 166, 144, 0.3);
+}
+
+.myavana-profile-widget-btn:hover {
+    background-color: #d4956f;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(231, 166, 144, 0.4);
+}
+
+.myavana-profile-widget-btn.myavana-btn-icon {
+    flex: 0 0 auto;
+    width: 48px;
+    padding: 12px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .myavana-profile-widget {
+        padding: 20px;
+    }
+
+    .myavana-profile-widget-avatar {
+        width: 64px;
+        height: 64px;
+    }
+
+    .myavana-profile-widget-name {
+        font-size: 16px;
+    }
+
+    .myavana-widget-stat-number {
+        font-size: 20px;
+    }
+
+    .myavana-profile-widget-actions {
+        flex-direction: column;
+    }
+
+    .myavana-profile-widget-btn.myavana-btn-icon {
+        flex: 1;
+        width: 100%;
+    }
+}
+
+/* ==========================================================================
    Community Header - MYAVANA Brand Typography
    ========================================================================== */
 .myavana-community-header {
@@ -380,7 +576,8 @@
     color: var(--myavana-coral);
 }
 
-.myavana-action-btn.liked {
+.myavana-action-btn.liked,
+.myavana-action-btn.bookmarked {
     color: var(--myavana-coral);
 }
 
@@ -391,6 +588,11 @@
 }
 
 .myavana-action-btn.liked svg {
+    fill: var(--myavana-coral);
+    animation: heartBeat 0.3s ease;
+}
+
+.myavana-action-btn.bookmarked svg {
     fill: var(--myavana-coral);
     animation: heartBeat 0.3s ease;
 }
@@ -683,6 +885,408 @@
     justify-content: flex-end;
     padding: 24px;
     border-top: 1px solid var(--myavana-border);
+}
+
+/* ==========================================================================
+   Comments Section
+   ========================================================================== */
+.myavana-post-comments {
+    padding: 16px;
+    background-color: var(--myavana-sand);
+    border-top: 1px solid var(--myavana-border);
+}
+
+.myavana-comments-list {
+    margin-bottom: 16px;
+}
+
+.myavana-comment {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.myavana-comment-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.myavana-comment-content {
+    flex: 1;
+    background-color: var(--myavana-white);
+    padding: 12px;
+    border-radius: 12px;
+}
+
+.myavana-comment-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.myavana-comment-author {
+    font-weight: 600;
+    font-size: 13.5px;
+    color: var(--myavana-onyx);
+}
+
+.myavana-comment-time {
+    font-size: 12px;
+    color: var(--myavana-blueberry);
+    opacity: 0.7;
+}
+
+.myavana-comment-text {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--myavana-onyx);
+    margin: 0 0 8px 0;
+    word-wrap: break-word;
+}
+
+.myavana-comment-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.myavana-comment-action-btn {
+    background: none;
+    border: none;
+    color: var(--myavana-blueberry);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.myavana-comment-action-btn:hover {
+    background-color: var(--myavana-hover);
+    color: var(--myavana-coral);
+}
+
+.myavana-comments-loading,
+.myavana-comments-empty,
+.myavana-comments-error {
+    text-align: center;
+    padding: 20px;
+    font-size: 13.5px;
+    color: var(--myavana-blueberry);
+    opacity: 0.8;
+}
+
+.myavana-comments-error {
+    color: #dc3545;
+}
+
+/* Comment Form */
+.myavana-comment-form {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.myavana-comment-input-wrapper {
+    flex: 1;
+    position: relative;
+    background-color: var(--myavana-white);
+    border: 2px solid var(--myavana-border);
+    border-radius: 24px;
+    padding: 10px 50px 10px 16px;
+    transition: all 0.2s;
+}
+
+.myavana-comment-input-wrapper:focus-within {
+    border-color: var(--myavana-coral);
+    box-shadow: 0 0 0 3px rgba(231, 166, 144, 0.1);
+}
+
+.myavana-comment-input {
+    width: 100%;
+    border: none;
+    outline: none;
+    font-family: 'Archivo', sans-serif;
+    font-size: 13.5px;
+    color: var(--myavana-onyx);
+    resize: none;
+    overflow-y: hidden;
+    max-height: 120px;
+    background: transparent;
+}
+
+.myavana-comment-input::placeholder {
+    color: var(--myavana-blueberry);
+    opacity: 0.6;
+}
+
+.myavana-comment-submit {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background-color: var(--myavana-coral);
+    color: var(--myavana-white);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.myavana-comment-submit:hover {
+    background-color: #d4956f;
+    transform: translateY(-50%) scale(1.05);
+}
+
+.myavana-comment-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.myavana-comment-submit.loading {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ==========================================================================
+   Share Modal
+   ========================================================================== */
+.myavana-share-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.myavana-share-modal.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.myavana-share-modal .myavana-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(34, 35, 35, 0.8);
+    backdrop-filter: blur(4px);
+}
+
+.myavana-share-modal-content {
+    position: relative;
+    background: var(--myavana-white);
+    border-radius: 16px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(34, 35, 35, 0.3);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.myavana-share-modal.active .myavana-share-modal-content {
+    transform: scale(1);
+}
+
+.myavana-share-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--myavana-border);
+}
+
+.myavana-share-header h3 {
+    font-family: 'Archivo', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--myavana-onyx);
+    margin: 0;
+}
+
+.myavana-share-close {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--myavana-blueberry);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.myavana-share-close:hover {
+    background-color: var(--myavana-hover);
+    color: var(--myavana-coral);
+}
+
+.myavana-share-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 24px;
+}
+
+.myavana-share-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 12px;
+    border: none;
+    background: var(--myavana-sand);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--myavana-onyx);
+}
+
+.myavana-share-option:hover {
+    background-color: var(--myavana-hover);
+    transform: translateY(-2px);
+}
+
+.myavana-share-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+}
+
+.myavana-share-option:hover .myavana-share-icon {
+    transform: scale(1.1);
+}
+
+.myavana-share-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.myavana-share-icon.facebook {
+    background: #1877f2;
+    color: white;
+}
+
+.myavana-share-icon.twitter {
+    background: #1da1f2;
+    color: white;
+}
+
+.myavana-share-icon.linkedin {
+    background: #0a66c2;
+    color: white;
+}
+
+.myavana-share-icon.whatsapp {
+    background: #25d366;
+    color: white;
+}
+
+.myavana-share-icon.pinterest {
+    background: #e60023;
+    color: white;
+}
+
+.myavana-share-icon.email {
+    background: var(--myavana-blueberry);
+    color: white;
+}
+
+.myavana-share-link {
+    padding: 0 24px 24px 24px;
+}
+
+.myavana-share-link label {
+    display: block;
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--myavana-blueberry);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.myavana-copy-link-wrapper {
+    display: flex;
+    gap: 8px;
+    background-color: var(--myavana-sand);
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.myavana-copy-link-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    color: var(--myavana-onyx);
+    outline: none;
+}
+
+.myavana-copy-link-btn {
+    background-color: var(--myavana-coral);
+    color: var(--myavana-white);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.myavana-copy-link-btn:hover {
+    background-color: #d4956f;
+    transform: translateY(-1px);
 }
 
 /* ==========================================================================

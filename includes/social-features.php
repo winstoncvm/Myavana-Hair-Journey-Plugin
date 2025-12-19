@@ -34,6 +34,11 @@ class Myavana_Social_Features {
         add_action('wp_ajax_join_challenge', array($this, 'join_challenge'));
         add_action('wp_ajax_get_user_followers', array($this, 'get_user_followers'));
         add_action('wp_ajax_get_trending_posts', array($this, 'get_trending_posts'));
+        add_action('wp_ajax_get_post_comments', array($this, 'get_post_comments'));
+        add_action('wp_ajax_bookmark_post', array($this, 'bookmark_post'));
+        add_action('wp_ajax_track_post_share', array($this, 'track_post_share'));
+        add_action('wp_ajax_get_user_profile', array($this, 'get_user_profile'));
+        add_action('wp_ajax_nopriv_get_user_profile', array($this, 'get_user_profile'));
         
         // Database setup
         add_action('init', array($this, 'create_social_tables'));
@@ -204,6 +209,21 @@ class Myavana_Social_Features {
             KEY user_id (user_id)
         ) $charset_collate;";
 
+        // Post bookmarks table
+        $post_bookmarks_table = $wpdb->prefix . 'myavana_post_bookmarks';
+        $post_bookmarks_sql = "CREATE TABLE $post_bookmarks_table (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            post_id mediumint(9) NOT NULL,
+            user_id bigint(20) NOT NULL,
+            collection varchar(100) DEFAULT 'saved',
+            notes text,
+            bookmarked_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY post_user (post_id, user_id),
+            KEY user_id (user_id),
+            KEY collection (collection)
+        ) $charset_collate;";
+
         // Notifications table
         $notifications_table = $wpdb->prefix . 'myavana_notifications';
         $notifications_sql = "CREATE TABLE $notifications_table (
@@ -234,6 +254,7 @@ class Myavana_Social_Features {
         dbDelta($shared_entries_sql);
         dbDelta($routines_sql);
         dbDelta($routine_bookmarks_sql);
+        dbDelta($post_bookmarks_sql);
         dbDelta($notifications_sql);
     }
     
@@ -241,14 +262,19 @@ class Myavana_Social_Features {
      * Get community feed for the user
      */
     public function get_community_feed() {
+        error_log('=== GET COMMUNITY FEED CALLED ===');
+
         if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
+            error_log('ERROR: Nonce verification failed');
             wp_die('Security check failed');
         }
-        
+
         $page = intval($_POST['page'] ?? 1);
         $per_page = intval($_POST['per_page'] ?? 10);
         $filter = sanitize_text_field($_POST['filter'] ?? 'all');
-        
+
+        error_log('Feed params - Page: ' . $page . ', Per page: ' . $per_page . ', Filter: ' . $filter . ', User ID: ' . $this->user_id);
+
         global $wpdb;
         
         $posts_table = $wpdb->prefix . 'myavana_community_posts';
@@ -256,21 +282,25 @@ class Myavana_Social_Features {
         $followers_table = $wpdb->prefix . 'myavana_user_followers';
         
         $offset = ($page - 1) * $per_page;
-        
+
         // Build query based on filter
-        $where_clause = "WHERE p.privacy_level = 'public'";
-        
+        // Show: (1) public posts, (2) user's own posts, (3) followers-only posts from people user follows
+        $privacy_clause = "(p.privacy_level = 'public' OR p.user_id = {$this->user_id} OR (p.privacy_level = 'followers' AND p.user_id IN (SELECT following_id FROM $followers_table WHERE follower_id = {$this->user_id})))";
+
         switch ($filter) {
             case 'following':
-                $where_clause = "WHERE p.privacy_level = 'public' AND p.user_id IN (
+                $where_clause = "WHERE $privacy_clause AND p.user_id IN (
                     SELECT following_id FROM $followers_table WHERE follower_id = %d
                 )";
                 break;
             case 'trending':
-                $where_clause = "WHERE p.privacy_level = 'public' AND p.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+                $where_clause = "WHERE $privacy_clause AND p.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
                 break;
             case 'featured':
-                $where_clause = "WHERE p.privacy_level = 'public' AND p.is_featured = 1";
+                $where_clause = "WHERE $privacy_clause AND p.is_featured = 1";
+                break;
+            default:
+                $where_clause = "WHERE $privacy_clause";
                 break;
         }
         
@@ -285,12 +315,24 @@ class Myavana_Social_Features {
             LIMIT %d OFFSET %d
         ";
         
+        error_log('Executing feed query with WHERE: ' . $where_clause);
+
         if ($filter === 'following') {
             $posts = $wpdb->get_results($wpdb->prepare($sql, $this->user_id, $per_page, $offset));
         } else {
             $posts = $wpdb->get_results($wpdb->prepare($sql, $per_page, $offset));
         }
-        
+
+        if ($wpdb->last_error) {
+            error_log('ERROR: Feed query failed - ' . $wpdb->last_error);
+            error_log('Last query: ' . $wpdb->last_query);
+        }
+
+        error_log('Feed returned ' . count($posts) . ' posts');
+        if (count($posts) > 0) {
+            error_log('First post ID: ' . $posts[0]->id . ', Title: ' . $posts[0]->title);
+        }
+
         // Enhance posts with additional data
         foreach ($posts as &$post) {
             $post->user_avatar = get_avatar_url($post->user_id);
@@ -666,6 +708,189 @@ class Myavana_Social_Features {
         }
     }
     
+    /**
+     * Get comments for a post
+     */
+    public function get_post_comments() {
+        if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
+            wp_die('Security check failed');
+        }
+
+        $post_id = intval($_POST['post_id']);
+
+        global $wpdb;
+
+        $comments_table = $wpdb->prefix . 'myavana_post_comments';
+        $users_table = $wpdb->users;
+
+        $comments = $wpdb->get_results($wpdb->prepare(
+            "SELECT c.*, u.display_name
+             FROM $comments_table c
+             LEFT JOIN $users_table u ON c.user_id = u.ID
+             WHERE c.post_id = %d AND c.parent_id = 0
+             ORDER BY c.created_at ASC",
+            $post_id
+        ));
+
+        // Enhance comments with user data
+        foreach ($comments as &$comment) {
+            $comment->user_avatar = get_avatar_url($comment->user_id, 40);
+            $comment->formatted_date = human_time_diff(strtotime($comment->created_at)) . ' ago';
+        }
+
+        wp_send_json_success($comments);
+    }
+
+    /**
+     * Bookmark/unbookmark a post
+     */
+    public function bookmark_post() {
+        if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
+            wp_die('Security check failed');
+        }
+
+        $post_id = intval($_POST['post_id']);
+        $collection = sanitize_text_field($_POST['collection'] ?? 'saved');
+
+        global $wpdb;
+
+        $bookmarks_table = $wpdb->prefix . 'myavana_post_bookmarks';
+
+        // Check if already bookmarked
+        $existing_bookmark = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM $bookmarks_table WHERE post_id = %d AND user_id = %d",
+            $post_id, $this->user_id
+        ));
+
+        if ($existing_bookmark) {
+            // Unbookmark
+            $wpdb->delete(
+                $bookmarks_table,
+                array('post_id' => $post_id, 'user_id' => $this->user_id),
+                array('%d', '%d')
+            );
+
+            wp_send_json_success(array(
+                'action' => 'unbookmarked',
+                'message' => 'Post removed from saved'
+            ));
+        } else {
+            // Bookmark
+            $result = $wpdb->insert(
+                $bookmarks_table,
+                array(
+                    'post_id' => $post_id,
+                    'user_id' => $this->user_id,
+                    'collection' => $collection,
+                    'bookmarked_at' => current_time('mysql')
+                ),
+                array('%d', '%d', '%s', '%s')
+            );
+
+            if ($result) {
+                wp_send_json_success(array(
+                    'action' => 'bookmarked',
+                    'message' => 'Post saved!'
+                ));
+            } else {
+                wp_send_json_error('Failed to save post');
+            }
+        }
+    }
+
+    /**
+     * Track post share
+     */
+    public function track_post_share() {
+        if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
+            wp_die('Security check failed');
+        }
+
+        $post_id = intval($_POST['post_id']);
+        $platform = sanitize_text_field($_POST['platform']);
+
+        global $wpdb;
+
+        $posts_table = $wpdb->prefix . 'myavana_community_posts';
+
+        // Increment shares count
+        $wpdb->query($wpdb->prepare(
+            "UPDATE $posts_table SET shares_count = shares_count + 1 WHERE id = %d",
+            $post_id
+        ));
+
+        wp_send_json_success(array('message' => 'Share tracked'));
+    }
+
+    /**
+     * Get user profile data
+     */
+    public function get_user_profile() {
+        if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
+            wp_die('Security check failed');
+        }
+
+        $user_id = intval($_POST['user_id']);
+        $user = get_userdata($user_id);
+
+        if (!$user) {
+            wp_send_json_error('User not found');
+            return;
+        }
+
+        global $wpdb;
+
+        // Get user stats
+        $stats = $this->get_user_social_stats($user_id);
+
+        // Get recent posts
+        $posts_table = $wpdb->prefix . 'myavana_community_posts';
+        $recent_posts = $wpdb->get_results($wpdb->prepare(
+            "SELECT id, title, content, image_url, likes_count, comments_count, created_at
+             FROM $posts_table
+             WHERE user_id = %d AND privacy_level = 'public'
+             ORDER BY created_at DESC
+             LIMIT 9",
+            $user_id
+        ));
+
+        // Check if current user is following this user
+        $followers_table = $wpdb->prefix . 'myavana_user_followers';
+        $is_following = false;
+        if ($this->user_id > 0) {
+            $is_following = (bool) $wpdb->get_var($wpdb->prepare(
+                "SELECT id FROM $followers_table WHERE follower_id = %d AND following_id = %d",
+                $this->user_id, $user_id
+            ));
+        }
+
+        // Get hair journey stats
+        $entries_table = $wpdb->prefix . 'myavana_hair_journal_entries';
+        $journey_stats = array(
+            'total_entries' => $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $entries_table WHERE user_id = %d",
+                $user_id
+            )),
+            'journey_start' => $wpdb->get_var($wpdb->prepare(
+                "SELECT DATE_FORMAT(MIN(created_at), '%%M %%Y') FROM $entries_table WHERE user_id = %d",
+                $user_id
+            ))
+        );
+
+        $profile = array(
+            'user_id' => $user_id,
+            'display_name' => $user->display_name,
+            'avatar' => get_avatar_url($user_id, 120),
+            'bio' => get_user_meta($user_id, 'description', true),
+            'stats' => $stats,
+            'recent_posts' => $recent_posts,
+            'is_following' => $is_following,
+            'hair_journey_stats' => $journey_stats
+        );
+
+        wp_send_json_success($profile);
+    }
+
     /**
      * Get trending posts
      */

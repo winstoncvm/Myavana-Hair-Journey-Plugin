@@ -37,14 +37,24 @@ function myavana_community_feed_shortcode($atts = []) {
     $shared_table = $wpdb->prefix . 'myavana_shared_entries';
 
     // Get entries with their sharing status
-    $entries = $wpdb->get_results($wpdb->prepare("
-        SELECT e.*,
-               (SELECT community_post_id FROM {$shared_table} WHERE entry_id = e.id) as shared_post_id
-        FROM {$entries_table} e
-        WHERE e.user_id = %d
-        ORDER BY e.entry_date DESC, e.created_at DESC
-        LIMIT 100
-    ", $user_id));
+    // $entries = $wpdb->get_results($wpdb->prepare("
+    //     SELECT e.*,
+    //            (SELECT community_post_id FROM {$shared_table} WHERE entry_id = e.id) as shared_post_id
+    //     FROM {$entries_table} e
+    //     WHERE e.user_id = %d
+    //     ORDER BY e.entry_date DESC, e.created_at DESC
+    //     LIMIT 100
+    // ", $user_id));
+    $entries_args = [
+        'post_type' => 'hair_journey_entry',
+        'author' => $user_id,
+        'post_status' => 'publish',
+        'posts_per_page' => -1,
+        'orderby' => 'post_date',
+        'order' => 'DESC',
+    ];
+    $entries = get_posts($entries_args);
+    $total_entries = count($entries);
 
     ob_start();
     ?>
@@ -164,6 +174,87 @@ function myavana_community_feed_shortcode($atts = []) {
                 <?php endif; ?>
             </div>
         </header>
+
+        <!-- User Profile Widget -->
+        <?php
+        $current_user_id = get_current_user_id();
+        $current_user_data = get_userdata($current_user_id);
+        $user_avatar = get_avatar_url($current_user_id, 80);
+
+        // Get user stats
+        global $wpdb;
+        $posts_table = $wpdb->prefix . 'myavana_community_posts';
+        $followers_table = $wpdb->prefix . 'myavana_user_followers';
+
+        $user_posts_count = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $posts_table WHERE user_id = %d",
+            $current_user_id
+        ));
+
+        $followers_count = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $followers_table WHERE following_id = %d",
+            $current_user_id
+        ));
+
+        $following_count = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $followers_table WHERE follower_id = %d",
+            $current_user_id
+        ));
+        ?>
+
+        <div class="myavana-profile-widget">
+            <div class="myavana-profile-widget-header">
+                <div class="myavana-profile-widget-avatar-section">
+                    <img src="<?php echo esc_url($user_avatar); ?>"
+                         alt="<?php echo esc_attr($current_user_data->display_name); ?>"
+                         class="myavana-profile-widget-avatar clickable-avatar"
+                         data-user-id="<?php echo $current_user_id; ?>">
+                    <div class="myavana-profile-widget-info">
+                        <h3 class="myavana-profile-widget-name clickable-username"
+                            data-user-id="<?php echo $current_user_id; ?>">
+                            <?php echo esc_html($current_user_data->display_name); ?>
+                        </h3>
+                        <p class="myavana-profile-widget-username">@<?php echo esc_html($current_user_data->user_login); ?></p>
+                    </div>
+                </div>
+                <button class="myavana-profile-widget-edit" onclick="editMyProfile()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="myavana-profile-widget-stats">
+                <div class="myavana-profile-widget-stat">
+                    <span class="myavana-widget-stat-number"><?php echo $user_posts_count; ?></span>
+                    <span class="myavana-widget-stat-label">Posts</span>
+                </div>
+                <div class="myavana-profile-widget-stat">
+                    <span class="myavana-widget-stat-number"><?php echo $followers_count; ?></span>
+                    <span class="myavana-widget-stat-label">Followers</span>
+                </div>
+                <div class="myavana-profile-widget-stat">
+                    <span class="myavana-widget-stat-number"><?php echo $following_count; ?></span>
+                    <span class="myavana-widget-stat-label">Following</span>
+                </div>
+            </div>
+
+            <div class="myavana-profile-widget-actions">
+                <button class="myavana-profile-widget-btn" onclick="viewMyProfile()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    View Profile
+                </button>
+                <button class="myavana-profile-widget-btn myavana-btn-icon" onclick="viewSavedPosts()" title="Saved Posts">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
 
         <!-- Filter Tabs -->
         <?php if ($atts['show_filters'] === 'true') : ?>
@@ -347,7 +438,7 @@ function myavana_community_feed_shortcode($atts = []) {
                 <button class="myavana-modal-close">&times;</button>
             </div>
 
-            <div class="myavana-modal-body">
+            <div class="myavana-modal-body is-overflow-y">
                 <!-- Search and Filter -->
                 <div class="entry-selector-filters">
                     <input type="text"
@@ -369,57 +460,112 @@ function myavana_community_feed_shortcode($atts = []) {
                 <?php else: ?>
                     <!-- Entries Grid -->
                     <div class="entry-selector-grid">
-                        <?php foreach ($entries as $entry):
-                            // Parse photos
-                            $photos = [];
-                            if (!empty($entry->photo_url)) {
-                                if (is_string($entry->photo_url) && (strpos($entry->photo_url, '[') === 0 || strpos($entry->photo_url, '{') === 0)) {
-                                    $photos = json_decode($entry->photo_url, true);
-                                    if (!is_array($photos)) {
-                                        $photos = [$entry->photo_url];
+                        <?php if ( ! empty( $entries ) ) : ?>
+                            <?php foreach ( $entries as $entry ) :
+                                $post_id = $entry->ID;
+                                $entry_title = get_the_title($post_id);
+                                $entry_date = get_the_date('', $post_id);
+                                $entry_date_formatted = get_the_date('F j, Y', $post_id);
+
+                                // Check if this entry has been shared to community
+                                $is_shared = $wpdb->get_var($wpdb->prepare(
+                                    "SELECT id FROM {$shared_table} WHERE entry_id = %d",
+                                    $post_id
+                                ));
+
+                                // Try to get post thumbnail first
+                                $thumbnail = get_the_post_thumbnail_url($post_id, 'medium');
+                                
+                                // If no thumbnail, check for featured_image_index meta and gallery
+                                if (empty($thumbnail)) {
+                                    $featured_image_index = get_post_meta($post_id, 'featured_image_index', true);
+                                    $gallery_images = get_post_meta($post_id, '_entry_gallery', true);
+                                    
+                                    // If we have a featured_image_index and gallery images exist
+                                    if ($featured_image_index !== '' && !empty($gallery_images) && is_array($gallery_images)) {
+                                        // Ensure the index is valid
+                                        $index = intval($featured_image_index);
+                                        if (isset($gallery_images[$index])) {
+                                            $thumbnail = wp_get_attachment_image_url($gallery_images[$index], 'medium');
+                                        }
                                     }
-                                } else {
-                                    $photos = [$entry->photo_url];
+                                    
+                                    // If still no thumbnail, try the first gallery image
+                                    if (empty($thumbnail) && !empty($gallery_images) && is_array($gallery_images)) {
+                                        $thumbnail = wp_get_attachment_image_url($gallery_images[0], 'medium');
+                                    }
                                 }
-                            }
+                                
+                                $content = wp_strip_all_tags($entry->post_content);
+                                $excerpt = wp_trim_words($content, 20);
+                                // lets corectly set photo count
+                                $photo_count = 0;
 
-                            $first_photo = !empty($photos) ? $photos[0] : '';
-                            $photo_count = count($photos);
-                            $is_shared = !empty($entry->shared_post_id);
-                            $entry_date = date('M j, Y', strtotime($entry->entry_date));
-                            $entry_title = !empty($entry->title) ? $entry->title : 'Entry from ' . $entry_date;
-                            $entry_notes = !empty($entry->notes) ? wp_trim_words($entry->notes, 15) : '';
+                                // Get entry metadata
+                                $rating = get_post_meta($post_id, 'health_rating', true);
+                                $mood = get_post_meta($post_id, 'mood_demeanor', true);
+                                $products = get_post_meta($post_id, 'products_used', true);
+
+                                // Sort date
+                                $sort_date = strtotime($entry->post_date);
                             ?>
+                            <div class="list-item-hjn entry-selector-card list-item-entry-hjn <?php echo $is_shared ? 'already-shared' : ''; ?>"
+                                data-type="entries"
+                                data-title="<?php echo esc_attr(strtolower($entry_title)); ?>"
+                                data-date="<?php echo esc_attr($sort_date); ?>"
+                                data-entry-id="<?php echo esc_attr($post_id); ?>"
+                                data-has-photos="<?php echo $photo_count > 0 ? 'yes' : 'no'; ?>"
+                                >
 
-                            <div class="entry-selector-card <?php echo $is_shared ? 'already-shared' : ''; ?>"
-                                 data-entry-id="<?php echo esc_attr($entry->id); ?>"
-                                 data-entry-title="<?php echo esc_attr($entry_title); ?>"
-                                 data-has-photos="<?php echo $photo_count > 0 ? 'yes' : 'no'; ?>">
-
-                                <?php if ($first_photo): ?>
-                                    <div class="entry-card-image">
-                                        <img src="<?php echo esc_url($first_photo); ?>" alt="<?php echo esc_attr($entry_title); ?>">
-                                        <?php if ($photo_count > 1): ?>
-                                            <span class="entry-photo-count"><?php echo $photo_count; ?> photos</span>
-                                        <?php endif; ?>
-                                    </div>
-                                <?php else: ?>
-                                    <div class="entry-card-no-image">
-                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                                            <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                                <?php if ($thumbnail): ?>
+                                <div class="list-item-thumbnail-hjn">
+                                    <img src="<?php echo esc_url($thumbnail); ?>" alt="<?php echo esc_attr($entry_title); ?>" loading="lazy" />
+                                    <?php if ($rating): ?>
+                                    <div class="thumbnail-rating-hjn">
+                                        <svg viewBox="0 0 24 24" width="14" height="14">
+                                            <path fill="currentColor" d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"/>
                                         </svg>
+                                        <?php echo esc_html($rating); ?>/10
                                     </div>
-                                <?php endif; ?>
-
-                                <div class="entry-card-content">
-                                    <h4><?php echo esc_html($entry_title); ?></h4>
-                                    <p class="entry-card-date"><?php echo esc_html($entry_date); ?></p>
-                                    <?php if ($entry_notes): ?>
-                                        <p class="entry-card-notes"><?php echo esc_html($entry_notes); ?></p>
                                     <?php endif; ?>
                                 </div>
+                                <?php else: ?>
+                                <div class="list-item-icon-hjn list-icon-entry-hjn">
+                                    <svg viewBox="0 0 24 24" width="24" height="24">
+                                        <path fill="currentColor" d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z"/>
+                                    </svg>
+                                </div>
+                                <?php endif; ?>
 
+                                <div class="list-item-content-hjn">
+                                    <div class="list-item-header-hjn">
+                                        <h3 class="list-item-title-hjn"><?php echo esc_html($entry_title); ?></h3>
+                                    </div>
+
+                                    <div class="list-item-date-hjn">
+                                        <svg viewBox="0 0 24 24" width="14" height="14">
+                                            <path fill="currentColor" d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22C6.47,22 2,17.5 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"/>
+                                        </svg>
+                                        <?php echo esc_html($entry_date_formatted); ?>
+                                    </div>
+
+                                    <p class="list-item-description-hjn"><?php echo esc_html($excerpt); ?></p>
+
+                                    <div class="list-item-meta-hjn">
+                                        <span class="meta-tag-hjn tag-type-hjn">Entry</span>
+                                        <?php if ($mood): ?>
+                                        <span class="meta-tag-hjn"><?php echo esc_html($mood); ?></span>
+                                        <?php endif; ?>
+                                        <?php if ($products): ?>
+                                        <span class="meta-tag-hjn">
+                                            <?php
+                                            $product_count = count(array_filter(explode(',', $products)));
+                                            echo $product_count . ' Product' . ($product_count !== 1 ? 's' : '');
+                                            ?>
+                                        </span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
                                 <div class="entry-card-actions">
                                     <?php if ($is_shared): ?>
                                         <span class="entry-shared-badge">
@@ -429,11 +575,14 @@ function myavana_community_feed_shortcode($atts = []) {
                                             Already Shared
                                         </span>
                                     <?php else: ?>
-                                        <input type="checkbox" class="entry-selector-checkbox" value="<?php echo esc_attr($entry->id); ?>">
+                                        <input type="checkbox" class="entry-selector-checkbox" value="<?php echo esc_attr($post_id); ?>">
                                     <?php endif; ?>
                                 </div>
+
+                                
                             </div>
-                        <?php endforeach; ?>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </div>
 
                     <!-- Selection Controls -->

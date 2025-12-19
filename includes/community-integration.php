@@ -19,16 +19,17 @@ class Myavana_Community_Integration {
     public static function is_entry_shareable($entry_id) {
         global $wpdb;
 
-        // Check if entry exists
-        $table = $wpdb->prefix . 'myavana_hair_diary_entries';
-        $entry = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM $table WHERE id = %d",
-            $entry_id
-        ));
+        error_log('>>> is_entry_shareable() checking entry ID: ' . $entry_id);
 
-        if (!$entry) {
+        // Check if entry exists as WordPress post
+        $entry = get_post($entry_id);
+
+        if (!$entry || $entry->post_type !== 'hair_journey_entry') {
+            error_log('Entry does not exist or wrong post type');
             return false;
         }
+
+        error_log('Entry exists as WordPress post');
 
         // Check if already shared
         $shared_table = $wpdb->prefix . 'myavana_shared_entries';
@@ -37,13 +38,19 @@ class Myavana_Community_Integration {
             $entry_id
         ));
 
-        return !$already_shared;
+        if ($already_shared) {
+            error_log('Entry is already shared (shared_entry ID: ' . $already_shared . ')');
+            return false;
+        }
+
+        error_log('Entry is shareable');
+        return true;
     }
 
     /**
      * Share entry to community
      */
-    public static function share_entry($entry_id, $privacy = 'public') {
+    public static function share_entry_old($entry_id, $privacy = 'public') {
         global $wpdb;
 
         // Get entry data
@@ -132,7 +139,137 @@ class Myavana_Community_Integration {
 
         return $post_id;
     }
+    public static function share_entry($entry_id, $privacy = 'public') {
+        global $wpdb;
+        $user_id = get_current_user_id();
 
+        error_log('>>> share_entry() called - Entry ID: ' . $entry_id . ', Privacy: ' . $privacy . ', User ID: ' . $user_id);
+
+        // Get the WordPress post
+        $entry = get_post($entry_id);
+
+        if (!$entry || $entry->post_type !== 'hair_journey_entry') {
+            error_log('ERROR: Entry not found or wrong post type for entry_id=' . $entry_id);
+            return new WP_Error('not_found', 'Entry not found.');
+        }
+
+        if ($entry->post_author != $user_id) {
+            error_log('ERROR: Entry does not belong to user. Entry author=' . $entry->post_author . ' user_id=' . $user_id);
+            return new WP_Error('unauthorized', 'You can only share your own entries.');
+        }
+
+        error_log('Entry found: ' . $entry->post_title);
+
+        // 2. Process Photos - get from post thumbnail or gallery
+        $image_url = '';
+
+        // Try featured image first
+        $thumbnail_id = get_post_thumbnail_id($entry_id);
+        if ($thumbnail_id) {
+            $image_url = wp_get_attachment_url($thumbnail_id);
+        }
+
+        // If no featured image, try gallery
+        if (empty($image_url)) {
+            $gallery_images = get_post_meta($entry_id, '_entry_gallery', true);
+            if (!empty($gallery_images) && is_array($gallery_images)) {
+                $image_url = wp_get_attachment_url($gallery_images[0]);
+            }
+        }
+
+        error_log('Image URL: ' . $image_url);
+
+        // 3. Prepare Post Content
+        $post_title = $entry->post_title;
+        $post_content = $entry->post_content;
+
+        // Append Health Rating or Mood if they exist
+        $health_rating = get_post_meta($entry_id, 'health_rating', true);
+        $mood = get_post_meta($entry_id, 'mood_demeanor', true);
+
+        if (!empty($health_rating)) {
+            $post_content .= "\n\nHealth Rating: " . $health_rating . "/10";
+        }
+        if (!empty($mood)) {
+            $post_content .= "\nMood: " . $mood;
+        }
+
+        // 4. Insert into Community Posts table
+        $posts_table = $wpdb->prefix . 'myavana_community_posts';
+        error_log('Inserting into community posts table: ' . $posts_table);
+        error_log('Post data: user_id=' . $user_id . ', title=' . $post_title . ', privacy=' . $privacy . ', source_entry_id=' . $entry_id);
+
+        $insert_data = array(
+            'user_id'         => $user_id,
+            'title'           => sanitize_text_field($post_title),
+            'content'         => sanitize_textarea_field($post_content),
+            'image_url'       => esc_url_raw($image_url),
+            'post_type'       => 'progress',
+            'privacy_level'   => $privacy,
+            'source_entry_id' => $entry_id,
+            'created_at'      => current_time('mysql')
+        );
+
+        error_log('Insert data: ' . print_r($insert_data, true));
+
+        $inserted = $wpdb->insert(
+            $posts_table,
+            $insert_data,
+            array('%d', '%s', '%s', '%s', '%s', '%s', '%d', '%s')
+        );
+
+        if (!$inserted) {
+            error_log('ERROR: Database insert failed!');
+            error_log('Last DB error: ' . $wpdb->last_error);
+            error_log('Last query: ' . $wpdb->last_query);
+            return new WP_Error('db_error', 'Could not create community post: ' . $wpdb->last_error);
+        }
+
+        $new_post_id = $wpdb->insert_id;
+        error_log('SUCCESS: Community post created with ID: ' . $new_post_id);
+
+        // 5. Link the entry so it can't be shared twice
+        $shared_table = $wpdb->prefix . 'myavana_shared_entries';
+        error_log('Recording in shared_entries table: ' . $shared_table);
+
+        $shared_link_inserted = $wpdb->insert(
+            $shared_table,
+            array(
+                'entry_id'          => $entry_id,
+                'community_post_id' => $new_post_id,
+                'user_id'           => $user_id,
+                'shared_at'         => current_time('mysql')
+            ),
+            array('%d', '%d', '%d', '%s')
+        );
+
+        if (!$shared_link_inserted) {
+            error_log('WARNING: Failed to insert into shared_entries table: ' . $wpdb->last_error);
+        } else {
+            error_log('Shared entry link created successfully');
+        }
+
+        // 6. Award Points
+        if (method_exists(__CLASS__, 'award_community_points')) {
+            self::award_community_points($user_id, 'share_entry');
+        }
+
+        error_log('<<< share_entry() returning post ID: ' . $new_post_id);
+        return $new_post_id;
+    }
+
+    /**
+     * Helper to check if entry is already shared
+     */
+    // public static function is_entry_shareable($entry_id) {
+    //     global $wpdb;
+    //     $shared_table = $wpdb->prefix . 'myavana_shared_entries';
+    //     $exists = $wpdb->get_var($wpdb->prepare(
+    //         "SELECT COUNT(*) FROM $shared_table WHERE entry_id = %d",
+    //         $entry_id
+    //     ));
+    //     return (int)$exists === 0;
+    // }
     /**
      * Determine post type from entry data
      */

@@ -34,13 +34,21 @@
             });
 
             // Close modal
-            this.modal.find('.myavana-modal-close, #cancel-entry-selection').on('click', function() {
+            this.modal.find('.myavana-modal-close, #cancel-entry-selection').on('click', function(e) {
+                e.stopPropagation();
                 self.closeModal();
             });
 
-            // Close on overlay click
-            this.modal.find('.myavana-modal-overlay').on('click', function() {
-                self.closeModal();
+            // Close ONLY on overlay click (not on modal content)
+            this.modal.find('.myavana-modal-overlay').on('click', function(e) {
+                if (e.target === this) {
+                    self.closeModal();
+                }
+            });
+
+            // Prevent modal from closing when clicking inside modal container
+            this.modal.find('.myavana-modal-container').on('click', function(e) {
+                e.stopPropagation();
             });
 
             // Search functionality
@@ -54,8 +62,22 @@
             });
 
             // Checkbox selection
-            this.modal.on('change', '.entry-selector-checkbox', function() {
+            this.modal.on('change', '.entry-selector-checkbox', function(e) {
+                e.stopPropagation();
                 self.updateSelection();
+            });
+
+            // Card click to toggle selection (but not on checkbox itself)
+            this.modal.on('click', '.entry-selector-card', function(e) {
+                // Don't trigger if clicking checkbox or already-shared card
+                if ($(this).hasClass('already-shared') || $(e.target).hasClass('entry-selector-checkbox')) {
+                    return;
+                }
+                e.stopPropagation();
+                const $checkbox = $(this).find('.entry-selector-checkbox');
+                if (!$checkbox.prop('disabled')) {
+                    $checkbox.prop('checked', !$checkbox.prop('checked')).trigger('change');
+                }
             });
 
             // Select all
@@ -78,8 +100,11 @@
          * Open the modal
          */
         openModal: function() {
-            this.modal.fadeIn(200);
+            this.modal.css('display', 'flex').hide().fadeIn(200);
             $('body').css('overflow', 'hidden');
+
+            // Ensure modal body is scrollable
+            this.modal.find('.myavana-modal-body').addClass('is-overflow-y');
         },
 
         /**
@@ -170,17 +195,15 @@
         /**
          * Share selected entries via AJAX
          */
+        // Inside EntrySelector object in your script
         shareEntries: function() {
             const self = this;
-            const privacy = $('input[name="bulk_privacy"]:checked').val();
+            // Specifically grab the bulk_privacy value
+            const privacy = $('input[name="bulk_privacy"]:checked').val(); 
             const $button = $('#share-selected-entries');
 
-            if (this.selectedEntries.length === 0) {
-                alert('Please select at least one entry to share.');
-                return;
-            }
+            if (this.selectedEntries.length === 0) return;
 
-            // Disable button and show loading state
             $button.prop('disabled', true).text('Sharing...');
 
             $.ajax({
@@ -190,61 +213,106 @@
                     action: 'myavana_bulk_share_entries',
                     nonce: window.myavanaCommunitySettings.nonce,
                     entry_ids: this.selectedEntries,
-                    privacy: privacy
+                    privacy: privacy // Passed to PHP
                 },
                 success: function(response) {
                     if (response.success) {
-                        const results = response.data.results;
-                        const sharedCount = results.shared.length;
-                        const alreadySharedCount = results.already_shared.length;
-                        const failedCount = results.failed.length;
-
-                        let message = '';
-                        if (sharedCount > 0) {
-                            message += `Successfully shared ${sharedCount} ${sharedCount === 1 ? 'entry' : 'entries'}!\n`;
-                        }
-                        if (alreadySharedCount > 0) {
-                            message += `${alreadySharedCount} ${alreadySharedCount === 1 ? 'entry was' : 'entries were'} already shared.\n`;
-                        }
-                        if (failedCount > 0) {
-                            message += `Failed to share ${failedCount} ${failedCount === 1 ? 'entry' : 'entries'}.\n`;
-                        }
-
-                        alert(message || 'Entries shared successfully!');
-
-                        // Mark shared entries as shared
-                        results.shared.forEach(function(entryId) {
-                            const $card = $(`.entry-selector-card[data-entry-id="${entryId}"]`);
-                            $card.addClass('already-shared');
-                            $card.find('.entry-card-actions').html(`
-                                <span class="entry-shared-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="20 6 9 17 4 12"></polyline>
-                                    </svg>
-                                    Already Shared
-                                </span>
-                            `);
-                        });
-
-                        // Close modal and reload feed
+                        // showNotification(response.data.message, 'success');
                         self.closeModal();
-                        if (typeof MyavanaSocialFeed !== 'undefined' && MyavanaSocialFeed.loadPosts) {
-                            MyavanaSocialFeed.loadPosts();
-                        }
+                        // Refresh the feed to show new posts
+                        if (window.MyavanaSocialFeed) window.MyavanaSocialFeed.loadPosts();
                     } else {
-                        const errorMsg = response.data && response.data.message ? response.data.message : 'Failed to share entries';
-                        alert('Error: ' + errorMsg);
+                        alert(response.data.message);
                     }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Share error:', xhr, status, error);
-                    alert('Failed to share entries. Please try again.');
                 },
                 complete: function() {
                     $button.prop('disabled', false).text('Share Selected Entries');
                 }
             });
         }
+        // shareEntries: function() {
+        //     const self = this;
+        //     const privacy = $('input[name="bulk_privacy"]:checked').val();
+        //     const $button = $('#share-selected-entries');
+
+        //     if (this.selectedEntries.length === 0) {
+        //         alert('Please select at least one entry to share.');
+        //         return;
+        //     }
+
+        //     // Disable button and show loading state
+        //     $button.prop('disabled', true).text('Sharing...');
+
+        //     $.ajax({
+        //         url: window.myavanaCommunitySettings.ajaxUrl,
+        //         type: 'POST',
+        //         data: {
+        //             action: 'myavana_bulk_share_entries',
+        //             nonce: window.myavanaCommunitySettings.nonce,
+        //             entry_ids: this.selectedEntries,
+        //             privacy: privacy
+        //         },
+        //         success: function(response) {
+        //             if (response.success) {
+        //                 const data = response.data;
+        //                 const sharedCount = data.shared ? data.shared.length : 0;
+        //                 const alreadySharedCount = data.already_shared ? data.already_shared.length : 0;
+        //                 const failedCount = data.failed ? data.failed.length : 0;
+
+        //                 let message = '';
+        //                 if (sharedCount > 0) {
+        //                     message += `Successfully shared ${sharedCount} ${sharedCount === 1 ? 'entry' : 'entries'}!\n`;
+        //                 }
+        //                 if (alreadySharedCount > 0) {
+        //                     message += `${alreadySharedCount} ${alreadySharedCount === 1 ? 'entry was' : 'entries were'} already shared.\n`;
+        //                 }
+        //                 if (failedCount > 0) {
+        //                     message += `Failed to share ${failedCount} ${failedCount === 1 ? 'entry' : 'entries'}.\n`;
+        //                 }
+
+        //                 // Show success message
+        //                 if (typeof showNotification === 'function') {
+        //                     showNotification(message || 'Entries shared successfully!', 'success');
+        //                 } else {
+        //                     alert(message || 'Entries shared successfully!');
+        //                 }
+
+        //                 // Mark shared entries as shared
+        //                 if (data.shared && data.shared.length > 0) {
+        //                     data.shared.forEach(function(item) {
+        //                         const entryId = item.entry_id || item;
+        //                         const $card = $(`.entry-selector-card[data-entry-id="${entryId}"]`);
+        //                     $card.addClass('already-shared');
+        //                     $card.find('.entry-card-actions').html(`
+        //                         <span class="entry-shared-badge">
+        //                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        //                                 <polyline points="20 6 9 17 4 12"></polyline>
+        //                             </svg>
+        //                             Already Shared
+        //                         </span>
+        //                     `);
+        //                     });
+        //                 }
+
+        //                 // Close modal and reload feed
+        //                 self.closeModal();
+        //                 if (typeof MyavanaSocialFeed !== 'undefined' && MyavanaSocialFeed.loadPosts) {
+        //                     MyavanaSocialFeed.loadPosts();
+        //                 }
+        //             } else {
+        //                 const errorMsg = response.data && response.data.message ? response.data.message : 'Failed to share entries';
+        //                 alert('Error: ' + errorMsg);
+        //             }
+        //         },
+        //         error: function(xhr, status, error) {
+        //             console.error('Share error:', xhr, status, error);
+        //             alert('Failed to share entries. Please try again.');
+        //         },
+        //         complete: function() {
+        //             $button.prop('disabled', false).text('Share Selected Entries');
+        //         }
+        //     });
+        // }
     };
 
     // Initialize when document is ready
