@@ -254,12 +254,7 @@ class Myavana_Hair_Journey {
         wp_enqueue_script('myavana-social-feed-js', MYAVANA_URL . 'assets/js/social-feed.js', ['jquery'], '1.0.0', true);
         wp_enqueue_script('myavana-share-to-community-js', MYAVANA_URL . 'assets/js/share-to-community.js', ['jquery'], '1.0.0', true);
 
-        // ENTRY SELECTOR FOR COMMUNITY SHARING
-        wp_enqueue_style('myavana-entry-selector-css', MYAVANA_URL . 'assets/css/entry-selector.css', [], '1.0.0');
-        wp_enqueue_script('myavana-entry-selector-js', MYAVANA_URL . 'assets/js/entry-selector.js', ['jquery'], '1.0.0', true);
-
-
-        // Enqueue unified core framework
+        // Enqueue unified core framework FIRST (provides myavanaAjax for all scripts)
         wp_enqueue_script('myavana-unified-core', MYAVANA_URL . 'assets/js/myavana-unified-core.js', ['jquery'], '1.0.0', true);
         wp_enqueue_script('myavana-scripts', MYAVANA_URL . 'assets/js/myavana-scripts.js', ['jquery', 'myavana-unified-core'], '2.0.0', true);
         
@@ -278,6 +273,11 @@ class Myavana_Hair_Journey {
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('myavana_nonce')
         ]);
+
+        // ENTRY SELECTOR FOR COMMUNITY SHARING (depends on myavanaAjax from unified-core)
+        wp_enqueue_style('myavana-entry-selector-css', MYAVANA_URL . 'assets/css/entry-selector.css', [], '1.0.0');
+        wp_enqueue_script('myavana-entry-selector-js', MYAVANA_URL . 'assets/js/entry-selector.js', ['jquery', 'myavana-unified-core'], '1.0.0', true);
+
         // Only localize API keys if properly configured
         $openai_key = defined('MYAVANA_OPENAI_API_KEY') ? MYAVANA_OPENAI_API_KEY : '';
         $xai_key = defined('MYAVANA_XAI_API_KEY') ? MYAVANA_XAI_API_KEY : '';

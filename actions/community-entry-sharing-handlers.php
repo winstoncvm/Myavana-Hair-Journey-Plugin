@@ -29,6 +29,18 @@ function myavana_get_shareable_entries() {
     $entries_table = $wpdb->prefix . 'myavana_hair_diary_entries';
     $shared_table = $wpdb->prefix . 'myavana_shared_entries';
 
+    // Log for debugging
+    error_log('Fetching entries for user: ' . $user_id);
+    error_log('Table name: ' . $entries_table);
+
+    // Check if table exists
+    $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$entries_table'");
+    if (!$table_exists) {
+        error_log('Table does not exist: ' . $entries_table);
+        wp_send_json_error(['message' => 'Hair diary entries table not found. Please create an entry first.']);
+        return;
+    }
+
     // Get entries that haven't been shared yet
     $entries = $wpdb->get_results($wpdb->prepare("
         SELECT e.*,
@@ -39,10 +51,20 @@ function myavana_get_shareable_entries() {
         LIMIT 100
     ", $user_id));
 
+    // Log query error if any
+    if ($wpdb->last_error) {
+        error_log('SQL Error: ' . $wpdb->last_error);
+        wp_send_json_error(['message' => 'Database error: ' . $wpdb->last_error]);
+        return;
+    }
+
     if (!$entries) {
+        error_log('No entries found for user: ' . $user_id);
         wp_send_json_success(['entries' => []]);
         return;
     }
+
+    error_log('Found ' . count($entries) . ' entries for user: ' . $user_id);
 
     // Format entries for display
     $formatted_entries = [];

@@ -201,6 +201,8 @@
                 success: function(response) {
                     self.modal.find('.entry-selector-loading').hide();
 
+                    console.log('Entry selector response:', response);
+
                     if (response.success) {
                         self.allEntries = response.data.entries;
 
@@ -210,12 +212,16 @@
                             self.renderEntries(self.allEntries);
                         }
                     } else {
-                        alert('Failed to load entries: ' + (response.data.message || 'Unknown error'));
+                        const errorMsg = response.data && response.data.message ? response.data.message : 'Unknown error';
+                        console.error('Failed to load entries:', errorMsg);
+                        alert('Failed to load entries: ' + errorMsg);
                     }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
                     self.modal.find('.entry-selector-loading').hide();
-                    alert('Failed to load entries. Please try again.');
+                    console.error('AJAX error:', xhr, status, error);
+                    console.error('Response text:', xhr.responseText);
+                    alert('Failed to load entries. Please check the console for details.');
                 }
             });
         },
