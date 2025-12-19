@@ -461,7 +461,7 @@ class Myavana_Hair_Journey {
             'userId' => $user_id
         ]));
 
-        wp_localize_script('myavana-hair-analysis-js', 'myavanaAjax', $ajax_data);
+        wp_localize_script('myavana-hair-analysis-js', 'myavanaHairAnalysisAjax', $ajax_data);
 
         wp_localize_script('myavana-analytics-js', 'myavanaAnalytics', [
             'ajax_url' => admin_url('admin-ajax.php'),

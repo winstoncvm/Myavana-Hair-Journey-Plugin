@@ -191,6 +191,11 @@
             this.modal.find('.entry-selector-loading').show();
             this.modal.find('.entry-selector-grid').empty();
 
+            // Debug: Log what we're sending
+            console.log('myavanaAjax object:', myavanaAjax);
+            console.log('Nonce being sent:', myavanaAjax.nonce);
+            console.log('AJAX URL:', myavanaAjax.ajax_url);
+
             $.ajax({
                 url: myavanaAjax.ajax_url,
                 type: 'POST',
