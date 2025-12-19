@@ -76,6 +76,7 @@ function myavana_hair_journey_page_shortcode($atts = [], $content = null){
                     <!-- LOGGED-IN NAV -->
                     <div class="myavana-luxury-nav-menu" id="mainNavMenu">
                         <a href="/hair-journey/" class="myavana-luxury-nav-link">My Hair Journey</a>
+                        <a href="/community/" class="myavana-luxury-nav-link">Community</a>
                         <!-- <a href="/members/admin/hair_insights/" class="myavana-luxury-nav-link">Analytics</a> -->
                         <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createGoal()">+ Goal</a>
                             <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createRoutine()">+ Routine</a>

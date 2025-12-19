@@ -19,7 +19,7 @@ function myavana_community_feed_shortcode($atts = []) {
                     </div>
                 </div>';
     }
-
+    $is_logged_in = is_user_logged_in();
     $current_user = wp_get_current_user();
 
     // Parse shortcode attributes
@@ -30,11 +30,110 @@ function myavana_community_feed_shortcode($atts = []) {
         'show_create_post' => 'true'
     ], $atts, 'myavana_community_feed');
 
+    // Get user's hair diary entries from custom table
+    global $wpdb;
+    $user_id = get_current_user_id();
+    $entries_table = $wpdb->prefix . 'myavana_hair_diary_entries';
+    $shared_table = $wpdb->prefix . 'myavana_shared_entries';
+
+    // Get entries with their sharing status
+    $entries = $wpdb->get_results($wpdb->prepare("
+        SELECT e.*,
+               (SELECT community_post_id FROM {$shared_table} WHERE entry_id = e.id) as shared_post_id
+        FROM {$entries_table} e
+        WHERE e.user_id = %d
+        ORDER BY e.entry_date DESC, e.created_at DESC
+        LIMIT 100
+    ", $user_id));
+
     ob_start();
     ?>
 
     <div class="myavana-community-container" data-theme="light">
+         <!-- Luxury Navigation -->
+        <nav class="myavana-luxury-nav">
+            <div class="myavana-luxury-nav-container">
+                <a href="<?php echo home_url(); ?>" class="myavana-luxury-logo">
+                    <div class="myavana-logo-section">
+                        <img src="<?php echo esc_url(home_url()); ?>/wp-content/plugins/myavana-hair-journey/assets/images/myavana-primary-logo.png"
+                            alt="Myavana Logo" class="myavana-logo" />
+                    </div>
+                </a>
 
+                <?php if (!$is_logged_in): ?>
+                    <!-- GUEST NAV -->
+                    <div class="myavana-luxury-nav-menu">
+                        <a href="#features" class="myavana-luxury-nav-link">Features</a>
+                        <a href="#how-it-works" class="myavana-luxury-nav-link">How It Works</a>
+                        <a href="#" onclick="showMyavanaModal('login'); return false;" class="myavana-luxury-nav-link myavana-nav-signin-mobile">
+                            Sign In
+                        </a>
+                    </div>
+
+                    <div class="myavana-luxury-nav-actions">
+                        <button class="myavana-luxury-btn-secondary" onclick="showMyavanaModal('login')">Sign In</button>
+                        <button class="myavana-luxury-btn-primary" onclick="showMyavanaModal('register')">Start Your Journey</button>
+                    </div>
+
+                <?php else: ?>
+                    <!-- LOGGED-IN NAV -->
+                    <div class="myavana-luxury-nav-menu" id="mainNavMenu">
+                        <a href="/hair-journey/" class="myavana-luxury-nav-link">My Hair Journey</a>
+                        <a href="/community/" class="myavana-luxury-nav-link">Community</a>
+                        <!-- <a href="/members/admin/hair_insights/" class="myavana-luxury-nav-link">Analytics</a> -->
+                        <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createGoal()">+ Goal</a>
+                            <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createRoutine()">+ Routine</a>
+                            <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="openAIAnalysisModal()">Smart Entry</a>
+                            <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createEntry()">+ Entry</a>
+                        <!-- Action Buttons - Desktop -->
+                        <!-- <div class="myavana-luxury-nav-action-buttons desktop-only">
+                           
+                        </div> -->
+
+                        <!-- Logout always visible on desktop -->
+                        <a href="<?php echo wp_logout_url(home_url()); ?>" class="myavana-luxury-nav-link myavana-nav-logout-desktop">
+                            Logout
+                        </a>
+                    </div>
+
+                    
+
+                    <!-- Mobile Menu Toggle -->
+                    <!-- CORRECT — only jQuery handles it -->
+                    <button class="myavana-luxury-mobile-toggle" aria-label="Toggle menu">
+                        <span></span><span></span><span></span>
+                    </button>
+                <?php endif; ?>
+
+                <!-- MOBILE SLIDE-OUT MENU (only for logged-in users) -->
+                <?php if ($is_logged_in): ?>
+                <div class="myavana-mobile-menu-overlay" id="mobileMenuOverlay" onclick="toggleMobileMenu()"></div>
+                <div class="myavana-mobile-menu-panel" id="mobileMenuPanel">
+                    <div class="mobile-menu-header">
+                        <div class="mobile-menu-user">
+                            <img src="<?php echo get_avatar_url($current_user->ID, ['size' => 60]); ?>" alt="Avatar" class="mobile-menu-avatar">
+                            <div>
+                                <strong><?php echo esc_html($current_user->display_name); ?></strong>
+                                <small>Welcome back!</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mobile-menu-links">
+                        <a href="/hair-journey/">My Hair Journey</a>
+                        <a href="/members/admin/hair_insights/">Analytics</a>
+                        <hr>
+                        <button type="button" class="mobile-menu-action" onclick="createGoal(); toggleMobileMenu()">+ Goal</button>
+                        <button type="button" class="mobile-menu-action" onclick="createRoutine(); toggleMobileMenu()">+ Routine</button>
+                        <button type="button" class="mobile-menu-action smart" onclick="openAIAnalysisModal(); toggleMobileMenu()">Smart Entry</button>
+                        <button type="button" class="mobile-menu-action primary" onclick="createEntry(); toggleMobileMenu()">+ Entry</button>
+                        <hr>
+                        <a href="<?php echo wp_logout_url(home_url()); ?>" class="mobile-menu-logout">Logout</a>
+                    </div>
+                </div>
+                <?php endif; ?>
+            </div>
+        </nav>
         <!-- Community Header -->
         <header class="myavana-community-header">
             <div class="myavana-community-header-content">
@@ -235,6 +334,144 @@ function myavana_community_feed_shortcode($atts = []) {
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Existing Entry Modal -->
+    <div class="myavana-modal" id="myavana-entry-selector-modal" style="display: none;">
+        <div class="myavana-modal-overlay"></div>
+        <div class="myavana-modal-container">
+            <div class="myavana-modal-header">
+                <h2>Select Entries to Share</h2>
+                <button class="myavana-modal-close">&times;</button>
+            </div>
+
+            <div class="myavana-modal-body">
+                <!-- Search and Filter -->
+                <div class="entry-selector-filters">
+                    <input type="text"
+                           id="entry-search"
+                           class="myavana-input"
+                           placeholder="Search entries...">
+                    <select id="entry-filter-photos" class="myavana-select">
+                        <option value="">All Entries</option>
+                        <option value="with-photos">With Photos</option>
+                        <option value="no-photos">Without Photos</option>
+                    </select>
+                </div>
+
+                <?php if (empty($entries)): ?>
+                    <!-- Empty State -->
+                    <div class="entry-selector-empty">
+                        <p>No entries found. Create your first hair journey entry!</p>
+                    </div>
+                <?php else: ?>
+                    <!-- Entries Grid -->
+                    <div class="entry-selector-grid">
+                        <?php foreach ($entries as $entry):
+                            // Parse photos
+                            $photos = [];
+                            if (!empty($entry->photo_url)) {
+                                if (is_string($entry->photo_url) && (strpos($entry->photo_url, '[') === 0 || strpos($entry->photo_url, '{') === 0)) {
+                                    $photos = json_decode($entry->photo_url, true);
+                                    if (!is_array($photos)) {
+                                        $photos = [$entry->photo_url];
+                                    }
+                                } else {
+                                    $photos = [$entry->photo_url];
+                                }
+                            }
+
+                            $first_photo = !empty($photos) ? $photos[0] : '';
+                            $photo_count = count($photos);
+                            $is_shared = !empty($entry->shared_post_id);
+                            $entry_date = date('M j, Y', strtotime($entry->entry_date));
+                            $entry_title = !empty($entry->title) ? $entry->title : 'Entry from ' . $entry_date;
+                            $entry_notes = !empty($entry->notes) ? wp_trim_words($entry->notes, 15) : '';
+                            ?>
+
+                            <div class="entry-selector-card <?php echo $is_shared ? 'already-shared' : ''; ?>"
+                                 data-entry-id="<?php echo esc_attr($entry->id); ?>"
+                                 data-entry-title="<?php echo esc_attr($entry_title); ?>"
+                                 data-has-photos="<?php echo $photo_count > 0 ? 'yes' : 'no'; ?>">
+
+                                <?php if ($first_photo): ?>
+                                    <div class="entry-card-image">
+                                        <img src="<?php echo esc_url($first_photo); ?>" alt="<?php echo esc_attr($entry_title); ?>">
+                                        <?php if ($photo_count > 1): ?>
+                                            <span class="entry-photo-count"><?php echo $photo_count; ?> photos</span>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="entry-card-no-image">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                            <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                                        </svg>
+                                    </div>
+                                <?php endif; ?>
+
+                                <div class="entry-card-content">
+                                    <h4><?php echo esc_html($entry_title); ?></h4>
+                                    <p class="entry-card-date"><?php echo esc_html($entry_date); ?></p>
+                                    <?php if ($entry_notes): ?>
+                                        <p class="entry-card-notes"><?php echo esc_html($entry_notes); ?></p>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="entry-card-actions">
+                                    <?php if ($is_shared): ?>
+                                        <span class="entry-shared-badge">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                            </svg>
+                                            Already Shared
+                                        </span>
+                                    <?php else: ?>
+                                        <input type="checkbox" class="entry-selector-checkbox" value="<?php echo esc_attr($entry->id); ?>">
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <!-- Selection Controls -->
+                    <div class="entry-selector-controls">
+                        <div class="entry-selection-info">
+                            <span id="selected-count">0</span> selected (max 10)
+                        </div>
+                        <div class="entry-selector-buttons">
+                            <button type="button" id="select-all-entries" class="myavana-btn-secondary">Select All</button>
+                            <button type="button" id="deselect-all-entries" class="myavana-btn-secondary">Deselect All</button>
+                        </div>
+                    </div>
+
+                    <!-- Privacy Selection -->
+                    <div class="entry-selector-privacy">
+                        <label class="myavana-form-label">Privacy for shared entries:</label>
+                        <div class="myavana-radio-group">
+                            <label class="myavana-radio-label">
+                                <input type="radio" name="bulk_privacy" value="public" checked>
+                                <span class="myavana-radio-custom"></span>
+                                <span>Public</span>
+                            </label>
+                            <label class="myavana-radio-label">
+                                <input type="radio" name="bulk_privacy" value="followers">
+                                <span class="myavana-radio-custom"></span>
+                                <span>Followers Only</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Share Button -->
+                    <div class="entry-selector-footer">
+                        <button type="button" class="myavana-btn-secondary" id="cancel-entry-selection">Cancel</button>
+                        <button type="button" class="myavana-btn-primary" id="share-selected-entries" disabled>
+                            Share Selected Entries
+                        </button>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
