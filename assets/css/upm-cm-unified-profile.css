@@ -1,0 +1,861 @@
+/**
+ * Unified Profile Management & Community - Mobile-First Responsive Styles
+ * Following MYAVANA brand standards: Onyx, Coral, Blueberry, Stone
+ *
+ * @package Myavana_Hair_Journey
+ * @version 1.0.0
+ */
+
+/* ============================================
+   CSS VARIABLES - MYAVANA BRAND
+   ============================================ */
+:root {
+    --upm-cm-onyx: #1a1a1a;
+    --upm-cm-coral: #FF6B6B;
+    --upm-cm-blueberry: #4ECDC4;
+    --upm-cm-stone: #F7F7F7;
+    --upm-cm-white: #FFFFFF;
+    --upm-cm-gray-100: #F8F9FA;
+    --upm-cm-gray-200: #E9ECEF;
+    --upm-cm-gray-300: #DEE2E6;
+    --upm-cm-gray-400: #CED4DA;
+    --upm-cm-gray-500: #ADB5BD;
+    --upm-cm-gray-600: #6C757D;
+    --upm-cm-gray-700: #495057;
+    --upm-cm-gray-800: #343A40;
+    --upm-cm-gray-900: #212529;
+
+    /* Spacing */
+    --upm-cm-space-xs: 0.25rem;
+    --upm-cm-space-sm: 0.5rem;
+    --upm-cm-space-md: 1rem;
+    --upm-cm-space-lg: 1.5rem;
+    --upm-cm-space-xl: 2rem;
+    --upm-cm-space-2xl: 3rem;
+
+    /* Border Radius */
+    --upm-cm-radius-sm: 0.25rem;
+    --upm-cm-radius-md: 0.5rem;
+    --upm-cm-radius-lg: 1rem;
+    --upm-cm-radius-full: 9999px;
+
+    /* Shadows */
+    --upm-cm-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --upm-cm-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --upm-cm-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    --upm-cm-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+
+    /* Transitions */
+    --upm-cm-transition: all 0.3s ease;
+
+    /* Z-index layers */
+    --upm-cm-z-base: 1;
+    --upm-cm-z-dropdown: 1000;
+    --upm-cm-z-sticky: 1020;
+    --upm-cm-z-fixed: 1030;
+    --upm-cm-z-modal-backdrop: 1040;
+    --upm-cm-z-modal: 1050;
+    --upm-cm-z-popover: 1060;
+    --upm-cm-z-tooltip: 1070;
+}
+
+/* ============================================
+   MOBILE-FIRST BASE STYLES
+   ============================================ */
+.upm-cm-unified-profile {
+    min-height: 100vh;
+    background: var(--upm-cm-stone);
+    padding-bottom: 80px; /* Space for mobile bottom nav */
+}
+
+/* ============================================
+   MOBILE BOTTOM NAVIGATION
+   ============================================ */
+.upm-cm-mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--upm-cm-white);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.5rem 0;
+    z-index: var(--upm-cm-z-fixed);
+    border-top: 1px solid var(--upm-cm-gray-200);
+}
+
+.upm-cm-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    color: var(--upm-cm-gray-600);
+    text-decoration: none;
+    font-size: 0.75rem;
+    transition: var(--upm-cm-transition);
+    background: none;
+    border: none;
+    cursor: pointer;
+    flex: 1;
+    max-width: 80px;
+}
+
+.upm-cm-nav-item.active {
+    color: var(--upm-cm-coral);
+}
+
+.upm-cm-nav-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.upm-cm-create-icon {
+    background: var(--upm-cm-coral);
+    border-radius: var(--upm-cm-radius-full);
+    padding: 0.25rem;
+    color: var(--upm-cm-white);
+}
+
+/* ============================================
+   PROFILE HERO/HEADER
+   ============================================ */
+.upm-cm-profile-hero {
+    background: var(--upm-cm-white);
+    margin-bottom: var(--upm-cm-space-lg);
+}
+
+.upm-cm-cover-photo {
+    height: 150px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+}
+
+.upm-cm-profile-header-content {
+    padding: 0 var(--upm-cm-space-md);
+    position: relative;
+    margin-top: -50px;
+}
+
+.upm-cm-profile-avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--upm-cm-space-md);
+    margin-bottom: var(--upm-cm-space-md);
+}
+
+.upm-cm-avatar-wrapper {
+    position: relative;
+}
+
+.upm-cm-profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: var(--upm-cm-radius-full);
+    border: 4px solid var(--upm-cm-white);
+    box-shadow: var(--upm-cm-shadow-lg);
+    object-fit: cover;
+}
+
+.upm-cm-avatar-edit-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--upm-cm-radius-full);
+    background: var(--upm-cm-coral);
+    color: var(--upm-cm-white);
+    border: 2px solid var(--upm-cm-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--upm-cm-transition);
+}
+
+.upm-cm-avatar-edit-btn:hover {
+    background: #ff5252;
+    transform: scale(1.05);
+}
+
+/* Story Highlights */
+.upm-cm-story-highlights {
+    display: flex;
+    gap: var(--upm-cm-space-md);
+    overflow-x: auto;
+    padding: var(--upm-cm-space-sm) 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.upm-cm-story-highlights::-webkit-scrollbar {
+    display: none;
+}
+
+.upm-cm-story-circle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 70px;
+}
+
+.upm-cm-story-add-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--upm-cm-radius-full);
+    border: 2px dashed var(--upm-cm-gray-400);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--upm-cm-gray-600);
+    background: var(--upm-cm-white);
+    cursor: pointer;
+    transition: var(--upm-cm-transition);
+}
+
+.upm-cm-story-add-icon:hover {
+    border-color: var(--upm-cm-coral);
+    color: var(--upm-cm-coral);
+}
+
+.upm-cm-story-label {
+    font-size: 0.75rem;
+    color: var(--upm-cm-gray-700);
+    text-align: center;
+}
+
+/* Profile Info */
+.upm-cm-profile-info {
+    text-align: center;
+}
+
+.upm-cm-profile-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--upm-cm-onyx);
+    margin: 0 0 0.25rem 0;
+}
+
+.upm-cm-profile-username {
+    font-size: 0.875rem;
+    color: var(--upm-cm-gray-600);
+    margin: 0 0 var(--upm-cm-space-sm) 0;
+}
+
+.upm-cm-profile-bio {
+    font-size: 0.9375rem;
+    color: var(--upm-cm-gray-700);
+    line-height: 1.6;
+    margin: 0 0 var(--upm-cm-space-md) 0;
+}
+
+/* Stats Bar */
+.upm-cm-stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+    gap: var(--upm-cm-space-sm);
+    margin: var(--upm-cm-space-lg) 0;
+    padding: var(--upm-cm-space-md);
+    background: var(--upm-cm-gray-100);
+    border-radius: var(--upm-cm-radius-md);
+}
+
+.upm-cm-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.upm-cm-stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--upm-cm-onyx);
+}
+
+.upm-cm-stat-label {
+    font-size: 0.75rem;
+    color: var(--upm-cm-gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Profile Actions */
+.upm-cm-profile-actions {
+    display: flex;
+    gap: var(--upm-cm-space-sm);
+    justify-content: center;
+    padding: var(--upm-cm-space-md) 0;
+    flex-wrap: wrap;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.upm-cm-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    border-radius: var(--upm-cm-radius-md);
+    border: none;
+    cursor: pointer;
+    transition: var(--upm-cm-transition);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.upm-cm-btn-primary {
+    background: var(--upm-cm-coral);
+    color: var(--upm-cm-white);
+}
+
+.upm-cm-btn-primary:hover {
+    background: #ff5252;
+    transform: translateY(-2px);
+    box-shadow: var(--upm-cm-shadow-lg);
+}
+
+.upm-cm-btn-secondary {
+    background: var(--upm-cm-white);
+    color: var(--upm-cm-onyx);
+    border: 2px solid var(--upm-cm-gray-300);
+}
+
+.upm-cm-btn-secondary:hover {
+    border-color: var(--upm-cm-coral);
+    color: var(--upm-cm-coral);
+}
+
+.upm-cm-btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+/* ============================================
+   TABS SYSTEM
+   ============================================ */
+.upm-cm-tabs-container {
+    background: var(--upm-cm-white);
+    border-radius: var(--upm-cm-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--upm-cm-shadow-sm);
+}
+
+.upm-cm-tabs-nav {
+    display: flex;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--upm-cm-gray-200);
+    background: var(--upm-cm-white);
+    position: sticky;
+    top: 0;
+    z-index: var(--upm-cm-z-sticky);
+    scrollbar-width: none;
+}
+
+.upm-cm-tabs-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.upm-cm-tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--upm-cm-gray-600);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--upm-cm-transition);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.upm-cm-tab-btn:hover {
+    color: var(--upm-cm-coral);
+    background: var(--upm-cm-gray-100);
+}
+
+.upm-cm-tab-btn.active {
+    color: var(--upm-cm-coral);
+    border-bottom-color: var(--upm-cm-coral);
+}
+
+.upm-cm-tab-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.upm-cm-tabs-content {
+    padding: var(--upm-cm-space-md);
+}
+
+.upm-cm-tab-panel {
+    display: none;
+}
+
+.upm-cm-tab-panel.active {
+    display: block;
+}
+
+/* ============================================
+   JOURNEY TAB
+   ============================================ */
+.upm-cm-journey-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--upm-cm-space-lg);
+    flex-wrap: wrap;
+    gap: var(--upm-cm-space-md);
+}
+
+.upm-cm-journey-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--upm-cm-onyx);
+    margin: 0;
+}
+
+.upm-cm-journey-actions {
+    display: flex;
+    gap: var(--upm-cm-space-sm);
+}
+
+.upm-cm-view-toggle {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: var(--upm-cm-space-md);
+    background: var(--upm-cm-gray-100);
+    padding: 0.25rem;
+    border-radius: var(--upm-cm-radius-md);
+}
+
+.upm-cm-view-btn {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: var(--upm-cm-radius-sm);
+    color: var(--upm-cm-gray-600);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--upm-cm-transition);
+}
+
+.upm-cm-view-btn.active {
+    background: var(--upm-cm-white);
+    color: var(--upm-cm-coral);
+    box-shadow: var(--upm-cm-shadow-sm);
+}
+
+/* ============================================
+   COMMUNITY TAB
+   ============================================ */
+.upm-cm-community-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--upm-cm-space-md);
+    margin-bottom: var(--upm-cm-space-xl);
+}
+
+.upm-cm-stat-card {
+    background: var(--upm-cm-gray-100);
+    padding: var(--upm-cm-space-md);
+    border-radius: var(--upm-cm-radius-md);
+    display: flex;
+    align-items: center;
+    gap: var(--upm-cm-space-md);
+}
+
+.upm-cm-stat-icon {
+    font-size: 2rem;
+}
+
+.upm-cm-stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.upm-cm-stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--upm-cm-onyx);
+}
+
+.upm-cm-stat-text {
+    font-size: 0.75rem;
+    color: var(--upm-cm-gray-600);
+    text-transform: uppercase;
+}
+
+.upm-cm-posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--upm-cm-space-md);
+}
+
+/* ============================================
+   GOALS & ROUTINES TAB
+   ============================================ */
+.upm-cm-goals-routines-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--upm-cm-space-2xl);
+}
+
+.upm-cm-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--upm-cm-space-md);
+}
+
+.upm-cm-section-header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--upm-cm-onyx);
+    margin: 0;
+}
+
+.upm-cm-goals-list,
+.upm-cm-routines-list {
+    display: grid;
+    gap: var(--upm-cm-space-md);
+}
+
+/* ============================================
+   ANALYTICS TAB
+   ============================================ */
+.upm-cm-analytics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--upm-cm-space-lg);
+    flex-wrap: wrap;
+    gap: var(--upm-cm-space-md);
+}
+
+.upm-cm-analytics-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--upm-cm-onyx);
+    margin: 0;
+}
+
+.upm-cm-analytics-actions {
+    display: flex;
+    gap: var(--upm-cm-space-sm);
+    align-items: center;
+}
+
+.upm-cm-select {
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--upm-cm-gray-300);
+    border-radius: var(--upm-cm-radius-md);
+    background: var(--upm-cm-white);
+    color: var(--upm-cm-onyx);
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.upm-cm-analytics-grid {
+    display: grid;
+    gap: var(--upm-cm-space-lg);
+}
+
+/* ============================================
+   FLOATING ACTION BUTTON (Mobile)
+   ============================================ */
+.upm-cm-fab {
+    position: fixed;
+    bottom: 90px;
+    right: var(--upm-cm-space-md);
+    width: 56px;
+    height: 56px;
+    border-radius: var(--upm-cm-radius-full);
+    background: var(--upm-cm-coral);
+    color: var(--upm-cm-white);
+    border: none;
+    box-shadow: var(--upm-cm-shadow-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--upm-cm-transition);
+    z-index: var(--upm-cm-z-fixed);
+}
+
+.upm-cm-fab:hover {
+    background: #ff5252;
+    transform: scale(1.1);
+}
+
+/* ============================================
+   CREATE MENU MODAL
+   ============================================ */
+.upm-cm-modal {
+    position: fixed;
+    inset: 0;
+    z-index: var(--upm-cm-z-modal);
+}
+
+.upm-cm-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.upm-cm-create-menu-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--upm-cm-white);
+    border-radius: var(--upm-cm-radius-lg) var(--upm-cm-radius-lg) 0 0;
+    padding: var(--upm-cm-space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--upm-cm-space-sm);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+.upm-cm-create-option {
+    display: flex;
+    align-items: center;
+    gap: var(--upm-cm-space-md);
+    padding: var(--upm-cm-space-md);
+    background: var(--upm-cm-gray-100);
+    border: none;
+    border-radius: var(--upm-cm-radius-md);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--upm-cm-onyx);
+    cursor: pointer;
+    transition: var(--upm-cm-transition);
+}
+
+.upm-cm-create-option:hover {
+    background: var(--upm-cm-gray-200);
+    transform: translateX(4px);
+}
+
+.upm-cm-create-option svg {
+    color: var(--upm-cm-coral);
+}
+
+/* ============================================
+   RESPONSIVE BREAKPOINTS
+   ============================================ */
+
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) {
+    .upm-cm-profile-avatar {
+        width: 140px;
+        height: 140px;
+    }
+
+    .upm-cm-cover-photo {
+        height: 180px;
+    }
+
+    .upm-cm-stats-bar {
+        grid-template-columns: repeat(5, 1fr);
+    }
+
+    .upm-cm-community-stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+    .upm-cm-unified-profile {
+        padding-bottom: 0; /* Remove bottom padding on desktop */
+    }
+
+    .upm-cm-mobile-bottom-nav {
+        display: none; /* Hide on desktop */
+    }
+
+    .upm-cm-fab {
+        display: none; /* Hide on desktop */
+    }
+
+    .upm-cm-cover-photo {
+        height: 220px;
+    }
+
+    .upm-cm-profile-header-content {
+        padding: 0 var(--upm-cm-space-xl);
+        margin-top: -70px;
+    }
+
+    .upm-cm-profile-avatar-section {
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: var(--upm-cm-space-xl);
+    }
+
+    .upm-cm-profile-info {
+        text-align: left;
+    }
+
+    .upm-cm-profile-actions {
+        justify-content: flex-start;
+    }
+
+    .upm-cm-tabs-content {
+        padding: var(--upm-cm-space-xl);
+    }
+
+    .upm-cm-posts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+    .upm-cm-cover-photo {
+        height: 280px;
+    }
+
+    .upm-cm-profile-name {
+        font-size: 2rem;
+    }
+
+    .upm-cm-stats-bar {
+        gap: var(--upm-cm-space-lg);
+    }
+
+    .upm-cm-tabs-content {
+        padding: var(--upm-cm-space-2xl);
+    }
+
+    .upm-cm-goals-routines-container {
+        flex-direction: row;
+    }
+
+    .upm-cm-section {
+        flex: 1;
+    }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+    .upm-cm-unified-profile {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .upm-cm-posts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    }
+}
+
+/* ============================================
+   LOADING STATES
+   ============================================ */
+.upm-cm-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--upm-cm-space-2xl);
+}
+
+.upm-cm-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--upm-cm-gray-200);
+    border-top-color: var(--upm-cm-coral);
+    border-radius: var(--upm-cm-radius-full);
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   EMPTY STATES
+   ============================================ */
+.upm-cm-empty-state {
+    text-align: center;
+    padding: var(--upm-cm-space-2xl);
+    color: var(--upm-cm-gray-600);
+}
+
+.upm-cm-empty-icon {
+    font-size: 4rem;
+    margin-bottom: var(--upm-cm-space-md);
+}
+
+.upm-cm-empty-state h3 {
+    font-size: 1.25rem;
+    color: var(--upm-cm-gray-800);
+    margin-bottom: var(--upm-cm-space-sm);
+}
+
+.upm-cm-empty-state p {
+    color: var(--upm-cm-gray-600);
+    margin-bottom: var(--upm-cm-space-lg);
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+.upm-cm-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Focus states for keyboard navigation */
+.upm-cm-btn:focus,
+.upm-cm-tab-btn:focus,
+.upm-cm-nav-item:focus {
+    outline: 2px solid var(--upm-cm-coral);
+    outline-offset: 2px;
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+    .upm-cm-mobile-bottom-nav,
+    .upm-cm-fab,
+    .upm-cm-profile-actions,
+    .upm-cm-journey-actions,
+    .myavana-luxury-nav {
+        display: none !important;
+    }
+}

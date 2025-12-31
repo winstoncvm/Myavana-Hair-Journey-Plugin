@@ -44,6 +44,10 @@ require_once MYAVANA_DIR . 'includes/photo-comparison.php';
 require_once MYAVANA_DIR . 'includes/gamification.php';
 require_once MYAVANA_DIR . 'includes/community-integration.php';
 
+// UPM_CM: Unified Profile Management & Community (Phase 1, 2, 4A, 4D)
+require_once MYAVANA_DIR . 'includes/upm-cm-database-schema.php';
+require_once MYAVANA_DIR . 'includes/upm-cm-handlers.php';
+
 // Include shortcode files
 require_once MYAVANA_DIR . 'templates/login-shortcode.php';
 require_once MYAVANA_DIR . 'templates/register-shortcode.php';
@@ -64,6 +68,9 @@ require_once MYAVANA_DIR . 'templates/hair-offcanvas.php';
 //community
 require_once MYAVANA_DIR . 'templates/pages/community/community-feed.php';
 require_once MYAVANA_DIR . 'templates/pages/community/community-shortcodes.php';
+
+// UPM_CM: Unified Profile Page
+require_once MYAVANA_DIR . 'templates/pages/unified-profile.php';
 // require_once MYAVANA_DIR . 'templates/enhanced-timeline-shortcode.php';
 // require_once MYAVANA_DIR . 'templates/improved-timeline-shortcode.php';
 require_once MYAVANA_DIR . 'templates/advanced-dashboard-shortcode.php';
@@ -254,6 +261,12 @@ class Myavana_Hair_Journey {
         wp_enqueue_style('myavana-user-profile-css', MYAVANA_URL . 'assets/css/user-profile.css', [], '1.0.0');
         wp_enqueue_script('myavana-social-feed-js', MYAVANA_URL . 'assets/js/social-feed.js', ['jquery'], '1.0.0', true);
         wp_enqueue_script('myavana-share-to-community-js', MYAVANA_URL . 'assets/js/share-to-community.js', ['jquery'], '1.0.0', true);
+
+        // UPM_CM: UNIFIED PROFILE MANAGEMENT & COMMUNITY (Phase 1, 2, 4A, 4D)
+        wp_enqueue_style('upm-cm-unified-profile-css', MYAVANA_URL . 'assets/css/upm-cm-unified-profile.css', [], '1.0.0');
+        wp_enqueue_style('upm-cm-features-css', MYAVANA_URL . 'assets/css/upm-cm-features.css', [], '1.0.0');
+        wp_enqueue_script('upm-cm-unified-profile-js', MYAVANA_URL . 'assets/js/upm-cm-unified-profile.js', ['jquery', 'myavana-unified-core'], '1.0.0', true);
+        wp_enqueue_script('upm-cm-advanced-analytics-js', MYAVANA_URL . 'assets/js/upm-cm-advanced-analytics.js', ['jquery', 'chart-js'], '1.0.0', true);
 
         // Enqueue unified core framework FIRST (provides myavanaAjax for all scripts)
         wp_enqueue_script('myavana-unified-core', MYAVANA_URL . 'assets/js/myavana-unified-core.js', ['jquery'], '1.0.0', true);
