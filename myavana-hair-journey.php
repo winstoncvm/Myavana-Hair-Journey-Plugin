@@ -36,6 +36,8 @@ require_once MYAVANA_DIR . 'includes/myavana_ajax_handlers.php';
 require_once MYAVANA_DIR . 'includes/myavana-auth-system.php';
 require_once MYAVANA_DIR . 'includes/error-handler.php';
 require_once MYAVANA_DIR . 'includes/asset-optimizer.php';
+require_once MYAVANA_DIR . 'includes/image-optimizer.php';
+require_once MYAVANA_DIR . 'includes/performance-optimizer.php';
 
 // Include new advanced features
 require_once MYAVANA_DIR . 'includes/ai-recommendations.php';
@@ -267,6 +269,20 @@ class Myavana_Hair_Journey {
         wp_enqueue_style('upm-cm-features-css', MYAVANA_URL . 'assets/css/upm-cm-features.css', [], '1.0.0');
         wp_enqueue_script('upm-cm-unified-profile-js', MYAVANA_URL . 'assets/js/upm-cm-unified-profile.js', ['jquery', 'myavana-unified-core'], '1.0.0', true);
         wp_enqueue_script('upm-cm-advanced-analytics-js', MYAVANA_URL . 'assets/js/upm-cm-advanced-analytics.js', ['jquery', 'chart-js'], '1.0.0', true);
+
+        // MYAVANA MOBILE-FIRST REDESIGN (Phase 3)
+        // Responsive Fixes (Load first to apply base styles)
+        wp_enqueue_style('myavana-responsive-fixes-css', MYAVANA_URL . 'assets/css/myavana-responsive-fixes.css', [], '1.0.0');
+        // Performance & Caching
+        wp_enqueue_script('myavana-cache-js', MYAVANA_URL . 'assets/js/myavana-cache.js', ['jquery'], '1.0.0', true);
+        // PWA Service Worker
+        wp_enqueue_script('myavana-sw-register', MYAVANA_URL . 'assets/js/sw-register.js', [], '1.0.0', true);
+        // Mobile Navigation & Gestures
+        wp_enqueue_script('myavana-mobile-nav-js', MYAVANA_URL . 'assets/js/myavana-mobile-nav.js', ['jquery'], '1.0.0', true);
+        wp_enqueue_script('myavana-gestures-js', MYAVANA_URL . 'assets/js/myavana-gestures.js', ['jquery'], '1.0.0', true);
+        // Mobile-Optimized Components
+        wp_enqueue_style('myavana-mobile-components-css', MYAVANA_URL . 'assets/css/myavana-mobile-components.css', [], '1.0.0');
+        wp_enqueue_script('myavana-mobile-components-js', MYAVANA_URL . 'assets/js/myavana-mobile-components.js', ['jquery'], '1.0.0', true);
 
         // Enqueue unified core framework FIRST (provides myavanaAjax for all scripts)
         wp_enqueue_script('myavana-unified-core', MYAVANA_URL . 'assets/js/myavana-unified-core.js', ['jquery'], '1.0.0', true);

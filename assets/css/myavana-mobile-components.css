@@ -1,0 +1,689 @@
+/**
+ * MYAVANA Mobile Components Styles
+ * Touch-friendly, accessible mobile components
+ *
+ * @package Myavana_Hair_Journey
+ * @version 1.0.0
+ */
+
+/* ========================================
+   Touch-Friendly Buttons
+   ======================================== */
+
+.myavana-touch-enhanced {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem;
+    position: relative;
+}
+
+.myavana-touch-active {
+    opacity: 0.7;
+    transform: scale(0.98);
+    transition: all 0.1s ease;
+}
+
+/* Touch ripple effect */
+.myavana-touch-enhanced::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.1);
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease;
+    pointer-events: none;
+}
+
+.myavana-touch-enhanced:active::after {
+    width: 100%;
+    height: 100%;
+}
+
+/* ========================================
+   Lazy Loading Images
+   ======================================== */
+
+.myavana-lazy-image {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: myavana-loading-shimmer 1.5s infinite;
+    min-height: 200px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.myavana-lazy-image.myavana-loaded {
+    opacity: 1;
+    background: none;
+    animation: none;
+}
+
+.myavana-lazy-image.myavana-load-error {
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.myavana-lazy-image.myavana-load-error::before {
+    content: '⚠️ Image failed to load';
+}
+
+@keyframes myavana-loading-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* ========================================
+   Progressive Images
+   ======================================== */
+
+.myavana-progressive-image {
+    position: relative;
+    overflow: hidden;
+    background: #f8f9fa;
+}
+
+.myavana-image-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(10px);
+    transform: scale(1.1);
+    z-index: 1;
+}
+
+.myavana-image-full {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 2;
+}
+
+.myavana-image-full.loaded {
+    opacity: 1;
+}
+
+/* ========================================
+   Mobile-Optimized Forms
+   ======================================== */
+
+/* Input enhancements */
+input[type="email"],
+input[type="tel"],
+input[type="url"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    width: 100%;
+    transition: border-color 0.2s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: #FF6B6B;
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+}
+
+/* Error states */
+.myavana-input-error {
+    border-color: #dc3545 !important;
+    background: #fff5f5;
+}
+
+.myavana-error-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* Character counter */
+.myavana-char-counter {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-align: right;
+    margin-top: 0.25rem;
+}
+
+/* Custom file input */
+.myavana-file-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.myavana-file-input-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: #FF6B6B;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    min-height: 44px;
+}
+
+.myavana-file-input-btn:hover {
+    background: #ff5252;
+}
+
+.myavana-file-input-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.myavana-file-input-name {
+    color: #6c757d;
+    font-size: 0.875rem;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Textarea auto-resize */
+textarea {
+    resize: none;
+    overflow: hidden;
+    min-height: 100px;
+}
+
+/* ========================================
+   Camera Modal
+   ======================================== */
+
+.myavana-camera-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.myavana-camera-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-width: 600px;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    z-index: 10001;
+}
+
+.myavana-camera-header {
+    position: relative;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.myavana-camera-header h3 {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.myavana-camera-close {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: white;
+    padding: 0.5rem;
+    cursor: pointer;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.myavana-camera-view {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+}
+
+#myavana-camera-video,
+#myavana-camera-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#myavana-camera-canvas {
+    display: none;
+}
+
+.myavana-camera-controls {
+    padding: 2rem 1rem;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    z-index: 10;
+}
+
+.myavana-camera-controls button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0.75rem;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.myavana-camera-controls button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.myavana-camera-capture {
+    width: 72px;
+    height: 72px;
+    border: 4px solid white;
+    border-radius: 50%;
+    padding: 0;
+}
+
+.myavana-camera-capture svg {
+    width: 48px;
+    height: 48px;
+}
+
+.myavana-camera-capture:active {
+    transform: scale(0.95);
+}
+
+.myavana-camera-flip {
+    position: absolute;
+    right: 1rem;
+}
+
+.myavana-camera-retake,
+.myavana-camera-use {
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+}
+
+.myavana-camera-retake {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.myavana-camera-use {
+    background: #FF6B6B;
+}
+
+/* ========================================
+   Image Gallery
+   ======================================== */
+
+.myavana-image-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.myavana-gallery-item {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #f8f9fa;
+}
+
+.myavana-gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.myavana-gallery-item:hover img {
+    transform: scale(1.05);
+}
+
+/* ========================================
+   Gallery Lightbox
+   ======================================== */
+
+.myavana-lightbox {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.myavana-lightbox-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 1;
+}
+
+.myavana-lightbox-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-width: 1200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    z-index: 2;
+}
+
+.myavana-lightbox-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    color: white;
+    padding: 0.75rem;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+}
+
+.myavana-lightbox-close:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.myavana-lightbox-image-container {
+    max-width: 100%;
+    max-height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.myavana-lightbox-image-container img {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.myavana-lightbox-prev,
+.myavana-lightbox-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    color: white;
+    padding: 1rem;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+}
+
+.myavana-lightbox-prev:hover,
+.myavana-lightbox-next:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.myavana-lightbox-prev {
+    left: 1rem;
+}
+
+.myavana-lightbox-next {
+    right: 1rem;
+}
+
+.myavana-lightbox-counter {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    z-index: 10;
+}
+
+/* ========================================
+   Mobile Breakpoints
+   ======================================== */
+
+/* Extra Small (< 576px) - Default Mobile First */
+@media (max-width: 575px) {
+    .myavana-image-gallery {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .myavana-lightbox-content {
+        padding: 1rem;
+    }
+
+    .myavana-lightbox-prev,
+    .myavana-lightbox-next {
+        padding: 0.5rem;
+    }
+
+    .myavana-camera-controls {
+        gap: 1rem;
+    }
+}
+
+/* Small (576px - 767px) */
+@media (min-width: 576px) and (max-width: 767px) {
+    .myavana-image-gallery {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Medium (768px - 991px) */
+@media (min-width: 768px) {
+    .myavana-image-gallery {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+    }
+
+    .myavana-camera-container {
+        border-radius: 12px;
+        overflow: hidden;
+        height: auto;
+        max-height: 90vh;
+    }
+
+    .myavana-file-input-wrapper {
+        max-width: 500px;
+    }
+}
+
+/* Large (992px - 1199px) */
+@media (min-width: 992px) {
+    .myavana-image-gallery {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+/* Extra Large (1200px+) */
+@media (min-width: 1200px) {
+    .myavana-image-gallery {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+/* ========================================
+   Accessibility Enhancements
+   ======================================== */
+
+/* Focus visible for keyboard navigation */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: 3px solid #FF6B6B;
+    outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .myavana-touch-enhanced {
+        border: 2px solid currentColor;
+    }
+
+    .myavana-lazy-image {
+        border: 1px solid #000;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    input[type="email"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="number"],
+    input[type="date"],
+    input[type="time"],
+    input[type="datetime-local"],
+    textarea {
+        background: #2a2a2a;
+        color: #fff;
+        border-color: #444;
+    }
+
+    .myavana-file-input-name {
+        color: #aaa;
+    }
+
+    .myavana-lazy-image {
+        background: linear-gradient(90deg, #2a2a2a 25%, #333 50%, #2a2a2a 75%);
+        background-size: 200% 100%;
+    }
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+
+@media print {
+    .myavana-camera-modal,
+    .myavana-lightbox,
+    .myavana-camera-controls,
+    .myavana-file-input-btn {
+        display: none !important;
+    }
+
+    .myavana-image-gallery {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+    }
+}
+
+/* ========================================
+   Performance Optimizations
+   ======================================== */
+
+/* GPU acceleration for transforms */
+.myavana-touch-active,
+.myavana-gallery-item img,
+.myavana-lightbox-image-container img {
+    will-change: transform;
+}
+
+/* Contain layout shifts */
+.myavana-lazy-image,
+.myavana-progressive-image,
+.myavana-gallery-item {
+    contain: layout;
+}
+
+/* Optimize repaints */
+.myavana-camera-view,
+.myavana-lightbox-image-container {
+    contain: strict;
+}

@@ -1,0 +1,813 @@
+/**
+ * MYAVANA Responsive Fixes
+ * Mobile-first fixes for existing templates and components
+ *
+ * @package Myavana_Hair_Journey
+ * @version 1.0.0
+ *
+ * Breakpoints:
+ * - xs: 0-575px (Mobile)
+ * - sm: 576-767px (Large Mobile)
+ * - md: 768-991px (Tablet)
+ * - lg: 992-1199px (Desktop)
+ * - xl: 1200px+ (Large Desktop)
+ */
+
+/* ========================================
+   Priority Fix 1: Timeline Views
+   Stack on mobile, grid on desktop
+   ======================================== */
+
+/* Mobile First: Default Stack Layout */
+.myavana-timeline,
+.myavana-timeline-container,
+.timeline-grid {
+    display: block;
+    width: 100%;
+}
+
+.myavana-timeline-item,
+.timeline-entry,
+.entry-card {
+    width: 100%;
+    margin: 0 0 1rem 0;
+    float: none;
+}
+
+/* Tablet: 2 Columns */
+@media (min-width: 768px) {
+    .myavana-timeline,
+    .timeline-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+
+    .myavana-timeline-item,
+    .timeline-entry,
+    .entry-card {
+        width: 100%;
+        margin: 0;
+    }
+}
+
+/* Desktop: 3 Columns */
+@media (min-width: 992px) {
+    .myavana-timeline,
+    .timeline-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+    }
+}
+
+/* ========================================
+   Priority Fix 2: Forms
+   Single column mobile, multi-column desktop
+   ======================================== */
+
+/* Mobile First: Single Column */
+.myavana-form,
+.entry-form,
+.analysis-form,
+form.myavana {
+    width: 100%;
+    padding: 1rem;
+}
+
+.myavana-form-row,
+.form-row {
+    display: block;
+    width: 100%;
+}
+
+.myavana-form-group,
+.form-group,
+.form-field {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.myavana-form-group label,
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.myavana-form-group input,
+.myavana-form-group textarea,
+.myavana-form-group select,
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 0.75rem;
+    border-radius: 8px;
+}
+
+/* Tablet: 2 Columns for appropriate fields */
+@media (min-width: 768px) {
+    .myavana-form,
+    .entry-form,
+    .analysis-form {
+        padding: 2rem;
+    }
+
+    .myavana-form-row,
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .myavana-form-group.full-width,
+    .form-group.full-width,
+    .myavana-form-group textarea,
+    .form-group textarea {
+        grid-column: 1 / -1;
+    }
+}
+
+/* Desktop: Maintain 2 columns but with better spacing */
+@media (min-width: 992px) {
+    .myavana-form,
+    .entry-form,
+    .analysis-form {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+}
+
+/* ========================================
+   Priority Fix 3: Navigation
+   Bottom bar mobile, top bar desktop
+   ======================================== */
+
+/* Mobile: Bottom Navigation (handled by myavana-mobile-nav.js) */
+.myavana-top-nav,
+.main-navigation,
+.desktop-menu {
+    display: none;
+}
+
+.myavana-mobile-bottom-nav {
+    display: flex;
+}
+
+/* Tablet & Desktop: Top Navigation */
+@media (min-width: 768px) {
+    .myavana-top-nav,
+    .main-navigation,
+    .desktop-menu {
+        display: flex;
+    }
+
+    .myavana-mobile-bottom-nav {
+        display: none;
+    }
+}
+
+/* ========================================
+   Priority Fix 4: Modals
+   Full-screen mobile, centered desktop
+   ======================================== */
+
+/* Mobile: Full Screen Modals */
+.myavana-modal-content,
+.modal-dialog,
+.offcanvas-content {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    margin: 0;
+    border-radius: 0;
+    overflow-y: auto;
+}
+
+.myavana-modal-header,
+.modal-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Tablet: Larger centered modals */
+@media (min-width: 768px) {
+    .myavana-modal-content,
+    .modal-dialog {
+        position: relative;
+        top: auto;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        width: 90%;
+        height: auto;
+        max-width: 600px;
+        max-height: 90vh;
+        margin: 2rem auto;
+        border-radius: 12px;
+    }
+
+    .myavana-modal-header,
+    .modal-header {
+        position: relative;
+        border-radius: 12px 12px 0 0;
+    }
+}
+
+/* Desktop: Even larger modals */
+@media (min-width: 992px) {
+    .myavana-modal-content,
+    .modal-dialog {
+        max-width: 800px;
+    }
+
+    .myavana-modal-content.large,
+    .modal-dialog.large {
+        max-width: 1000px;
+    }
+}
+
+/* ========================================
+   Priority Fix 5: Cards
+   Full-width mobile, grid desktop
+   ======================================== */
+
+/* Mobile: Full Width Cards */
+.myavana-card,
+.entry-card,
+.feed-card,
+.product-card {
+    width: 100%;
+    margin: 0 0 1rem 0;
+    border-radius: 8px;
+}
+
+.myavana-cards-grid,
+.cards-container {
+    display: block;
+    width: 100%;
+}
+
+/* Tablet: 2 Column Grid */
+@media (min-width: 768px) {
+    .myavana-cards-grid,
+    .cards-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+
+    .myavana-card,
+    .entry-card,
+    .feed-card,
+    .product-card {
+        margin: 0;
+    }
+}
+
+/* Desktop: 3 Column Grid */
+@media (min-width: 992px) {
+    .myavana-cards-grid,
+    .cards-container {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+    }
+}
+
+/* Large Desktop: 4 Column Grid */
+@media (min-width: 1200px) {
+    .myavana-cards-grid.large,
+    .cards-container.large {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* ========================================
+   Priority Fix 6: Images
+   Optimized sizes for each breakpoint
+   ======================================== */
+
+/* Mobile: Full Width, Optimized Loading */
+.myavana-image,
+.entry-image,
+.timeline-image,
+img.responsive {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.myavana-image-container,
+.image-wrapper {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* Aspect Ratio Containers */
+.myavana-image-container.ratio-1-1 {
+    aspect-ratio: 1 / 1;
+}
+
+.myavana-image-container.ratio-4-3 {
+    aspect-ratio: 4 / 3;
+}
+
+.myavana-image-container.ratio-16-9 {
+    aspect-ratio: 16 / 9;
+}
+
+.myavana-image-container img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Tablet: Constrained Width */
+@media (min-width: 768px) {
+    .myavana-image-container.constrained,
+    .image-wrapper.constrained {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+}
+
+/* Desktop: Even More Constrained */
+@media (min-width: 992px) {
+    .myavana-image-container.constrained,
+    .image-wrapper.constrained {
+        max-width: 800px;
+    }
+}
+
+/* ========================================
+   General Mobile Optimizations
+   ======================================== */
+
+/* Touch-Friendly Spacing */
+@media (max-width: 767px) {
+    /* Increase padding on clickable elements */
+    button,
+    a.button,
+    .btn {
+        min-height: 44px;
+        padding: 0.75rem 1.5rem;
+    }
+
+    /* Larger tap targets for icons */
+    .icon-button,
+    .myavana-icon-btn {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 0.75rem;
+    }
+
+    /* Better spacing between elements */
+    section,
+    .section {
+        padding: 1.5rem 1rem;
+    }
+
+    /* Improve readability */
+    body,
+    .content {
+        font-size: 16px;
+        line-height: 1.6;
+    }
+
+    h1 {
+        font-size: 1.75rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    h3 {
+        font-size: 1.25rem;
+    }
+
+    /* Hide desktop-only elements */
+    .desktop-only {
+        display: none !important;
+    }
+}
+
+/* Desktop Optimizations */
+@media (min-width: 768px) {
+    /* Hide mobile-only elements */
+    .mobile-only {
+        display: none !important;
+    }
+
+    /* Better container max-widths */
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .container-fluid {
+        padding: 0 2rem;
+    }
+
+    /* Better section spacing */
+    section,
+    .section {
+        padding: 3rem 0;
+    }
+}
+
+/* ========================================
+   Hair Journey Specific Fixes
+   ======================================== */
+
+/* Timeline Navigation */
+.myavana-timeline-nav {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.myavana-timeline-nav::-webkit-scrollbar {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .myavana-timeline-nav {
+        overflow-x: visible;
+        justify-content: center;
+    }
+}
+
+/* Entry Details */
+.entry-details {
+    padding: 1rem;
+}
+
+@media (min-width: 768px) {
+    .entry-details {
+        padding: 2rem;
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 2rem;
+    }
+}
+
+/* Photo Comparison */
+.photo-comparison-container {
+    width: 100%;
+    overflow: hidden;
+}
+
+.photo-comparison-slider {
+    display: block;
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .photo-comparison-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+}
+
+/* ========================================
+   Community Feed Fixes
+   ======================================== */
+
+/* Feed Layout */
+.community-feed {
+    display: block;
+    width: 100%;
+}
+
+.feed-post {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+    .community-feed {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+}
+
+@media (min-width: 992px) {
+    .community-feed-wrapper {
+        display: grid;
+        grid-template-columns: 240px 1fr 240px;
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .community-feed {
+        max-width: 100%;
+    }
+
+    .community-sidebar {
+        display: block;
+    }
+}
+
+/* ========================================
+   Profile Page Fixes
+   ======================================== */
+
+/* Profile Header */
+.profile-header {
+    padding: 1rem;
+    text-align: center;
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1rem;
+}
+
+@media (min-width: 768px) {
+    .profile-header {
+        display: flex;
+        align-items: center;
+        text-align: left;
+        padding: 2rem;
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        margin: 0 2rem 0 0;
+    }
+}
+
+/* Profile Stats */
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+@media (min-width: 768px) {
+    .profile-stats {
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+}
+
+/* Profile Tabs */
+.profile-tabs {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0 1rem;
+}
+
+.profile-tab {
+    flex-shrink: 0;
+    padding: 1rem;
+    white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+    .profile-tabs {
+        overflow-x: visible;
+        justify-content: center;
+        padding: 0;
+    }
+
+    .profile-tab {
+        padding: 1rem 2rem;
+    }
+}
+
+/* ========================================
+   Analytics Dashboard Fixes
+   ======================================== */
+
+/* Charts Container */
+.analytics-charts {
+    display: block;
+    width: 100%;
+}
+
+.chart-container {
+    width: 100%;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+}
+
+@media (min-width: 768px) {
+    .analytics-charts {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+    }
+
+    .chart-container {
+        margin-bottom: 0;
+        padding: 1.5rem;
+    }
+
+    .chart-container.full-width {
+        grid-column: 1 / -1;
+    }
+}
+
+/* Stats Cards */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+    }
+}
+
+/* ========================================
+   Utility Classes
+   ======================================== */
+
+/* Visibility Helpers */
+.hide-mobile {
+    display: none !important;
+}
+
+@media (min-width: 768px) {
+    .hide-mobile {
+        display: block !important;
+    }
+
+    .hide-tablet-up {
+        display: none !important;
+    }
+}
+
+@media (min-width: 992px) {
+    .hide-desktop {
+        display: none !important;
+    }
+}
+
+/* Spacing Helpers */
+.p-mobile {
+    padding: 1rem;
+}
+
+.px-mobile {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.py-mobile {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+    .p-tablet {
+        padding: 2rem;
+    }
+
+    .px-tablet {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+
+    .py-tablet {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+}
+
+@media (min-width: 992px) {
+    .p-desktop {
+        padding: 3rem;
+    }
+
+    .px-desktop {
+        padding-left: 3rem;
+        padding-right: 3rem;
+    }
+
+    .py-desktop {
+        padding-top: 3rem;
+        padding-bottom: 3rem;
+    }
+}
+
+/* Text Alignment */
+.text-center-mobile {
+    text-align: center;
+}
+
+@media (min-width: 768px) {
+    .text-left-tablet {
+        text-align: left;
+    }
+
+    .text-center-tablet {
+        text-align: center;
+    }
+}
+
+/* ========================================
+   Performance Optimizations
+   ======================================== */
+
+/* Reduce animations on mobile for performance */
+@media (max-width: 767px) {
+    * {
+        animation-duration: 0.2s !important;
+        transition-duration: 0.2s !important;
+    }
+}
+
+/* GPU acceleration for smoother animations */
+.myavana-card,
+.modal-dialog,
+.offcanvas-content {
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* Prevent layout shift */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ========================================
+   Accessibility
+   ======================================== */
+
+/* Focus visible for keyboard navigation */
+*:focus-visible {
+    outline: 3px solid #FF6B6B;
+    outline-offset: 2px;
+}
+
+/* Skip to main content link */
+.skip-to-main {
+    position: absolute;
+    top: -100px;
+    left: 0;
+    background: #FF6B6B;
+    color: white;
+    padding: 1rem;
+    z-index: 10000;
+}
+
+.skip-to-main:focus {
+    top: 0;
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+
+@media print {
+    .myavana-mobile-bottom-nav,
+    .mobile-only,
+    button,
+    .btn,
+    .nav,
+    .modal,
+    .offcanvas {
+        display: none !important;
+    }
+
+    body {
+        font-size: 12pt;
+    }
+
+    .myavana-card,
+    .entry-card {
+        page-break-inside: avoid;
+    }
+}

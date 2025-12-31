@@ -61,25 +61,37 @@
   ],
   "shortcuts": [
     {
-      "name": "Hair Diary",
-      "short_name": "Diary",
-      "description": "Add a new hair journal entry",
-      "url": "/#diary",
+      "name": "Hair Journey",
+      "short_name": "Journey",
+      "description": "View your hair journey timeline",
+      "url": "/hair-journey/",
       "icons": [
         {
-          "src": "assets/images/shortcut-diary.png",
+          "src": "assets/images/icon-96x96.png",
           "sizes": "96x96"
         }
       ]
     },
     {
-      "name": "Timeline",
-      "short_name": "Timeline",
-      "description": "View your hair journey timeline",
-      "url": "/#timeline",
+      "name": "Community",
+      "short_name": "Community",
+      "description": "Browse community feed and connect",
+      "url": "/community/",
       "icons": [
         {
-          "src": "assets/images/shortcut-timeline.png",
+          "src": "assets/images/icon-96x96.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "short_name": "Profile",
+      "description": "View and edit your profile",
+      "url": "/profile/",
+      "icons": [
+        {
+          "src": "assets/images/icon-96x96.png",
           "sizes": "96x96"
         }
       ]
@@ -91,19 +103,7 @@
       "url": "/#analysis",
       "icons": [
         {
-          "src": "assets/images/shortcut-ai.png",
-          "sizes": "96x96"
-        }
-      ]
-    },
-    {
-      "name": "Profile",
-      "short_name": "Profile",
-      "description": "View and edit your hair profile",
-      "url": "/#profile",
-      "icons": [
-        {
-          "src": "assets/images/shortcut-profile.png",
+          "src": "assets/images/icon-96x96.png",
           "sizes": "96x96"
         }
       ]
