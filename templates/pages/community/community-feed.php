@@ -416,13 +416,23 @@ function myavana_community_feed_shortcode($atts = []) {
                         <button type="button" class="myavana-btn-secondary" id="myavana-cancel-post">
                             Cancel
                         </button>
-                        <button type="submit" class="myavana-btn-primary">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M22 2L11 13"></path>
-                                <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
-                            </svg>
-                            Share Post
-                        </button>
+                        <div style="display: flex; gap: 12px;">
+                            <button type="button" class="myavana-btn-secondary" id="myavana-ci-save-draft-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                    <polyline points="7 3 7 8 15 8"></polyline>
+                                </svg>
+                                Save Draft
+                            </button>
+                            <button type="submit" class="myavana-btn-primary">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 2L11 13"></path>
+                                    <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+                                </svg>
+                                Share Post
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>

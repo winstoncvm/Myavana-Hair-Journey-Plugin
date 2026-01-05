@@ -675,7 +675,7 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
         padding: 16px 20px;
         border-radius: 8px;
         font-size: 14px;
-        margin-top: 16px;
+        margin-bottom: 20px;
         display: none;
         animation: myavanaSlideIn 0.3s ease-out;
     }
@@ -834,6 +834,9 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
             <div class="myavana-form-container">
                 <!-- Sign In Form -->
                 <form class="myavana-auth-form active" id="myavanaSigninForm" role="tabpanel" aria-labelledby="myavanaSigninTab">
+                    <div class="myavana-error-message" id="myavana-signin-error" role="alert"></div>
+                    <div class="myavana-success-message" id="myavana-signin-success" role="alert"></div>
+
                     <div class="myavana-form-group" data-validate="login">
                         <label for="myavana-signin-login">Email or Username</label>
                         <input type="text" id="myavana-signin-login" name="login"
@@ -866,14 +869,14 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
 
                     <button type="submit" class="myavana-submit-btn">Sign In to MYAVANA</button>
 
-                    <div class="myavana-error-message" id="myavana-signin-error" role="alert"></div>
-                    <div class="myavana-success-message" id="myavana-signin-success" role="alert"></div>
-
                     <a href="#" class="myavana-forgot-link" id="myavanaForgotLink">Forgot your password?</a>
                 </form>
 
                 <!-- Sign Up Form -->
                 <form class="myavana-auth-form" id="myavanaSignupForm" role="tabpanel" aria-labelledby="myavanaSignupTab">
+                    <div class="myavana-error-message" id="myavana-signup-error" role="alert"></div>
+                    <div class="myavana-success-message" id="myavana-signup-success" role="alert"></div>
+
                     <div class="myavana-form-group" data-validate="name">
                         <label for="myavana-signup-name">Full Name</label>
                         <input type="text" id="myavana-signup-name" name="name"
@@ -932,13 +935,13 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
                     </div>
 
                     <button type="submit" class="myavana-submit-btn">Create My MYAVANA Account</button>
-
-                    <div class="myavana-error-message" id="myavana-signup-error" role="alert"></div>
-                    <div class="myavana-success-message" id="myavana-signup-success" role="alert"></div>
                 </form>
 
                 <!-- Forgot Password Form -->
                 <form class="myavana-auth-form" id="myavanaForgotForm" style="display: none;">
+                    <div class="myavana-error-message" id="myavana-forgot-error" role="alert"></div>
+                    <div class="myavana-success-message" id="myavana-forgot-success" role="alert"></div>
+
                     <div class="myavana-form-group">
                         <label for="myavana-forgot-email">Email Address</label>
                         <input type="email" id="myavana-forgot-email" name="email"
@@ -947,9 +950,6 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
                     </div>
 
                     <button type="submit" class="myavana-submit-btn">Send Reset Link</button>
-
-                    <div class="myavana-error-message" id="myavana-forgot-error" role="alert"></div>
-                    <div class="myavana-success-message" id="myavana-forgot-success" role="alert"></div>
 
                     <a href="#" class="myavana-forgot-link" id="myavanaBackToSignin">← Back to Sign In</a>
                 </form>

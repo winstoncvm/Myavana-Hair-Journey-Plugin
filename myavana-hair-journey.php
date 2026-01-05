@@ -12,6 +12,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 
 define('MYAVANA_DIR', plugin_dir_path(__FILE__));
 define('MYAVANA_URL', plugin_dir_url(__FILE__));
+define('MYAVANA_HAIR_JOURNEY_PLUGIN_FILE', __FILE__);
 
 // Include necessary files
 
@@ -64,6 +65,16 @@ require_once MYAVANA_DIR . 'templates/hair-offcanvas.php';
 //community
 require_once MYAVANA_DIR . 'templates/pages/community/community-feed.php';
 require_once MYAVANA_DIR . 'templates/pages/community/community-shortcodes.php';
+
+// Unified Profile Page
+require_once MYAVANA_DIR . 'templates/pages/unified-profile.php';
+
+// Community Improvements - Database & AJAX Handlers
+require_once MYAVANA_DIR . 'includes/myavana-ci-database.php';
+require_once MYAVANA_DIR . 'actions/myavana-ci-handlers.php';
+
+// Unified Profile - AJAX Handlers
+require_once MYAVANA_DIR . 'actions/myavana-up-handlers.php';
 // require_once MYAVANA_DIR . 'templates/enhanced-timeline-shortcode.php';
 // require_once MYAVANA_DIR . 'templates/improved-timeline-shortcode.php';
 require_once MYAVANA_DIR . 'templates/advanced-dashboard-shortcode.php';

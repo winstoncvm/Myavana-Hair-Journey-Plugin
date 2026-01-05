@@ -44,6 +44,7 @@ class Myavana_Shortcodes {
         add_shortcode('myavana_hair_diary', [$this, 'hair_diary_shortcode']);
         add_shortcode('myavana_community_feed', [$this, 'community_feed_shortcode']);
         add_shortcode('myavana_user_profile', [$this, 'user_profile_shortcode']);
+        add_shortcode('myavana_unified_profile', [$this, 'unified_profile_shortcode']);
         add_shortcode('myavana_challenges', [$this, 'challenges_shortcode']);
         add_shortcode('myavana_trending_posts', [$this, 'trending_posts_shortcode']);
         add_shortcode('myavana_routine_library', [$this, 'routine_library_shortcode']);
@@ -127,6 +128,22 @@ class Myavana_Shortcodes {
 
     public function user_profile_shortcode($atts = []) {
         return myavana_user_profile_shortcode($atts);
+    }
+
+    public function unified_profile_shortcode($atts = []) {
+        // Enqueue unified profile assets
+        wp_enqueue_style('myavana-unified-profile', MYAVANA_URL . 'assets/css/unified-profile.css', [], '1.0.0');
+        wp_enqueue_script('myavana-unified-profile', MYAVANA_URL . 'assets/js/unified-profile.js', ['jquery'], '1.0.0', true);
+
+        // Localize script with settings
+        wp_localize_script('myavana-unified-profile', 'myavanaUpSettings', [
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('myavana_ajax_nonce'),
+            'userId' => get_current_user_id(),
+            'defaultAvatar' => get_avatar_url(get_current_user_id())
+        ]);
+
+        return myavana_unified_profile_shortcode($atts);
     }
 
     public function challenges_shortcode($atts = []) {

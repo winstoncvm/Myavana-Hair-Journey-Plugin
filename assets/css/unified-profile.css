@@ -1,0 +1,1920 @@
+/**
+ * MYAVANA Unified Profile Page Styles
+ *
+ * A comprehensive profile page that integrates both Hair Journey and Community features
+ * following MYAVANA design guidelines with luxury aesthetics
+ *
+ * @package Myavana_Hair_Journey
+ * @version 1.0.0
+ */
+
+/* ============================================
+   CSS Variables - MY AVANA Brand Colors
+   ============================================ */
+:root {
+    --myavana-onyx: #222323;
+    --myavana-coral: #E7A690;
+    --myavana-blueberry: #737A8B;
+    --myavana-stone: #D9D9D9;
+    --myavana-sand: #F8F4F0;
+    --myavana-light-coral: #F5D5C8;
+    --myavana-white: #FFFFFF;
+    --myavana-border: rgba(0, 0, 0, 0.08);
+    --myavana-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+    --myavana-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+    --myavana-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --myavana-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================
+   Container
+   ============================================ */
+.myavana-unified-profile-container {
+    font-family: 'Archivo', sans-serif;
+    background: var(--myavana-sand);
+    min-height: 100vh;
+    padding-bottom: 80px; /* Space for mobile bottom nav */
+    width: 100%;
+    margin: 0; 
+}
+
+/* ============================================
+   Dashboard Header
+   ============================================ */
+.myavana-up-dashboard-header {
+    background: var(--myavana-white);
+    box-shadow: var(--myavana-shadow-md);
+    margin-bottom: 24px;
+    padding: 32px;
+    width: 100%;
+}
+
+.myavana-up-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 32px;
+    margin-bottom: 24px;
+}
+
+.myavana-up-profile-section {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    flex: 1;
+}
+
+.myavana-up-avatar-wrapper {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--myavana-coral);
+    box-shadow: var(--myavana-shadow-md);
+    flex-shrink: 0;
+}
+
+.myavana-up-avatar-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.myavana-up-avatar-edit {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--myavana-coral);
+    color: var(--myavana-white);
+    border: 2px solid var(--myavana-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--myavana-transition);
+    padding: 0;
+}
+
+.myavana-up-avatar-edit:hover {
+    background: var(--myavana-onyx);
+    transform: scale(1.1);
+}
+
+.myavana-up-profile-details {
+    flex: 1;
+}
+
+.myavana-up-greeting {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--myavana-onyx);
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+.myavana-up-bio {
+    color: var(--myavana-blueberry);
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 8px 0 12px;
+}
+
+.myavana-up-meta-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    font-size: 14px;
+}
+
+.myavana-up-username {
+    color: var(--myavana-blueberry);
+    font-weight: 500;
+}
+
+.myavana-up-location,
+.myavana-up-website {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--myavana-blueberry);
+    text-decoration: none;
+    transition: var(--myavana-transition);
+}
+
+.myavana-up-location svg,
+.myavana-up-website svg {
+    flex-shrink: 0;
+}
+
+.myavana-up-website:hover {
+    color: var(--myavana-coral);
+}
+
+.myavana-up-header-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.myavana-up-stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--myavana-sand);
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--myavana-onyx);
+    transition: var(--myavana-transition);
+}
+
+.myavana-up-stat-pill svg {
+    color: var(--myavana-coral);
+    flex-shrink: 0;
+}
+
+.myavana-up-stat-pill.clickable {
+    cursor: pointer;
+}
+
+.myavana-up-stat-pill.clickable:hover {
+    background: var(--myavana-coral);
+    color: var(--myavana-white);
+    transform: translateY(-2px);
+    box-shadow: var(--myavana-shadow-md);
+}
+
+.myavana-up-stat-pill.clickable:hover svg {
+    color: var(--myavana-white);
+}
+
+.myavana-up-header-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding-top: 24px;
+    border-top: 1px solid var(--myavana-border);
+}
+
+.myavana-up-action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.myavana-up-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: var(--myavana-transition);
+    font-family: 'Archivo', sans-serif;
+}
+
+.myavana-up-btn svg {
+    flex-shrink: 0;
+}
+
+.myavana-up-btn-primary {
+    background: var(--myavana-coral);
+    color: var(--myavana-white);
+}
+
+.myavana-up-btn-primary:hover {
+    background: var(--myavana-onyx);
+    transform: translateY(-2px);
+    box-shadow: var(--myavana-shadow-md);
+}
+
+.myavana-up-btn-secondary {
+    background: var(--myavana-sand);
+    color: var(--myavana-onyx);
+}
+
+.myavana-up-btn-secondary:hover {
+    background: var(--myavana-stone);
+    transform: translateY(-2px);
+}
+
+.myavana-up-btn-outline {
+    background: transparent;
+    color: var(--myavana-onyx);
+    border: 2px solid var(--myavana-stone);
+}
+
+.myavana-up-btn-outline:hover {
+    border-color: var(--myavana-coral);
+    color: var(--myavana-coral);
+    transform: translateY(-2px);
+}
+
+.myavana-up-streak-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, rgba(231, 166, 144, 0.1) 0%, rgba(245, 213, 200, 0.15) 100%);
+    border-radius: 12px;
+    border: 1px solid rgba(231, 166, 144, 0.2);
+}
+
+.myavana-up-streak-icon {
+    font-size: 32px;
+    line-height: 1;
+}
+
+.myavana-up-streak-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.myavana-up-streak-count {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--myavana-onyx);
+}
+
+.myavana-up-streak-label {
+    font-size: 12px;
+    color: var(--myavana-blueberry);
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .myavana-up-header-top {
+        flex-direction: column;
+    }
+
+    .myavana-up-header-stats {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .myavana-up-header-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+    .myavana-up-dashboard-header {
+        padding: 24px 16px;
+    }
+
+    .myavana-up-profile-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .myavana-up-meta-info {
+        justify-content: center;
+    }
+
+    .myavana-up-header-stats {
+        justify-content: center;
+    }
+
+    .myavana-up-action-buttons {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .myavana-up-btn {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .myavana-up-streak-card {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ============================================
+   Profile Information Cards
+   ============================================ */
+.myavana-up-profile-info-section {
+    max-width: 1200px;
+    margin: 0 auto 32px;
+    padding: 0 24px;
+}
+
+.myavana-up-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.myavana-up-info-card {
+    background: var(--myavana-white);
+    border-radius: 16px;
+    box-shadow: var(--myavana-shadow-md);
+    overflow: hidden;
+    transition: var(--myavana-transition);
+}
+
+.myavana-up-info-card:hover {
+    box-shadow: var(--myavana-shadow-lg);
+    transform: translateY(-4px);
+}
+
+.myavana-up-card-wide {
+    grid-column: span 2;
+}
+
+.myavana-up-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--myavana-border);
+    background: linear-gradient(135deg, rgba(231, 166, 144, 0.05) 0%, rgba(245, 213, 200, 0.08) 100%);
+}
+
+.myavana-up-card-header svg {
+    color: var(--myavana-coral);
+    flex-shrink: 0;
+}
+
+.myavana-up-card-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--myavana-onyx);
+}
+
+.myavana-up-card-body {
+    padding: 24px;
+}
+
+/* Hair Profile Grid */
+.myavana-up-profile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.myavana-up-profile-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.myavana-up-profile-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--myavana-blueberry);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.myavana-up-profile-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--myavana-onyx);
+}
+
+/* Hair Concerns */
+.myavana-up-concerns-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.myavana-up-concern-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, rgba(231, 166, 144, 0.15) 0%, rgba(245, 213, 200, 0.2) 100%);
+    color: var(--myavana-onyx);
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid rgba(231, 166, 144, 0.3);
+    transition: var(--myavana-transition);
+}
+
+.myavana-up-concern-tag:hover {
+    background: var(--myavana-coral);
+    color: var(--myavana-white);
+    transform: translateY(-2px);
+    box-shadow: var(--myavana-shadow-sm);
+}
+
+/* Goals */
+.myavana-up-goals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.myavana-up-goal-item-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--myavana-sand);
+    border-radius: 12px;
+    transition: var(--myavana-transition);
+}
+
+.myavana-up-goal-item-display:hover {
+    background: var(--myavana-stone);
+}
+
+.myavana-up-goal-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.myavana-up-goal-info svg {
+    color: var(--myavana-coral);
+    flex-shrink: 0;
+}
+
+.myavana-up-goal-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--myavana-onyx);
+}
+
+.myavana-up-goal-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.myavana-up-progress-bar {
+    width: 120px;
+    height: 8px;
+    background: var(--myavana-white);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.myavana-up-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--myavana-coral) 0%, var(--myavana-light-coral) 100%);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.myavana-up-progress-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--myavana-blueberry);
+    min-width: 40px;
+    text-align: right;
+}
+
+/* Journey Stats Grid */
+.myavana-up-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.myavana-up-stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background: var(--myavana-sand);
+    border-radius: 12px;
+    transition: var(--myavana-transition);
+}
+
+.myavana-up-stat-item:hover {
+    background: linear-gradient(135deg, rgba(231, 166, 144, 0.15) 0%, rgba(245, 213, 200, 0.2) 100%);
+    transform: translateY(-2px);
+}
+
+.myavana-up-stat-number {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--myavana-coral);
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.myavana-up-stat-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--myavana-blueberry);
+    text-align: center;
+}
+
+/* AI Insights */
+.myavana-up-ai-insight {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.myavana-up-ai-insight p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--myavana-onyx);
+    margin: 0;
+}
+
+.myavana-up-recommendations {
+    padding: 16px;
+    background: var(--myavana-sand);
+    border-radius: 12px;
+    border-left: 4px solid var(--myavana-coral);
+}
+
+.myavana-up-recommendations h4 {
+    margin: 0 0 12px 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--myavana-onyx);
+}
+
+.myavana-up-recommendations ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.myavana-up-recommendations li {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--myavana-blueberry);
+    margin-bottom: 8px;
+}
+
+.myavana-up-recommendations li:last-child {
+    margin-bottom: 0;
+}
+
+/* Empty State */
+.myavana-up-empty-state {
+    text-align: center;
+    color: var(--myavana-blueberry);
+    font-size: 14px;
+    font-style: italic;
+    margin: 0;
+    padding: 20px;
+}
+
+/* Responsive adjustments for cards */
+@media (max-width: 768px) {
+    .myavana-up-profile-info-section {
+        padding: 0 16px;
+    }
+
+    .myavana-up-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .myavana-up-card-wide {
+        grid-column: span 1;
+    }
+
+    .myavana-up-profile-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .myavana-up-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .myavana-up-goal-item-display {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .myavana-up-goal-progress {
+        width: 100%;
+    }
+
+    .myavana-up-progress-bar {
+        flex: 1;
+    }
+}
+
+/* ============================================
+   Profile Hero Section (OLD - Keep for now)
+   ============================================ */
+.myavana-profile-hero {
+    background: var(--myavana-white);
+    box-shadow: var(--myavana-shadow-md);
+    margin-bottom: 24px;
+}
+
+.myavana-profile-cover {
+    height: 200px;
+    background: linear-gradient(135deg, var(--myavana-coral) 0%, var(--myavana-light-coral) 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.myavana-profile-cover-gradient {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(231, 166, 144, 0.9) 0%, rgba(245, 213, 200, 0.7) 100%);
+}
+
+.myavana-profile-hero-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.myavana-profile-header {
+    transform: translateY(-60px);
+}
+
+.myavana-profile-avatar-section {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.myavana-profile-avatar {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid var(--myavana-white);
+    box-shadow: var(--myavana-shadow-lg);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.myavana-profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.myavana-avatar-edit-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--myavana-coral);
+    border: 3px solid var(--myavana-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--myavana-transition);
+    color: var(--myavana-white);
+}
+
+.myavana-avatar-edit-btn:hover {
+    background: var(--myavana-onyx);
+    transform: scale(1.1);
+}
+
+.myavana-profile-info {
+    flex: 1;
+    padding-top: 8px;
+}
+
+.myavana-profile-name {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 32px;
+    color: var(--myavana-onyx);
+    margin: 0 0 4px 0;
+}
+
+.myavana-profile-username {
+    color: var(--myavana-blueberry);
+    font-size: 16px;
+    margin-bottom: 12px;
+}
+
+.myavana-profile-bio {
+    color: var(--myavana-onyx);
+    font-size: 16px;
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0;
+}
+
+/* Profile Stats Row */
+.myavana-profile-stats-row {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.myavana-profile-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    transition: var(--myavana-transition);
+}
+
+.myavana-profile-stat.clickable {
+    cursor: pointer;
+}
+
+.myavana-profile-stat.clickable:hover .myavana-profile-stat-value {
+    color: var(--myavana-coral);
+    transform: scale(1.1);
+}
+
+.myavana-profile-stat-value {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 24px;
+    color: var(--myavana-onyx);
+    transition: var(--myavana-transition);
+}
+
+.myavana-profile-stat-label {
+    font-size: 13px;
+    color: var(--myavana-blueberry);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Profile Actions */
+.myavana-profile-actions {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.myavana-btn-primary,
+.myavana-btn-secondary {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-family: 'Archivo', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: var(--myavana-transition);
+    border: none;
+}
+
+.myavana-btn-primary {
+    background: var(--myavana-coral);
+    color: var(--myavana-white);
+}
+
+.myavana-btn-primary:hover {
+    background: var(--myavana-onyx);
+    transform: translateY(-2px);
+    box-shadow: var(--myavana-shadow-md);
+}
+
+.myavana-btn-secondary {
+    background: var(--myavana-sand);
+    color: var(--myavana-onyx);
+    border: 2px solid var(--myavana-border);
+}
+
+.myavana-btn-secondary:hover {
+    background: var(--myavana-white);
+    border-color: var(--myavana-coral);
+    transform: translateY(-2px);
+}
+
+.myavana-btn-primary-small {
+    padding: 8px 16px;
+    border-radius: 6px;
+    background: var(--myavana-coral);
+    color: var(--myavana-white);
+    font-family: 'Archivo', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    cursor: pointer;
+    transition: var(--myavana-transition);
+}
+
+.myavana-btn-primary-small:hover {
+    background: var(--myavana-onyx);
+    transform: translateY(-1px);
+}
+
+/* ============================================
+   Profile Navigation Tabs
+   ============================================ */
+.myavana-profile-nav {
+    background: var(--myavana-white);
+    box-shadow: var(--myavana-shadow-sm);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    margin-bottom: 24px;
+}
+
+.myavana-profile-nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.myavana-profile-nav-container::-webkit-scrollbar {
+    display: none;
+}
+
+.myavana-profile-tab {
+    padding: 16px 20px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--myavana-blueberry);
+    font-family: 'Archivo', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--myavana-transition);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.myavana-profile-tab:hover {
+    color: var(--myavana-coral);
+    background: var(--myavana-sand);
+}
+
+.myavana-profile-tab.active {
+    color: var(--myavana-coral);
+    border-bottom-color: var(--myavana-coral);
+}
+
+/* ============================================
+   Profile Content Area
+   ============================================ */
+.myavana-profile-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.myavana-profile-tab-content {
+    display: none;
+}
+
+.myavana-profile-tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Profile Grid Layout */
+.myavana-profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 24px;
+}
+
+.myavana-profile-main {
+    min-width: 0; /* Prevents grid overflow */
+}
+
+/* Sidebar Cards */
+.myavana-profile-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.myavana-profile-sidebar-card {
+    background: var(--myavana-white);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--myavana-shadow-sm);
+}
+
+.myavana-profile-sidebar-title {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--myavana-onyx);
+    margin: 0 0 16px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.myavana-ai-insights-content p {
+    color: var(--myavana-blueberry);
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Quick Stats */
+.myavana-quick-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.myavana-quick-stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: var(--myavana-sand);
+    border-radius: 8px;
+}
+
+.myavana-quick-stat-label {
+    font-size: 13px;
+    color: var(--myavana-blueberry);
+}
+
+.myavana-quick-stat-value {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--myavana-coral);
+}
+
+/* Hair Profile Grid */
+.myavana-hair-profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.myavana-hair-profile-item {
+    padding: 12px;
+    background: var(--myavana-sand);
+    border-radius: 8px;
+}
+
+.myavana-hair-profile-label {
+    font-size: 11px;
+    color: var(--myavana-blueberry);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.myavana-hair-profile-value {
+    font-weight: 600;
+    color: var(--myavana-onyx);
+    font-size: 14px;
+}
+
+/* ============================================
+   Community Tab Styles
+   ============================================ */
+.myavana-community-profile-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.myavana-community-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.myavana-community-stat-card {
+    background: var(--myavana-white);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: var(--myavana-shadow-sm);
+    transition: var(--myavana-transition);
+}
+
+.myavana-community-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--myavana-shadow-md);
+}
+
+.myavana-community-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--myavana-sand);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--myavana-coral);
+}
+
+.myavana-community-stat-content {
+    flex: 1;
+}
+
+.myavana-community-stat-value {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 28px;
+    color: var(--myavana-onyx);
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.myavana-community-stat-label {
+    font-size: 13px;
+    color: var(--myavana-blueberry);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Community Posts Section */
+.myavana-community-posts-section {
+    background: var(--myavana-white);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--myavana-shadow-sm);
+}
+
+.myavana-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.myavana-section-title {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 20px;
+    color: var(--myavana-onyx);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.myavana-view-toggle {
+    display: flex;
+    gap: 4px;
+    background: var(--myavana-sand);
+    padding: 4px;
+    border-radius: 8px;
+}
+
+.myavana-view-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--myavana-blueberry);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--myavana-transition);
+}
+
+.myavana-view-btn:hover {
+    background: var(--myavana-white);
+}
+
+.myavana-view-btn.active {
+    background: var(--myavana-white);
+    color: var(--myavana-coral);
+    box-shadow: var(--myavana-shadow-sm);
+}
+
+.myavana-user-posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.myavana-user-posts-grid.list-view {
+    grid-template-columns: 1fr;
+}
+
+.myavana-user-post-card {
+    background: var(--myavana-sand);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: var(--myavana-transition);
+}
+
+.myavana-user-post-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--myavana-shadow-md);
+}
+
+.myavana-post-card-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.myavana-post-card-content {
+    padding: 16px;
+}
+
+.myavana-post-card-content p {
+    margin: 0 0 12px 0;
+    color: var(--myavana-onyx);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.myavana-post-card-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--myavana-blueberry);
+}
+
+.myavana-posts-loading,
+.myavana-empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--myavana-blueberry);
+}
+
+.myavana-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--myavana-sand);
+    border-top-color: var(--myavana-coral);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================
+   Goals & Routines Tab
+   ============================================ */
+.myavana-goals-routines-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.myavana-goals-section,
+.myavana-routines-section {
+    background: var(--myavana-white);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--myavana-shadow-sm);
+}
+
+.myavana-goals-list,
+.myavana-routines-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.myavana-goal-card,
+.myavana-routine-card {
+    background: var(--myavana-sand);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: var(--myavana-transition);
+}
+
+.myavana-goal-card:hover,
+.myavana-routine-card:hover {
+    transform: translateX(4px);
+    box-shadow: var(--myavana-shadow-sm);
+}
+
+.myavana-goal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.myavana-goal-title {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--myavana-onyx);
+    margin: 0;
+}
+
+.myavana-goal-progress-badge {
+    background: var(--myavana-coral);
+    color: var(--myavana-white);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.myavana-goal-dates,
+.myavana-goal-milestones {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--myavana-blueberry);
+    margin-bottom: 8px;
+}
+
+.myavana-goal-progress-bar {
+    height: 6px;
+    background: var(--myavana-white);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.myavana-goal-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--myavana-coral) 0%, var(--myavana-light-coral) 100%);
+    transition: width 0.3s ease;
+}
+
+.myavana-routine-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.myavana-routine-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--myavana-coral);
+    color: var(--myavana-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.myavana-routine-info {
+    flex: 1;
+}
+
+.myavana-routine-title {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--myavana-onyx);
+    margin: 0 0 4px 0;
+}
+
+.myavana-routine-schedule {
+    font-size: 12px;
+    color: var(--myavana-blueberry);
+    text-transform: capitalize;
+}
+
+.myavana-routine-description {
+    margin: 12px 0 0 0;
+    font-size: 13px;
+    color: var(--myavana-blueberry);
+    line-height: 1.5;
+}
+
+/* Empty State */
+.myavana-empty-state {
+    padding: 48px 24px;
+    text-align: center;
+}
+
+.myavana-empty-state svg {
+    color: var(--myavana-stone);
+    margin-bottom: 16px;
+}
+
+.myavana-empty-state h3 {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--myavana-onyx);
+    margin: 0 0 8px 0;
+}
+
+.myavana-empty-state p {
+    color: var(--myavana-blueberry);
+    font-size: 14px;
+    margin: 0 0 24px 0;
+}
+
+/* ============================================
+   Analytics Tab
+   ============================================ */
+.myavana-analytics-container {
+    background: var(--myavana-white);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--myavana-shadow-sm);
+}
+
+.myavana-analytics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.myavana-analytics-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.myavana-analytics-title h2 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 24px;
+    color: var(--myavana-onyx);
+    margin: 0;
+}
+
+.myavana-period-select {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 2px solid var(--myavana-border);
+    background: var(--myavana-sand);
+    font-family: 'Archivo', sans-serif;
+    font-weight: 600;
+    color: var(--myavana-onyx);
+    cursor: pointer;
+}
+
+.myavana-analytics-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.myavana-stat-card {
+    background: var(--myavana-sand);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.myavana-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.myavana-stat-primary .myavana-stat-icon {
+    background: rgba(231, 166, 144, 0.2);
+    color: var(--myavana-coral);
+}
+
+.myavana-stat-success .myavana-stat-icon {
+    background: rgba(115, 122, 139, 0.2);
+    color: var(--myavana-blueberry);
+}
+
+.myavana-stat-info .myavana-stat-icon {
+    background: rgba(231, 166, 144, 0.15);
+    color: var(--myavana-coral);
+}
+
+.myavana-stat-warning .myavana-stat-icon {
+    background: rgba(115, 122, 139, 0.15);
+    color: var(--myavana-blueberry);
+}
+
+.myavana-stat-number {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 28px;
+    color: var(--myavana-onyx);
+    line-height: 1;
+}
+
+.myavana-stat-label {
+    font-size: 12px;
+    color: var(--myavana-blueberry);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+}
+
+.myavana-analytics-charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.myavana-chart-card {
+    background: var(--myavana-sand);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.myavana-chart-header {
+    margin-bottom: 16px;
+}
+
+.myavana-chart-header h3 {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--myavana-onyx);
+    margin: 0;
+}
+
+.myavana-chart-container {
+    position: relative;
+    height: 250px;
+}
+
+.myavana-analytics-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+/* ============================================
+   Settings Tab
+   ============================================ */
+.myavana-settings-container {
+    background: var(--myavana-white);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--myavana-shadow-sm);
+}
+
+.myavana-settings-section {
+    margin-bottom: 32px;
+}
+
+.myavana-settings-section-title {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--myavana-onyx);
+    margin: 0 0 16px 0;
+}
+
+.myavana-setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: var(--myavana-sand);
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.myavana-setting-info h4 {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--myavana-onyx);
+    margin: 0 0 4px 0;
+}
+
+.myavana-setting-info p {
+    font-size: 13px;
+    color: var(--myavana-blueberry);
+    margin: 0;
+}
+
+.myavana-setting-select {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 2px solid var(--myavana-border);
+    background: var(--myavana-white);
+    font-family: 'Archivo', sans-serif;
+    color: var(--myavana-onyx);
+    cursor: pointer;
+}
+
+/* Toggle Switch */
+.myavana-toggle {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 26px;
+}
+
+.myavana-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.myavana-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--myavana-stone);
+    transition: var(--myavana-transition);
+    border-radius: 26px;
+}
+
+.myavana-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: var(--myavana-transition);
+    border-radius: 50%;
+}
+
+.myavana-toggle input:checked + .myavana-toggle-slider {
+    background-color: var(--myavana-coral);
+}
+
+.myavana-toggle input:checked + .myavana-toggle-slider:before {
+    transform: translateX(22px);
+}
+
+.myavana-settings-actions {
+    display: flex;
+    justify-content: center; 
+    padding-top: 24px;
+}
+
+/* ============================================
+   Mobile Bottom Navigation
+   ============================================ */
+.myavana-mobile-bottom-nav {
+    display: none; /* Hidden on desktop */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--myavana-white);
+    box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.1);
+    padding: 8px 0;
+    z-index: 1000;
+}
+
+.myavana-mobile-nav-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--myavana-blueberry);
+    font-size: 11px;
+    cursor: pointer;
+    transition: var(--myavana-transition);
+}
+
+.myavana-mobile-nav-btn.active {
+    color: var(--myavana-coral);
+}
+
+.myavana-mobile-nav-btn span {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 600;
+}
+
+/* FAB (Floating Action Button) */
+.myavana-fab {
+    flex: 0 0 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--myavana-coral) 0%, var(--myavana-light-coral) 100%);
+    color: var(--myavana-white);
+    transform: translateY(-16px);
+    box-shadow: var(--myavana-shadow-lg);
+}
+
+.myavana-fab:hover {
+    transform: translateY(-18px) scale(1.05);
+}
+
+/* FAB Menu */
+.myavana-fab-menu {
+    position: fixed;
+    bottom: 90px;
+    right: 50%;
+    transform: translateX(50%);
+    background: var(--myavana-white);
+    border-radius: 16px;
+    box-shadow: var(--myavana-shadow-lg);
+    padding: 12px;
+    opacity: 0;
+    pointer-events: none;
+    transition: var(--myavana-transition);
+    z-index: 999;
+    min-width: 200px;
+}
+
+.myavana-fab-menu.active {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateX(50%) translateY(-8px);
+}
+
+.myavana-fab-menu-item {
+    width: 100%;
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--myavana-onyx);
+    font-family: 'Archivo', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--myavana-transition);
+    text-align: left;
+}
+
+.myavana-fab-menu-item:hover {
+    background: var(--myavana-sand);
+}
+
+.myavana-fab-menu-item svg {
+    color: var(--myavana-coral);
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+@media (max-width: 1024px) {
+    .myavana-profile-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .myavana-profile-sidebar {
+        order: -1; /* Move sidebar above main content on tablet */
+    }
+
+    .myavana-goals-routines-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .myavana-analytics-charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .myavana-unified-profile-container {
+        padding-bottom: 80px;
+    }
+
+    .myavana-profile-cover {
+        height: 150px;
+    }
+
+    .myavana-profile-avatar {
+        width: 80px;
+        height: 80px;
+    }
+
+    .myavana-avatar-edit-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    .myavana-profile-header {
+        transform: translateY(-40px);
+    }
+
+    .myavana-profile-avatar-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .myavana-profile-name {
+        font-size: 24px;
+    }
+
+    .myavana-profile-stats-row {
+        gap: 16px;
+        justify-content: center;
+    }
+
+    .myavana-profile-stat-value {
+        font-size: 20px;
+    }
+
+    .myavana-profile-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .myavana-btn-primary,
+    .myavana-btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .myavana-profile-nav {
+        display: none; /* Hide desktop tabs on mobile */
+    }
+
+    .myavana-mobile-bottom-nav {
+        display: flex; /* Show mobile bottom nav */
+    }
+
+    .myavana-community-stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .myavana-user-posts-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .myavana-analytics-stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .myavana-profile-content {
+        padding: 0 16px;
+    }
+
+    .myavana-community-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .myavana-user-posts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .myavana-analytics-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   Notifications
+   ============================================ */
+.myavana-up-notification {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    min-width: 320px;
+    max-width: 500px;
+    background: var(--myavana-white);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    z-index: 10001;
+    opacity: 0;
+    transform: translateX(400px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-left: 4px solid var(--myavana-coral);
+}
+
+.myavana-up-notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.myavana-up-notification-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.myavana-up-notification-success .myavana-up-notification-icon {
+    background: rgba(76, 175, 80, 0.1);
+    color: #4CAF50;
+}
+
+.myavana-up-notification-error .myavana-up-notification-icon {
+    background: rgba(244, 67, 54, 0.1);
+    color: #F44336;
+}
+
+.myavana-up-notification-info .myavana-up-notification-icon {
+    background: rgba(231, 166, 144, 0.1);
+    color: var(--myavana-coral);
+}
+
+.myavana-up-notification-message {
+    flex: 1;
+    font-family: 'Archivo', sans-serif;
+    font-size: 14px;
+    color: var(--myavana-onyx);
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .myavana-up-notification {
+        top: 16px;
+        right: 16px;
+        left: 16px;
+        min-width: auto;
+        max-width: none;
+    }
+}

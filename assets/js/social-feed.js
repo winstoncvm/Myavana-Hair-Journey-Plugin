@@ -134,8 +134,12 @@
      * Create HTML for a single post card
      */
     function createPostCard(post) {
-        const isLiked = post.is_liked ? 'liked' : '';
-        const likeFillColor = post.is_liked ? 'var(--myavana-coral)' : 'none';
+        const reactions = post.reactions || {};
+        const userReaction = post.user_reaction || null;
+        const isLiked = post.is_liked || false;
+
+        // Calculate total reactions - use likes_count if reactions are not available
+        const totalReactions = post.likes_count || Object.values(reactions).reduce((sum, count) => sum + count, 0);
 
         const imageHtml = post.image_url ? `
             <div class="myavana-post-image-wrapper">
@@ -155,6 +159,32 @@
             'general': 'General'
         };
 
+        // Reaction counts HTML
+        const reactionEmojis = {
+            'like': '❤️',
+            'love': '😍',
+            'celebrate': '🎉',
+            'insightful': '💡'
+        };
+
+        let reactionCountsHtml = '';
+        if (totalReactions > 0) {
+            const reactionItems = Object.entries(reactions)
+                .filter(([type, count]) => count > 0)
+                .map(([type, count]) => `
+                    <div class="myavana-reaction-count-item" data-reaction="${type}">
+                        <span class="reaction-emoji">${reactionEmojis[type]}</span>
+                        <span class="reaction-count">${count}</span>
+                    </div>
+                `).join('');
+
+            reactionCountsHtml = `
+                <div class="myavana-reaction-counts">
+                    ${reactionItems}
+                </div>
+            `;
+        }
+
         return `
             <article class="myavana-post-card" data-post-id="${post.id}">
                 <div class="myavana-post-header">
@@ -168,22 +198,54 @@
                         <time class="myavana-post-time">${escapeHtml(post.formatted_date)}</time>
                     </div>
                     <span class="myavana-post-type-badge">${typeLabels[post.post_type] || 'General'}</span>
+                    ${post.user_id == settings.userId ? `
+                        <div class="myavana-post-actions-menu">
+                            <button class="myavana-ci-pin-btn ${post.is_pinned ? 'pinned' : ''}" data-post-id="${post.id}" title="${post.is_pinned ? 'Unpin post' : 'Pin post'}">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="${post.is_pinned ? 'var(--myavana-coral)' : 'none'}" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                                </svg>
+                            </button>
+                            <button class="myavana-post-edit-btn" data-post-id="${post.id}" title="Edit post">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                            <button class="myavana-post-delete-btn" data-post-id="${post.id}" title="Delete post">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    ` : ''}
                 </div>
 
                 ${imageHtml}
 
                 <div class="myavana-post-content">
                     <h2 class="myavana-post-title">${escapeHtml(post.title)}</h2>
-                    <p class="myavana-post-text ${post.content.length > 200 ? 'truncated' : ''}">${escapeHtml(post.content)}</p>
+                    <p class="myavana-post-text ${post.content.length > 200 ? 'truncated' : ''}">${parseTextWithMentionsAndHashtags(escapeHtml(post.content))}</p>
                     ${post.content.length > 200 ? '<a href="#" class="myavana-read-more">Read more</a>' : ''}
                 </div>
 
+                ${reactionCountsHtml}
+
                 <div class="myavana-post-actions">
-                    <button class="myavana-action-btn like-btn ${isLiked}" data-post-id="${post.id}">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="${likeFillColor}" stroke="currentColor" stroke-width="2">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                        </svg>
-                        <span class="myavana-action-count">${post.likes_count || 0}</span>
+                    <div class="myavana-reactions-picker" data-post-id="${post.id}">
+                        <button class="myavana-reaction-option" data-reaction="like" title="Like">❤️</button>
+                        <button class="myavana-reaction-option" data-reaction="love" title="Love">😍</button>
+                        <button class="myavana-reaction-option" data-reaction="celebrate" title="Celebrate">🎉</button>
+                        <button class="myavana-reaction-option" data-reaction="insightful" title="Insightful">💡</button>
+                    </div>
+
+                    <button class="myavana-action-btn myavana-ci-react-btn ${(userReaction || isLiked) ? 'reacted' : ''}"
+                            data-post-id="${post.id}"
+                            data-user-reaction="${userReaction || (isLiked ? 'like' : '')}">
+                        <span class="reaction-display">${userReaction ? reactionEmojis[userReaction] : '❤️'}</span>
+                        <span class="myavana-action-count">${totalReactions || 0}</span>
                     </button>
 
                     <button class="myavana-action-btn comment-btn" data-post-id="${post.id}">
@@ -203,18 +265,27 @@
                         </svg>
                     </button>
 
-                    <button class="myavana-action-btn bookmark-btn" data-post-id="${post.id}" title="Save post">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <button class="myavana-action-btn bookmark-btn ${post.is_bookmarked || post.is_saved ? 'bookmarked' : ''}" data-post-id="${post.id}" title="${post.is_bookmarked || post.is_saved ? 'Saved' : 'Save post'}">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="${post.is_bookmarked || post.is_saved ? 'var(--myavana-coral)' : 'none'}" stroke="currentColor" stroke-width="2">
                             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                         </svg>
                     </button>
+
+                    ${post.user_id != settings.userId ? `
+                        <button class="myavana-action-btn myavana-ci-report-btn" data-post-id="${post.id}" data-content-type="post" title="Report post">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                <line x1="12" y1="9" x2="12" y2="13"></line>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                        </button>
+                    ` : ''}
                 </div>
 
                 <!-- Comments Section -->
                 <div class="myavana-post-comments" id="comments-${post.id}" style="display: none;">
                     <div class="myavana-comments-list"></div>
                     <div class="myavana-comment-form">
-                        <img src="${settings.currentUserAvatar || ''}" alt="You" class="myavana-comment-avatar">
                         <div class="myavana-comment-input-wrapper">
                             <textarea class="myavana-comment-input" placeholder="Write a comment..." rows="1"></textarea>
                             <button class="myavana-comment-submit" data-post-id="${post.id}">
@@ -377,6 +448,55 @@
                 }
             });
         });
+
+        // Save as Draft
+        $('#myavana-ci-save-draft-btn').on('click', function(e) {
+            e.preventDefault();
+
+            const content = $('#myavana-post-content').val();
+            if (!content.trim()) {
+                showNotification('Please write something before saving as draft', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('action', 'myavana_ci_manage_draft');
+            formData.append('nonce', settings.nonce);
+            formData.append('operation', 'create');
+            formData.append('content', content);
+            formData.append('visibility', $('#myavana-post-visibility').val());
+
+            // Get file if exists
+            const fileInput = $fileInput[0];
+            if (fileInput.files.length > 0) {
+                formData.append('image', fileInput.files[0]);
+            }
+
+            $.ajax({
+                url: settings.ajaxUrl,
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        // Close modal
+                        $modal.removeClass('active');
+                        $('body').css('overflow', '');
+                        $form[0].reset();
+                        $uploadPreview.hide().empty();
+                        $('.myavana-upload-prompt').show();
+
+                        showNotification('Draft saved successfully!', 'success');
+                    } else {
+                        showNotification(response.data || 'Failed to save draft', 'error');
+                    }
+                },
+                error: function() {
+                    showNotification('Network error. Please try again.', 'error');
+                }
+            });
+        });
     }
 
     /**
@@ -470,37 +590,86 @@
     /**
      * Load comments for a post
      */
-    function loadComments(postId) {
-        const $commentsList = $(`#comments-${postId} .myavana-comments-list`);
+    function loadComments(postId, page = 1, append = false) {
+        const $commentsSection = $(`#comments-${postId}`);
+        const $commentsList = $commentsSection.find('.myavana-comments-list');
+        const perPage = 10; // Load 10 comments at a time
 
-        $commentsList.html('<div class="myavana-comments-loading">Loading comments...</div>');
+        if (!append) {
+            $commentsList.html('<div class="myavana-comments-loading">Loading comments...</div>');
+        } else {
+            // Show loading state in load more button
+            const $loadMoreBtn = $commentsSection.find('.myavana-ci-load-more-comments');
+            $loadMoreBtn.prop('disabled', true).text('Loading...');
+        }
 
         $.ajax({
             url: settings.ajaxUrl,
             method: 'POST',
             data: {
-                action: 'get_post_comments',
+                action: 'myavana_ci_load_comments',
                 nonce: settings.nonce,
-                post_id: postId
+                post_id: postId,
+                page: page,
+                per_page: perPage
             },
             success: function(response) {
                 if (response.success && response.data) {
-                    const comments = response.data;
+                    const { comments, has_more, total_count } = response.data;
 
-                    if (comments.length === 0) {
+                    if (!append) {
+                        $commentsList.empty();
+                    } else {
+                        // Remove loading message if appending
+                        $commentsList.find('.myavana-comments-loading').remove();
+                    }
+
+                    if (comments.length === 0 && !append) {
                         $commentsList.html('<div class="myavana-comments-empty">Be the first to comment!</div>');
                     } else {
-                        $commentsList.empty();
                         comments.forEach(comment => {
                             $commentsList.append(createCommentHTML(comment));
                         });
+
+                        // Handle load more button
+                        let $loadMoreBtn = $commentsSection.find('.myavana-ci-load-more-comments');
+
+                        if (has_more) {
+                            if ($loadMoreBtn.length === 0) {
+                                // Create load more button
+                                $loadMoreBtn = $(`
+                                    <div class="myavana-ci-load-more-comments-container">
+                                        <button class="myavana-ci-load-more-comments" data-post-id="${postId}" data-page="${page + 1}">
+                                            Load more comments
+                                        </button>
+                                    </div>
+                                `);
+                                $commentsList.after($loadMoreBtn);
+                            } else {
+                                // Update page number
+                                $loadMoreBtn.data('page', page + 1).prop('disabled', false).text('Load more comments');
+                            }
+                        } else {
+                            // No more comments, remove button
+                            $loadMoreBtn.remove();
+                        }
                     }
                 } else {
-                    $commentsList.html('<div class="myavana-comments-error">Failed to load comments</div>');
+                    if (!append) {
+                        $commentsList.html('<div class="myavana-comments-error">Failed to load comments</div>');
+                    } else {
+                        showNotification('Failed to load more comments', 'error');
+                    }
                 }
             },
             error: function() {
-                $commentsList.html('<div class="myavana-comments-error">Failed to load comments</div>');
+                if (!append) {
+                    $commentsList.html('<div class="myavana-comments-error">Failed to load comments</div>');
+                } else {
+                    showNotification('Network error. Please try again.', 'error');
+                    const $loadMoreBtn = $commentsSection.find('.myavana-ci-load-more-comments');
+                    $loadMoreBtn.prop('disabled', false).text('Load more comments');
+                }
             }
         });
     }
@@ -508,10 +677,15 @@
     /**
      * Create HTML for a comment
      */
-    function createCommentHTML(comment) {
+    function createCommentHTML(comment, isReply = false) {
+        const isLiked = comment.is_liked ? 'liked' : '';
+        const likeFillColor = comment.is_liked ? 'var(--myavana-coral)' : 'none';
+        const replyCount = comment.reply_count || 0;
+        const avatarUrl = comment.user_avatar || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23e7a690"%3E%3Cpath d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/%3E%3C/svg%3E';
+
         return `
-            <div class="myavana-comment" data-comment-id="${comment.id}">
-                <img src="${escapeHtml(comment.user_avatar)}" alt="${escapeHtml(comment.display_name)}" class="myavana-comment-avatar">
+            <div class="myavana-comment ${isReply ? 'myavana-comment-reply' : ''}" data-comment-id="${comment.id}" data-post-id="${comment.post_id || ''}">
+                <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(comment.display_name)}" class="myavana-comment-avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'%23e7a690\\'%3E%3Cpath d=\\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z\\'/%3E%3C/svg%3E'">
                 <div class="myavana-comment-content">
                     <div class="myavana-comment-header">
                         <span class="myavana-comment-author">${escapeHtml(comment.display_name)}</span>
@@ -519,8 +693,24 @@
                     </div>
                     <p class="myavana-comment-text">${escapeHtml(comment.content)}</p>
                     <div class="myavana-comment-actions">
-                        <button class="myavana-comment-action-btn reply-btn" data-comment-id="${comment.id}">Reply</button>
+                        <button class="myavana-comment-like-btn ${isLiked}" data-comment-id="${comment.id}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="${likeFillColor}" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                            <span class="myavana-comment-like-count">${comment.likes_count || 0}</span>
+                        </button>
+                        ${!isReply ? `<button class="myavana-comment-reply-btn" data-comment-id="${comment.id}">Reply</button>` : ''}
+                        ${replyCount > 0 && !isReply ? `
+                            <button class="myavana-view-replies-btn" data-comment-id="${comment.id}" data-reply-count="${replyCount}">
+                                View ${replyCount} ${replyCount === 1 ? 'reply' : 'replies'}
+                            </button>
+                        ` : ''}
+                        ${comment.user_id != settings.userId ? `
+                            <button class="myavana-ci-report-btn" data-content-id="${comment.id}" data-content-type="comment" title="Report comment">Report</button>
+                        ` : ''}
                     </div>
+                    <div class="myavana-reply-form-container" style="display: none;"></div>
+                    <div class="myavana-replies-container" style="display: none;"></div>
                 </div>
             </div>
         `;
@@ -781,42 +971,472 @@
     }
 
     /**
-     * Handle bookmark button clicks
+     * Handle bookmark button clicks - Long press for collections, quick click for default save
      */
-    $(document).on('click', '.bookmark-btn', function(e) {
+    let bookmarkPressTimer = null;
+    let bookmarkPickerShown = false;
+
+    $(document).on('mousedown touchstart', '.bookmark-btn', function(e) {
         e.preventDefault();
+        const $btn = $(this);
+        const postId = $btn.data('post-id');
+
+        bookmarkPickerShown = false;
+
+        // Long press to show collections modal
+        bookmarkPressTimer = setTimeout(function() {
+            bookmarkPickerShown = true;
+            openCollectionsModal(postId);
+        }, 500); // 500ms long press
+    });
+
+    $(document).on('mouseup mouseleave touchend touchcancel', '.bookmark-btn', function(e) {
+        clearTimeout(bookmarkPressTimer);
+
+        // If it was a quick click (not long press), toggle default bookmark
+        if (!bookmarkPickerShown && e.type === 'mouseup') {
+            const $btn = $(this);
+            const postId = $btn.data('post-id');
+            const $svg = $btn.find('svg');
+
+            $btn.prop('disabled', true);
+
+            $.ajax({
+                url: settings.ajaxUrl,
+                method: 'POST',
+                data: {
+                    action: 'bookmark_post',
+                    nonce: settings.nonce,
+                    post_id: postId,
+                    collection: 'saved'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        const {action, message} = response.data;
+
+                        if (action === 'bookmarked') {
+                            $btn.addClass('bookmarked');
+                            $svg.attr('fill', 'var(--myavana-coral)');
+                            showNotification(message, 'success');
+                        } else {
+                            $btn.removeClass('bookmarked');
+                            $svg.attr('fill', 'none');
+                            showNotification(message, 'info');
+                        }
+                    } else {
+                        showNotification(response.data || 'Failed to save post', 'error');
+                    }
+                },
+                error: function() {
+                    showNotification('Network error. Please try again.', 'error');
+                },
+                complete: function() {
+                    $btn.prop('disabled', false);
+                }
+            });
+        }
+    });
+
+    /**
+     * Open collections modal for saving posts
+     */
+    function openCollectionsModal(postId) {
+        // Fetch user's collections first
+        $.ajax({
+            url: settings.ajaxUrl,
+            method: 'POST',
+            data: {
+                action: 'myavana_ci_manage_collection',
+                nonce: settings.nonce,
+                operation: 'list'
+            },
+            success: function(response) {
+                if (response.success) {
+                    showCollectionsModal(postId, response.data.collections || []);
+                } else {
+                    showNotification('Failed to load collections', 'error');
+                }
+            },
+            error: function() {
+                showNotification('Network error. Please try again.', 'error');
+            }
+        });
+    }
+
+    /**
+     * Show collections modal
+     */
+    function showCollectionsModal(postId, collections) {
+        const collectionsHTML = collections.map(col => `
+            <label class="myavana-ci-collection-item">
+                <input type="checkbox" name="collection" value="${col.id}" ${col.has_post ? 'checked' : ''}>
+                <span>${escapeHtml(col.name)}</span>
+                <span class="myavana-ci-collection-count">(${col.post_count || 0})</span>
+            </label>
+        `).join('');
+
+        const $modal = $(`
+            <div class="myavana-ci-collections-modal active" id="collections-modal-${postId}">
+                <div class="myavana-modal-overlay"></div>
+                <div class="myavana-ci-collections-modal-content">
+                    <div class="myavana-ci-collections-header">
+                        <h3>Save to Collection</h3>
+                        <button class="myavana-ci-collections-close">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="myavana-ci-collections-body">
+                        <div class="myavana-ci-collections-list">
+                            ${collectionsHTML || '<p class="myavana-ci-no-collections">No collections yet. Create one below!</p>'}
+                        </div>
+                        <div class="myavana-ci-create-collection">
+                            <input type="text" class="myavana-ci-collection-name-input" placeholder="New collection name" maxlength="50">
+                            <button class="myavana-ci-create-collection-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                Create
+                            </button>
+                        </div>
+                    </div>
+                    <div class="myavana-ci-collections-footer">
+                        <button class="myavana-btn-secondary myavana-ci-collections-cancel">Cancel</button>
+                        <button class="myavana-btn-primary myavana-ci-collections-save" data-post-id="${postId}">Save</button>
+                    </div>
+                </div>
+            </div>
+        `);
+
+        $('body').append($modal).css('overflow', 'hidden');
+
+        // Close handlers
+        $modal.find('.myavana-ci-collections-close, .myavana-ci-collections-cancel, .myavana-modal-overlay').on('click', function(e) {
+            if (e.target === this) {
+                $modal.removeClass('active');
+                setTimeout(() => {
+                    $modal.remove();
+                    $('body').css('overflow', '');
+                }, 300);
+            }
+        });
+
+        // Create collection handler
+        $modal.find('.myavana-ci-create-collection-btn').on('click', function() {
+            const $input = $modal.find('.myavana-ci-collection-name-input');
+            const name = $input.val().trim();
+
+            if (!name) {
+                showNotification('Please enter a collection name', 'error');
+                return;
+            }
+
+            $.ajax({
+                url: settings.ajaxUrl,
+                method: 'POST',
+                data: {
+                    action: 'myavana_ci_manage_collection',
+                    nonce: settings.nonce,
+                    operation: 'create',
+                    name: name
+                },
+                success: function(response) {
+                    if (response.success) {
+                        const newCollection = response.data.collection;
+                        const $list = $modal.find('.myavana-ci-collections-list');
+                        $list.find('.myavana-ci-no-collections').remove();
+                        $list.append(`
+                            <label class="myavana-ci-collection-item">
+                                <input type="checkbox" name="collection" value="${newCollection.id}">
+                                <span>${escapeHtml(newCollection.name)}</span>
+                                <span class="myavana-ci-collection-count">(0)</span>
+                            </label>
+                        `);
+                        $input.val('');
+                        showNotification('Collection created!', 'success');
+                    } else {
+                        showNotification(response.data || 'Failed to create collection', 'error');
+                    }
+                },
+                error: function() {
+                    showNotification('Network error. Please try again.', 'error');
+                }
+            });
+        });
+
+        // Save to collections handler
+        $modal.find('.myavana-ci-collections-save').on('click', function() {
+            const $saveBtn = $(this);
+            const selectedCollections = [];
+            $modal.find('input[name="collection"]:checked').each(function() {
+                selectedCollections.push($(this).val());
+            });
+
+            $saveBtn.prop('disabled', true).text('Saving...');
+
+            $.ajax({
+                url: settings.ajaxUrl,
+                method: 'POST',
+                data: {
+                    action: 'myavana_ci_manage_collection',
+                    nonce: settings.nonce,
+                    operation: 'add_post',
+                    post_id: postId,
+                    collection_ids: selectedCollections.join(',')
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showNotification('Post saved to collections!', 'success');
+                        $modal.removeClass('active');
+                        setTimeout(() => {
+                            $modal.remove();
+                            $('body').css('overflow', '');
+                        }, 300);
+                    } else {
+                        showNotification(response.data || 'Failed to save to collections', 'error');
+                        $saveBtn.prop('disabled', false).text('Save');
+                    }
+                },
+                error: function() {
+                    showNotification('Network error. Please try again.', 'error');
+                    $saveBtn.prop('disabled', false).text('Save');
+                }
+            });
+        });
+    }
+
+    /**
+     * Handle edit post
+     */
+    $(document).on('click', '.myavana-post-edit-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const postId = $(this).data('post-id');
+        const $postCard = $(this).closest('.myavana-post-card');
+        const $postContent = $postCard.find('.myavana-post-content');
+
+        // Get current values
+        const currentTitle = $postCard.find('.myavana-post-title').text();
+        const currentText = $postCard.find('.myavana-post-text').text();
+
+        // Create edit form
+        const $editForm = $(`
+            <div class="myavana-edit-post-form">
+                <div class="myavana-edit-form-group">
+                    <label for="edit-title-${postId}">Title</label>
+                    <input type="text" id="edit-title-${postId}" class="myavana-edit-input" value="${escapeHtml(currentTitle)}" maxlength="200">
+                </div>
+                <div class="myavana-edit-form-group">
+                    <label for="edit-content-${postId}">Content</label>
+                    <textarea id="edit-content-${postId}" class="myavana-edit-textarea" maxlength="5000">${escapeHtml(currentText)}</textarea>
+                </div>
+                <div class="myavana-edit-form-actions">
+                    <button class="myavana-edit-cancel-btn" data-post-id="${postId}">Cancel</button>
+                    <button class="myavana-edit-save-btn" data-post-id="${postId}">Save Changes</button>
+                </div>
+            </div>
+        `);
+
+        // Store original content
+        $postContent.data('original-html', $postContent.html());
+
+        // Replace content with edit form
+        $postContent.html($editForm);
+    });
+
+    /**
+     * Handle edit cancel
+     */
+    $(document).on('click', '.myavana-edit-cancel-btn', function(e) {
+        e.preventDefault();
+        const postId = $(this).data('post-id');
+        const $postCard = $(`[data-post-id="${postId}"]`);
+        const $postContent = $postCard.find('.myavana-post-content');
+
+        // Restore original content
+        $postContent.html($postContent.data('original-html'));
+    });
+
+    /**
+     * Handle edit save
+     */
+    $(document).on('click', '.myavana-edit-save-btn', function(e) {
+        e.preventDefault();
+
+        const postId = $(this).data('post-id');
+        const $postCard = $(`[data-post-id="${postId}"]`);
+        const $saveBtn = $(this);
+
+        const newTitle = $(`#edit-title-${postId}`).val().trim();
+        const newContent = $(`#edit-content-${postId}`).val().trim();
+
+        if (!newTitle || !newContent) {
+            showNotification('Title and content are required', 'error');
+            return;
+        }
+
+        $saveBtn.prop('disabled', true).text('Saving...');
+
+        $.ajax({
+            url: settings.ajaxUrl,
+            method: 'POST',
+            data: {
+                action: 'myavana_ci_edit_post',
+                nonce: settings.nonce,
+                post_id: postId,
+                title: newTitle,
+                content: newContent
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Update post display
+                    const $postContent = $postCard.find('.myavana-post-content');
+                    const truncated = newContent.length > 200;
+                    $postContent.html(`
+                        <h2 class="myavana-post-title">${escapeHtml(newTitle)}</h2>
+                        <p class="myavana-post-text ${truncated ? 'truncated' : ''}">${escapeHtml(newContent)}</p>
+                        ${truncated ? '<a href="#" class="myavana-read-more">Read more</a>' : ''}
+                    `);
+                    showNotification('Post updated successfully', 'success');
+                } else {
+                    showNotification(response.data || 'Failed to update post', 'error');
+                    // Restore original content on error
+                    const $postContent = $postCard.find('.myavana-post-content');
+                    $postContent.html($postContent.data('original-html'));
+                }
+            },
+            error: function() {
+                showNotification('Network error. Please try again.', 'error');
+                // Restore original content on error
+                const $postContent = $postCard.find('.myavana-post-content');
+                $postContent.html($postContent.data('original-html'));
+            },
+            complete: function() {
+                $saveBtn.prop('disabled', false).text('Save Changes');
+            }
+        });
+    });
+
+    /**
+     * Handle pin post toggle
+     */
+    $(document).on('click', '.myavana-ci-pin-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
 
         const $btn = $(this);
         const postId = $btn.data('post-id');
+        const isPinned = $btn.hasClass('pinned');
         const $svg = $btn.find('svg');
 
-        // Disable button during request
+        $.ajax({
+            url: settings.ajaxUrl,
+            method: 'POST',
+            data: {
+                action: 'myavana_ci_edit_post',
+                nonce: settings.nonce,
+                post_id: postId,
+                is_pinned: isPinned ? 0 : 1
+            },
+            success: function(response) {
+                if (response.success) {
+                    if (isPinned) {
+                        $btn.removeClass('pinned').attr('title', 'Pin post');
+                        $svg.attr('fill', 'none');
+                        showNotification('Post unpinned', 'info');
+                    } else {
+                        $btn.addClass('pinned').attr('title', 'Unpin post');
+                        $svg.attr('fill', 'var(--myavana-coral)');
+                        showNotification('Post pinned to top!', 'success');
+                    }
+                } else {
+                    showNotification(response.data || 'Failed to pin post', 'error');
+                }
+            },
+            error: function() {
+                showNotification('Network error. Please try again.', 'error');
+            }
+        });
+    });
+
+    /**
+     * Handle delete post
+     */
+    $(document).on('click', '.myavana-post-delete-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const postId = $(this).data('post-id');
+        const $postCard = $(this).closest('.myavana-post-card');
+
+        if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+            return;
+        }
+
+        $.ajax({
+            url: settings.ajaxUrl,
+            method: 'POST',
+            data: {
+                action: 'myavana_ci_delete_post',
+                nonce: settings.nonce,
+                post_id: postId
+            },
+            success: function(response) {
+                if (response.success) {
+                    $postCard.fadeOut(300, function() {
+                        $(this).remove();
+                    });
+                    showNotification('Post deleted successfully', 'success');
+                } else {
+                    showNotification(response.data || 'Failed to delete post', 'error');
+                }
+            },
+            error: function() {
+                showNotification('Network error. Please try again.', 'error');
+            }
+        });
+    });
+
+    /**
+     * Handle comment like
+     */
+    $(document).on('click', '.myavana-comment-like-btn', function(e) {
+        e.preventDefault();
+
+        const $btn = $(this);
+        const commentId = $btn.data('comment-id');
+        const $svg = $btn.find('svg');
+        const $count = $btn.find('.myavana-comment-like-count');
+
         $btn.prop('disabled', true);
 
         $.ajax({
             url: settings.ajaxUrl,
             method: 'POST',
             data: {
-                action: 'bookmark_post',
+                action: 'like_comment',
                 nonce: settings.nonce,
-                post_id: postId,
-                collection: 'saved'
+                comment_id: commentId
             },
             success: function(response) {
                 if (response.success) {
-                    const {action, message} = response.data;
+                    const {action, likes_count} = response.data;
 
-                    if (action === 'bookmarked') {
-                        $btn.addClass('bookmarked');
+                    if (action === 'liked') {
+                        $btn.addClass('liked');
                         $svg.attr('fill', 'var(--myavana-coral)');
-                        showNotification(message, 'success');
                     } else {
-                        $btn.removeClass('bookmarked');
+                        $btn.removeClass('liked');
                         $svg.attr('fill', 'none');
-                        showNotification(message, 'info');
                     }
+
+                    $count.text(likes_count || 0);
                 } else {
-                    showNotification(response.data || 'Failed to save post', 'error');
+                    showNotification(response.data || 'Failed to like comment', 'error');
                 }
             },
             error: function() {
@@ -827,6 +1447,605 @@
             }
         });
     });
+
+    /**
+     * Handle reaction button click - Show reactions picker on long press, quick react on click
+     */
+    let reactionPressTimer = null;
+    let reactionPickerShown = false;
+
+    $(document).on('mousedown touchstart', '.myavana-ci-react-btn', function(e) {
+        e.preventDefault();
+        const $btn = $(this);
+        const $picker = $btn.siblings('.myavana-reactions-picker');
+
+        reactionPickerShown = false;
+
+        // Long press to show reactions picker
+        reactionPressTimer = setTimeout(function() {
+            reactionPickerShown = true;
+            // Hide all other pickers
+            $('.myavana-reactions-picker').removeClass('show');
+            // Show this picker
+            $picker.addClass('show');
+        }, 500); // 500ms long press
+    });
+
+    $(document).on('mouseup mouseleave touchend touchcancel', '.myavana-ci-react-btn', function(e) {
+        clearTimeout(reactionPressTimer);
+
+        // If it was a quick click (not long press), toggle current reaction
+        if (!reactionPickerShown && e.type === 'mouseup') {
+            const $btn = $(this);
+            const postId = $btn.data('post-id');
+            const currentReaction = $btn.data('user-reaction');
+
+            // If user already has a reaction, remove it; otherwise add default 'like'
+            if (currentReaction) {
+                reactToPost(postId, currentReaction, true); // Remove reaction
+            } else {
+                reactToPost(postId, 'like', false); // Add like reaction
+            }
+        }
+    });
+
+    /**
+     * Handle reaction option selection
+     */
+    $(document).on('click', '.myavana-reaction-option', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const $option = $(this);
+        const reactionType = $option.data('reaction');
+        const $picker = $option.closest('.myavana-reactions-picker');
+        const postId = $picker.data('post-id');
+
+        // Hide picker
+        $picker.removeClass('show');
+
+        // Add reaction
+        reactToPost(postId, reactionType, false);
+    });
+
+    /**
+     * Close reactions picker when clicking outside
+     */
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.myavana-ci-react-btn, .myavana-reactions-picker').length) {
+            $('.myavana-reactions-picker').removeClass('show');
+        }
+    });
+
+    /**
+     * React to a post
+     */
+    function reactToPost(postId, reactionType, removeReaction = false) {
+        $.ajax({
+            url: settings.ajaxUrl,
+            method: 'POST',
+            data: {
+                action: 'myavana_ci_react_to_post',
+                nonce: settings.nonce,
+                post_id: postId,
+                reaction_type: reactionType,
+                remove: removeReaction
+            },
+            success: function(response) {
+                if (response.success) {
+                    const { reactions, user_reaction } = response.data;
+
+                    // Update the post card UI
+                    updatePostReactions(postId, reactions, user_reaction);
+
+                    // Show notification
+                    if (!removeReaction) {
+                        const reactionNames = {
+                            'like': 'liked',
+                            'love': 'loved',
+                            'celebrate': 'celebrated',
+                            'insightful': 'found this insightful'
+                        };
+                        showNotification(`You ${reactionNames[reactionType]} this post!`, 'success');
+                    }
+                } else {
+                    showNotification(response.data || 'Failed to react to post', 'error');
+                }
+            },
+            error: function() {
+                showNotification('Network error. Please try again.', 'error');
+            }
+        });
+    }
+
+    /**
+     * Update post reactions UI
+     */
+    function updatePostReactions(postId, reactions, userReaction) {
+        const $postCard = $(`.myavana-post-card[data-post-id="${postId}"]`);
+        const $reactBtn = $postCard.find('.myavana-ci-react-btn');
+        const $reactionCounts = $postCard.find('.myavana-reaction-counts');
+
+        const reactionEmojis = {
+            'like': '❤️',
+            'love': '😍',
+            'celebrate': '🎉',
+            'insightful': '💡'
+        };
+
+        // Calculate total reactions
+        const totalReactions = Object.values(reactions).reduce((sum, count) => sum + count, 0);
+
+        // Update reaction button
+        $reactBtn.data('user-reaction', userReaction || '');
+        $reactBtn.find('.reaction-display').text(userReaction ? reactionEmojis[userReaction] : '❤️');
+        $reactBtn.find('.myavana-action-count').text(totalReactions || 0);
+
+        if (userReaction) {
+            $reactBtn.addClass('reacted');
+        } else {
+            $reactBtn.removeClass('reacted');
+        }
+
+        // Update reaction counts display
+        if (totalReactions > 0) {
+            const reactionItems = Object.entries(reactions)
+                .filter(([type, count]) => count > 0)
+                .map(([type, count]) => `
+                    <div class="myavana-reaction-count-item" data-reaction="${type}">
+                        <span class="reaction-emoji">${reactionEmojis[type]}</span>
+                        <span class="reaction-count">${count}</span>
+                    </div>
+                `).join('');
+
+            if ($reactionCounts.length) {
+                $reactionCounts.html(reactionItems);
+            } else {
+                // Insert reaction counts before post actions
+                $postCard.find('.myavana-post-actions').before(`
+                    <div class="myavana-reaction-counts">
+                        ${reactionItems}
+                    </div>
+                `);
+            }
+        } else {
+            // Remove reaction counts if no reactions
+            $reactionCounts.remove();
+        }
+    }
+
+    /**
+     * Handle comment reply button click
+     */
+    $(document).on('click', '.myavana-comment-reply-btn', function(e) {
+        e.preventDefault();
+
+        const $btn = $(this);
+        const commentId = $btn.data('comment-id');
+        const $comment = $btn.closest('.myavana-comment');
+        const $replyFormContainer = $comment.find('.myavana-reply-form-container').first();
+
+        // If form already exists, just toggle it
+        if ($replyFormContainer.children().length > 0) {
+            $replyFormContainer.toggle();
+            return;
+        }
+
+        // Create reply form
+        const $replyForm = $(`
+            <div class="myavana-comment-reply-form">
+                <div class="myavana-comment-input-wrapper">
+                    <textarea class="myavana-reply-input" placeholder="Write a reply..." rows="1"></textarea>
+                    <div class="myavana-reply-actions">
+                        <button class="myavana-reply-cancel-btn" data-comment-id="${commentId}">Cancel</button>
+                        <button class="myavana-reply-submit-btn" data-comment-id="${commentId}">Reply</button>
+                    </div>
+                </div>
+            </div>
+        `);
+
+        $replyFormContainer.html($replyForm).show();
+        $replyFormContainer.find('.myavana-reply-input').focus();
+    });
+
+    /**
+     * Handle reply cancel
+     */
+    $(document).on('click', '.myavana-reply-cancel-btn', function(e) {
+        e.preventDefault();
+        $(this).closest('.myavana-reply-form-container').hide();
+    });
+
+    /**
+     * Handle reply submission
+     */
+    $(document).on('click', '.myavana-reply-submit-btn', function(e) {
+        e.preventDefault();
+
+        const $btn = $(this);
+        const parentCommentId = $btn.data('comment-id');
+        const $form = $btn.closest('.myavana-comment-reply-form');
+        const $input = $form.find('.myavana-reply-input');
+        const content = $input.val().trim();
+
+        const $comment = $btn.closest('.myavana-comment');
+        const postId = $comment.data('post-id');
+
+        if (!content) {
+            showNotification('Please enter a reply', 'error');
+            return;
+        }
+
+        $btn.prop('disabled', true).text('Posting...');
+
+        $.ajax({
+            url: settings.ajaxUrl,
+            method: 'POST',
+            data: {
+                action: 'myavana_ci_reply_to_comment',
+                nonce: settings.nonce,
+                post_id: postId,
+                parent_id: parentCommentId,
+                content: content
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Hide reply form
+                    $form.closest('.myavana-reply-form-container').hide();
+
+                    // Add reply to replies container
+                    const $repliesContainer = $comment.find('.myavana-replies-container').first();
+                    const replyHTML = createCommentHTML(response.data.comment, true);
+
+                    if ($repliesContainer.is(':hidden')) {
+                        $repliesContainer.html(replyHTML).show();
+                    } else {
+                        $repliesContainer.append(replyHTML);
+                    }
+
+                    // Update "View replies" button or create one
+                    let $viewRepliesBtn = $comment.find('.myavana-view-replies-btn').first();
+                    const currentCount = parseInt($viewRepliesBtn.data('reply-count') || 0) + 1;
+
+                    if ($viewRepliesBtn.length) {
+                        $viewRepliesBtn.data('reply-count', currentCount);
+                        $viewRepliesBtn.text(`View ${currentCount} ${currentCount === 1 ? 'reply' : 'replies'}`);
+                    } else {
+                        // Add view replies button
+                        const $actions = $comment.find('.myavana-comment-actions').first();
+                        $actions.append(`
+                            <button class="myavana-view-replies-btn" data-comment-id="${parentCommentId}" data-reply-count="${currentCount}">
+                                View ${currentCount} ${currentCount === 1 ? 'reply' : 'replies'}
+                            </button>
+                        `);
+                    }
+
+                    showNotification('Reply added!', 'success');
+                } else {
+                    showNotification(response.data || 'Failed to add reply', 'error');
+                }
+            },
+            error: function() {
+                showNotification('Network error. Please try again.', 'error');
+            },
+            complete: function() {
+                $btn.prop('disabled', false).text('Reply');
+            }
+        });
+    });
+
+    /**
+     * Handle view replies button click
+     */
+    $(document).on('click', '.myavana-view-replies-btn', function(e) {
+        e.preventDefault();
+
+        const $btn = $(this);
+        const commentId = $btn.data('comment-id');
+        const $comment = $btn.closest('.myavana-comment');
+        const $repliesContainer = $comment.find('.myavana-replies-container').first();
+
+        // If replies are already loaded, just toggle visibility
+        if ($repliesContainer.children().length > 0) {
+            $repliesContainer.toggle();
+            $btn.text($repliesContainer.is(':visible') ? 'Hide replies' : `View ${$btn.data('reply-count')} replies`);
+            return;
+        }
+
+        // Load replies from server
+        $btn.prop('disabled', true).text('Loading...');
+
+        $.ajax({
+            url: settings.ajaxUrl,
+            method: 'POST',
+            data: {
+                action: 'myavana_ci_get_replies',
+                nonce: settings.nonce,
+                comment_id: commentId
+            },
+            success: function(response) {
+                if (response.success && response.data.replies) {
+                    const replies = response.data.replies;
+
+                    if (replies.length > 0) {
+                        const repliesHTML = replies.map(reply => createCommentHTML(reply, true)).join('');
+                        $repliesContainer.html(repliesHTML).show();
+                        $btn.text('Hide replies');
+                    } else {
+                        showNotification('No replies found', 'info');
+                    }
+                } else {
+                    showNotification('Failed to load replies', 'error');
+                }
+            },
+            error: function() {
+                showNotification('Network error. Please try again.', 'error');
+            },
+            complete: function() {
+                $btn.prop('disabled', false);
+            }
+        });
+    });
+
+    /**
+     * Auto-resize reply textarea
+     */
+    $(document).on('input', '.myavana-reply-input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+
+    /**
+     * Handle load more comments button click
+     */
+    $(document).on('click', '.myavana-ci-load-more-comments', function(e) {
+        e.preventDefault();
+
+        const $btn = $(this);
+        const postId = $btn.data('post-id');
+        const page = $btn.data('page');
+
+        loadComments(postId, page, true);
+    });
+
+    /**
+     * Handle report button click
+     */
+    $(document).on('click', '.myavana-ci-report-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const $btn = $(this);
+        const contentId = $btn.data('content-id') || $btn.data('post-id');
+        const contentType = $btn.data('content-type');
+
+        openReportModal(contentId, contentType);
+    });
+
+    /**
+     * Open report modal
+     */
+    function openReportModal(contentId, contentType) {
+        const $modal = $(`
+            <div class="myavana-ci-report-modal active" id="report-modal-${contentId}">
+                <div class="myavana-modal-overlay"></div>
+                <div class="myavana-ci-report-modal-content">
+                    <div class="myavana-ci-report-header">
+                        <h3>Report ${contentType === 'post' ? 'Post' : 'Comment'}</h3>
+                        <button class="myavana-ci-report-close">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="myavana-ci-report-body">
+                        <p>Why are you reporting this ${contentType}?</p>
+                        <div class="myavana-ci-report-reasons">
+                            <label class="myavana-ci-report-reason">
+                                <input type="radio" name="report_reason" value="spam" required>
+                                <span>Spam or misleading</span>
+                            </label>
+                            <label class="myavana-ci-report-reason">
+                                <input type="radio" name="report_reason" value="harassment" required>
+                                <span>Harassment or hate speech</span>
+                            </label>
+                            <label class="myavana-ci-report-reason">
+                                <input type="radio" name="report_reason" value="inappropriate" required>
+                                <span>Inappropriate content</span>
+                            </label>
+                            <label class="myavana-ci-report-reason">
+                                <input type="radio" name="report_reason" value="false_information" required>
+                                <span>False information</span>
+                            </label>
+                            <label class="myavana-ci-report-reason">
+                                <input type="radio" name="report_reason" value="other" required>
+                                <span>Other</span>
+                            </label>
+                        </div>
+                        <textarea class="myavana-ci-report-details" placeholder="Additional details (optional)" rows="3" maxlength="500"></textarea>
+                    </div>
+                    <div class="myavana-ci-report-footer">
+                        <button class="myavana-btn-secondary myavana-ci-report-cancel">Cancel</button>
+                        <button class="myavana-btn-primary myavana-ci-report-submit" data-content-id="${contentId}" data-content-type="${contentType}">Submit Report</button>
+                    </div>
+                </div>
+            </div>
+        `);
+
+        $('body').append($modal).css('overflow', 'hidden');
+
+        // Close handlers
+        $modal.find('.myavana-ci-report-close, .myavana-ci-report-cancel, .myavana-modal-overlay').on('click', function(e) {
+            if (e.target === this) {
+                $modal.removeClass('active');
+                setTimeout(() => {
+                    $modal.remove();
+                    $('body').css('overflow', '');
+                }, 300);
+            }
+        });
+
+        // Submit handler
+        $modal.find('.myavana-ci-report-submit').on('click', function() {
+            const $submitBtn = $(this);
+            const reason = $modal.find('input[name="report_reason"]:checked').val();
+            const details = $modal.find('.myavana-ci-report-details').val().trim();
+
+            if (!reason) {
+                showNotification('Please select a reason', 'error');
+                return;
+            }
+
+            $submitBtn.prop('disabled', true).text('Submitting...');
+
+            $.ajax({
+                url: settings.ajaxUrl,
+                method: 'POST',
+                data: {
+                    action: 'myavana_ci_report_content',
+                    nonce: settings.nonce,
+                    content_type: contentType,
+                    content_id: contentId,
+                    reason: reason,
+                    details: details
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showNotification('Report submitted successfully. Thank you for helping keep our community safe.', 'success');
+                        $modal.removeClass('active');
+                        setTimeout(() => {
+                            $modal.remove();
+                            $('body').css('overflow', '');
+                        }, 300);
+                    } else {
+                        showNotification(response.data || 'Failed to submit report', 'error');
+                        $submitBtn.prop('disabled', false).text('Submit Report');
+                    }
+                },
+                error: function() {
+                    showNotification('Network error. Please try again.', 'error');
+                    $submitBtn.prop('disabled', false).text('Submit Report');
+                }
+            });
+        });
+    }
+
+    /**
+     * Handle reaction count click - Show analytics
+     */
+    $(document).on('click', '.myavana-reaction-count-item, .myavana-ci-react-btn', function(e) {
+        // Only handle if clicking on reaction count item or if user owns the post
+        if ($(this).hasClass('myavana-reaction-count-item') ||
+            ($(this).hasClass('myavana-ci-react-btn') && $(this).closest('.myavana-post-card').find('.myavana-post-edit-btn').length > 0)) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const $postCard = $(this).closest('.myavana-post-card');
+            const postId = $postCard.data('post-id');
+
+            openPostAnalyticsModal(postId);
+        }
+    });
+
+    /**
+     * Open post analytics modal
+     */
+    function openPostAnalyticsModal(postId) {
+        $.ajax({
+            url: settings.ajaxUrl,
+            method: 'POST',
+            data: {
+                action: 'myavana_ci_get_post_analytics',
+                nonce: settings.nonce,
+                post_id: postId
+            },
+            success: function(response) {
+                if (response.success) {
+                    showPostAnalyticsModal(postId, response.data);
+                } else {
+                    showNotification('Failed to load analytics', 'error');
+                }
+            },
+            error: function() {
+                showNotification('Network error. Please try again.', 'error');
+            }
+        });
+    }
+
+    /**
+     * Show post analytics modal
+     */
+    function showPostAnalyticsModal(postId, data) {
+        const { reactions, shares } = data;
+
+        const reactionEmojis = {
+            'like': '❤️',
+            'love': '😍',
+            'celebrate': '🎉',
+            'insightful': '💡'
+        };
+
+        let reactionsHTML = '';
+        if (reactions && reactions.length > 0) {
+            const groupedReactions = {};
+            reactions.forEach(r => {
+                if (!groupedReactions[r.reaction_type]) {
+                    groupedReactions[r.reaction_type] = [];
+                }
+                groupedReactions[r.reaction_type].push(r);
+            });
+
+            reactionsHTML = Object.entries(groupedReactions).map(([type, users]) => `
+                <div class="myavana-ci-analytics-section">
+                    <h4><span class="reaction-emoji">${reactionEmojis[type]}</span> ${type.charAt(0).toUpperCase() + type.slice(1)} (${users.length})</h4>
+                    <div class="myavana-ci-analytics-users">
+                        ${users.map(u => `
+                            <div class="myavana-ci-analytics-user">
+                                <img src="${escapeHtml(u.avatar)}" alt="${escapeHtml(u.display_name)}">
+                                <span>${escapeHtml(u.display_name)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            reactionsHTML = '<p class="myavana-ci-no-analytics">No reactions yet</p>';
+        }
+
+        const $modal = $(`
+            <div class="myavana-ci-analytics-modal active" id="analytics-modal-${postId}">
+                <div class="myavana-modal-overlay"></div>
+                <div class="myavana-ci-analytics-modal-content">
+                    <div class="myavana-ci-analytics-header">
+                        <h3>Post Analytics</h3>
+                        <button class="myavana-ci-analytics-close">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="myavana-ci-analytics-body">
+                        ${reactionsHTML}
+                    </div>
+                </div>
+            </div>
+        `);
+
+        $('body').append($modal).css('overflow', 'hidden');
+
+        // Close handlers
+        $modal.find('.myavana-ci-analytics-close, .myavana-modal-overlay').on('click', function(e) {
+            if (e.target === this) {
+                $modal.removeClass('active');
+                setTimeout(() => {
+                    $modal.remove();
+                    $('body').css('overflow', '');
+                }, 300);
+            }
+        });
+    }
 
     /**
      * Handle avatar/username clicks - Open user profile
@@ -844,10 +2063,10 @@
     function openUserProfileModal(userId) {
         // Show loading state
         const $loadingModal = $(`
-            <div class="myavana-profile-modal active" id="profile-modal-${userId}">
-                <div class="myavana-modal-overlay"></div>
-                <div class="myavana-profile-modal-content">
-                    <div class="myavana-profile-loading">
+            <div class="myavana-upm-modal active" id="upm-modal-${userId}">
+                <div class="myavana-upm-overlay"></div>
+                <div class="myavana-upm-content">
+                    <div class="myavana-upm-loading">
                         <div class="myavana-loader-spinner"></div>
                         <p>Loading profile...</p>
                     </div>
@@ -868,21 +2087,21 @@
             },
             success: function(response) {
                 if (response.success) {
-                    $loadingModal.find('.myavana-profile-modal-content').html(renderUserProfile(response.data));
+                    $loadingModal.find('.myavana-upm-content').html(renderUserProfile(response.data));
                 } else {
-                    $loadingModal.find('.myavana-profile-modal-content').html(`
-                        <div class="myavana-profile-error">
+                    $loadingModal.find('.myavana-upm-content').html(`
+                        <div class="myavana-upm-error">
                             <p>Failed to load profile</p>
-                            <button class="myavana-btn-secondary" onclick="$(this).closest('.myavana-profile-modal').remove(); $('body').css('overflow', '');">Close</button>
+                            <button class="myavana-btn-secondary" onclick="$(this).closest('.myavana-upm-modal').remove(); $('body').css('overflow', '');">Close</button>
                         </div>
                     `);
                 }
             },
             error: function() {
-                $loadingModal.find('.myavana-profile-modal-content').html(`
-                    <div class="myavana-profile-error">
+                $loadingModal.find('.myavana-upm-content').html(`
+                    <div class="myavana-upm-error">
                         <p>Network error. Please try again.</p>
-                        <button class="myavana-btn-secondary" onclick="$(this).closest('.myavana-profile-modal').remove(); $('body').css('overflow', '');">Close</button>
+                        <button class="myavana-btn-secondary" onclick="$(this).closest('.myavana-upm-modal').remove(); $('body').css('overflow', '');">Close</button>
                     </div>
                 `);
             }
@@ -897,8 +2116,8 @@
         const isFollowing = profile.is_following || false;
 
         return `
-            <div class="myavana-profile-header">
-                <button class="myavana-profile-close">
+            <div class="myavana-upm-header">
+                <button class="myavana-upm-close">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -906,25 +2125,25 @@
                 </button>
             </div>
 
-            <div class="myavana-profile-info">
-                <div class="myavana-profile-avatar-large">
+            <div class="myavana-upm-info">
+                <div class="myavana-upm-avatar-large">
                     <img src="${escapeHtml(profile.avatar)}" alt="${escapeHtml(profile.display_name)}">
                 </div>
-                <h2 class="myavana-profile-name">${escapeHtml(profile.display_name)}</h2>
-                ${profile.bio ? `<p class="myavana-profile-bio">${escapeHtml(profile.bio)}</p>` : ''}
+                <h2 class="myavana-upm-name">${escapeHtml(profile.display_name)}</h2>
+                ${profile.bio ? `<p class="myavana-upm-bio">${escapeHtml(profile.bio)}</p>` : ''}
 
-                <div class="myavana-profile-stats">
-                    <div class="myavana-profile-stat">
-                        <span class="myavana-stat-number">${profile.stats.posts_count || 0}</span>
-                        <span class="myavana-stat-label">Posts</span>
+                <div class="myavana-upm-stats">
+                    <div class="myavana-upm-stat">
+                        <span class="myavana-upm-stat-number">${profile.stats.posts_count || 0}</span>
+                        <span class="myavana-upm-stat-label">Posts</span>
                     </div>
-                    <div class="myavana-profile-stat">
-                        <span class="myavana-stat-number">${profile.stats.followers_count || 0}</span>
-                        <span class="myavana-stat-label">Followers</span>
+                    <div class="myavana-upm-stat">
+                        <span class="myavana-upm-stat-number">${profile.stats.followers_count || 0}</span>
+                        <span class="myavana-upm-stat-label">Followers</span>
                     </div>
-                    <div class="myavana-profile-stat">
-                        <span class="myavana-stat-number">${profile.stats.following_count || 0}</span>
-                        <span class="myavana-stat-label">Following</span>
+                    <div class="myavana-upm-stat">
+                        <span class="myavana-upm-stat-number">${profile.stats.following_count || 0}</span>
+                        <span class="myavana-upm-stat-label">Following</span>
                     </div>
                 </div>
 
@@ -942,21 +2161,21 @@
                 ` : ''}
             </div>
 
-            <div class="myavana-profile-tabs">
-                <button class="myavana-profile-tab active" data-tab="posts">Posts</button>
-                <button class="myavana-profile-tab" data-tab="journey">Hair Journey</button>
+            <div class="myavana-upm-tabs">
+                <button class="myavana-upm-tab active" data-tab="posts">Posts</button>
+                <button class="myavana-upm-tab" data-tab="journey">Hair Journey</button>
             </div>
 
-            <div class="myavana-profile-content">
-                <div class="myavana-profile-tab-content active" data-tab-content="posts">
-                    <div class="myavana-profile-posts-grid">
+            <div class="myavana-upm-tab-wrapper">
+                <div class="myavana-upm-tab-content active" data-tab-content="posts">
+                    <div class="myavana-upm-posts-grid">
                         ${profile.recent_posts && profile.recent_posts.length > 0 ?
                             profile.recent_posts.map(post => `
-                                <div class="myavana-profile-post-item" data-post-id="${post.id}">
+                                <div class="myavana-upm-post-item" data-post-id="${post.id}">
                                     ${post.image_url ? `
                                         <img src="${escapeHtml(post.image_url)}" alt="${escapeHtml(post.title)}">
                                     ` : `
-                                        <div class="myavana-profile-post-no-image">
+                                        <div class="myavana-upm-post-no-image">
                                             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                                                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                                                 <circle cx="8.5" cy="8.5" r="1.5"></circle>
@@ -964,33 +2183,33 @@
                                             </svg>
                                         </div>
                                     `}
-                                    <div class="myavana-profile-post-overlay">
-                                        <div class="myavana-profile-post-stats">
+                                    <div class="myavana-upm-post-overlay">
+                                        <div class="myavana-upm-post-stats">
                                             <span><svg width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> ${post.likes_count || 0}</span>
                                             <span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> ${post.comments_count || 0}</span>
                                         </div>
                                     </div>
                                 </div>
                             `).join('') :
-                            '<div class="myavana-profile-empty">No posts yet</div>'
+                            '<div class="myavana-upm-empty">No posts yet</div>'
                         }
                     </div>
                 </div>
 
-                <div class="myavana-profile-tab-content" data-tab-content="journey">
-                    <div class="myavana-profile-journey">
+                <div class="myavana-upm-tab-content" data-tab-content="journey">
+                    <div class="myavana-upm-journey">
                         ${profile.hair_journey_stats ? `
-                            <div class="myavana-journey-stats">
-                                <div class="myavana-journey-stat">
-                                    <span class="myavana-journey-label">Total Entries</span>
-                                    <span class="myavana-journey-value">${profile.hair_journey_stats.total_entries || 0}</span>
+                            <div class="myavana-upm-journey-stats">
+                                <div class="myavana-upm-journey-stat">
+                                    <span class="myavana-upm-journey-label">Total Entries</span>
+                                    <span class="myavana-upm-journey-value">${profile.hair_journey_stats.total_entries || 0}</span>
                                 </div>
-                                <div class="myavana-journey-stat">
-                                    <span class="myavana-journey-label">Journey Started</span>
-                                    <span class="myavana-journey-value">${profile.hair_journey_stats.journey_start || 'Recently'}</span>
+                                <div class="myavana-upm-journey-stat">
+                                    <span class="myavana-upm-journey-label">Journey Started</span>
+                                    <span class="myavana-upm-journey-value">${profile.hair_journey_stats.journey_start || 'Recently'}</span>
                                 </div>
                             </div>
-                        ` : '<div class="myavana-profile-empty">No hair journey data yet</div>'}
+                        ` : '<div class="myavana-upm-empty">No hair journey data yet</div>'}
                     </div>
                 </div>
             </div>
@@ -998,13 +2217,25 @@
     }
 
     /**
-     * Handle profile modal close
+     * Handle profile modal close button
      */
-    $(document).on('click', '.myavana-profile-close, .myavana-profile-modal .myavana-modal-overlay', function(e) {
+    $(document).on('click', '.myavana-upm-close', function(e) {
+        e.preventDefault();
+        $(this).closest('.myavana-upm-modal').removeClass('active');
+        setTimeout(() => {
+            $(this).closest('.myavana-upm-modal').remove();
+            $('body').css('overflow', '');
+        }, 300);
+    });
+
+    /**
+     * Handle profile modal overlay click
+     */
+    $(document).on('click', '.myavana-upm-overlay', function(e) {
         if (e.target === this) {
-            $(this).closest('.myavana-profile-modal').removeClass('active');
+            $(this).closest('.myavana-upm-modal').removeClass('active');
             setTimeout(() => {
-                $(this).closest('.myavana-profile-modal').remove();
+                $(this).closest('.myavana-upm-modal').remove();
                 $('body').css('overflow', '');
             }, 300);
         }
@@ -1013,14 +2244,17 @@
     /**
      * Handle profile tabs
      */
-    $(document).on('click', '.myavana-profile-tab', function() {
-        const tab = $(this).data('tab');
-        const $modal = $(this).closest('.myavana-profile-modal-content');
+    $(document).on('click', '.myavana-upm-tab', function(e) {
+        e.preventDefault();
+        e.stopPropagation(); // Prevent event from bubbling to modal overlay
 
-        $modal.find('.myavana-profile-tab').removeClass('active');
+        const tab = $(this).data('tab');
+        const $modal = $(this).closest('.myavana-upm-content');
+
+        $modal.find('.myavana-upm-tab').removeClass('active');
         $(this).addClass('active');
 
-        $modal.find('.myavana-profile-tab-content').removeClass('active');
+        $modal.find('.myavana-upm-tab-content').removeClass('active');
         $modal.find(`[data-tab-content="${tab}"]`).addClass('active');
     });
 
@@ -1154,38 +2388,58 @@
      * Show notification toast
      */
     function showNotification(message, type = 'info') {
-        const colors = {
-            success: 'var(--myavana-coral)',
-            error: '#dc3545',
-            info: 'var(--myavana-blueberry)'
+        // Icons for different notification types
+        const icons = {
+            success: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
+            error: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>',
+            info: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>'
         };
 
-        const $notification = $(`
-            <div class="myavana-notification" style="
-                position: fixed;
-                bottom: 24px;
-                right: 24px;
-                background: ${colors[type]};
-                color: white;
-                padding: 16px 24px;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-                z-index: 10000;
-                font-family: 'Archivo', sans-serif;
-                font-weight: 600;
-                animation: slideInUp 0.3s ease;
-            ">
-                ${escapeHtml(message)}
+        // Ensure toast container exists
+        if (!$('.myavana-toast-container').length) {
+            $('body').append('<div class="myavana-toast-container"></div>');
+        }
+
+        const $toast = $(`
+            <div class="myavana-toast ${type}">
+                <div class="myavana-toast-icon">${icons[type]}</div>
+                <div class="myavana-toast-message">${escapeHtml(message)}</div>
             </div>
         `);
 
-        $('body').append($notification);
+        $('.myavana-toast-container').append($toast);
 
+        // Trigger animation
         setTimeout(() => {
-            $notification.fadeOut(300, function() {
-                $(this).remove();
-            });
+            $toast.addClass('show');
+        }, 10);
+
+        // Auto-dismiss after 3 seconds
+        setTimeout(() => {
+            $toast.removeClass('show').addClass('hide');
+            setTimeout(() => {
+                $toast.remove();
+            }, 400);
         }, 3000);
+    }
+
+    /**
+     * Parse text with @mentions and #hashtags
+     */
+    function parseTextWithMentionsAndHashtags(text) {
+        if (!text) return '';
+
+        // Parse @mentions
+        text = text.replace(/@(\w+)/g, '<span class="myavana-mention">@$1</span>');
+
+        // Parse #hashtags
+        text = text.replace(/#(\w+)/g, '<span class="myavana-hashtag">#$1</span>');
+
+        // Parse simple formatting (bold, italic)
+        text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+        return text;
     }
 
     /**
@@ -1210,10 +2464,192 @@
         return text.replace(/[&<>"']/g, m => map[m]);
     }
 
+    /**
+     * Activity Polling - Check for new posts/activity
+     */
+    let lastActivityCheck = Date.now();
+    let activityPollInterval = null;
+    let newActivityAvailable = false;
+
+    function startActivityPolling() {
+        // Check for new activity every 30 seconds
+        activityPollInterval = setInterval(checkForNewActivity, 30000);
+    }
+
+    function checkForNewActivity() {
+        $.ajax({
+            url: settings.ajaxUrl,
+            method: 'POST',
+            data: {
+                action: 'myavana_ci_check_activity',
+                nonce: settings.nonce,
+                last_check: Math.floor(lastActivityCheck / 1000),
+                filter: currentFilter
+            },
+            success: function(response) {
+                if (response.success && response.data.has_new_activity) {
+                    showNewActivityBanner(response.data.count);
+                    newActivityAvailable = true;
+                }
+            }
+        });
+    }
+
+    function showNewActivityBanner(count) {
+        // Remove existing banner if present
+        $('.myavana-ci-new-activity-banner').remove();
+
+        const bannerHTML = `
+            <div class="myavana-ci-new-activity-banner">
+                <div class="myavana-ci-new-activity-content">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span>${count} new ${count === 1 ? 'post' : 'posts'} available</span>
+                    <button class="myavana-ci-refresh-feed-btn">Refresh</button>
+                </div>
+            </div>
+        `;
+
+        $('.myavana-community-header').after(bannerHTML);
+
+        // Animate banner in
+        setTimeout(() => {
+            $('.myavana-ci-new-activity-banner').addClass('show');
+        }, 10);
+    }
+
+    // Click banner to refresh feed
+    $(document).on('click', '.myavana-ci-refresh-feed-btn, .myavana-ci-new-activity-banner', function(e) {
+        e.preventDefault();
+        currentPage = 1;
+        lastActivityCheck = Date.now();
+        newActivityAvailable = false;
+
+        // Animate banner out
+        $('.myavana-ci-new-activity-banner').removeClass('show');
+        setTimeout(() => {
+            $('.myavana-ci-new-activity-banner').remove();
+        }, 300);
+
+        // Reload feed
+        loadPosts(false);
+    });
+
+    // Stop polling when user leaves page
+    $(window).on('beforeunload', function() {
+        if (activityPollInterval) {
+            clearInterval(activityPollInterval);
+        }
+    });
+
+    /**
+     * Image Lightbox/Gallery - Click to view fullscreen
+     */
+    let currentImageIndex = 0;
+    let galleryImages = [];
+
+    $(document).on('click', '.myavana-post-image img', function(e) {
+        e.preventDefault();
+        const $postCard = $(this).closest('.myavana-post-card');
+
+        // Get all images in this post
+        galleryImages = [];
+        $postCard.find('.myavana-post-image img').each(function() {
+            galleryImages.push($(this).attr('src'));
+        });
+
+        // Find index of clicked image
+        currentImageIndex = galleryImages.indexOf($(this).attr('src'));
+
+        openImageLightbox();
+    });
+
+    function openImageLightbox() {
+        const lightboxHTML = `
+            <div class="myavana-ci-image-lightbox">
+                <div class="myavana-ci-lightbox-overlay"></div>
+                <button class="myavana-ci-lightbox-close">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+                ${galleryImages.length > 1 ? `
+                    <button class="myavana-ci-lightbox-prev">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    <button class="myavana-ci-lightbox-next">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                ` : ''}
+                <div class="myavana-ci-lightbox-content">
+                    <img src="${galleryImages[currentImageIndex]}" alt="Fullscreen Image">
+                    ${galleryImages.length > 1 ? `
+                        <div class="myavana-ci-lightbox-counter">
+                            ${currentImageIndex + 1} / ${galleryImages.length}
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+
+        $('body').append(lightboxHTML);
+        $('body').css('overflow', 'hidden');
+
+        // Animate in
+        setTimeout(() => {
+            $('.myavana-ci-image-lightbox').addClass('show');
+        }, 10);
+    }
+
+    function closeLightbox() {
+        $('.myavana-ci-image-lightbox').removeClass('show');
+        setTimeout(() => {
+            $('.myavana-ci-image-lightbox').remove();
+            $('body').css('overflow', '');
+        }, 300);
+    }
+
+    function showNextImage() {
+        currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+        updateLightboxImage();
+    }
+
+    function showPrevImage() {
+        currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+        updateLightboxImage();
+    }
+
+    function updateLightboxImage() {
+        $('.myavana-ci-lightbox-content img').attr('src', galleryImages[currentImageIndex]);
+        $('.myavana-ci-lightbox-counter').text(`${currentImageIndex + 1} / ${galleryImages.length}`);
+    }
+
+    // Lightbox event handlers
+    $(document).on('click', '.myavana-ci-lightbox-close, .myavana-ci-lightbox-overlay', closeLightbox);
+    $(document).on('click', '.myavana-ci-lightbox-next', showNextImage);
+    $(document).on('click', '.myavana-ci-lightbox-prev', showPrevImage);
+
+    // Keyboard navigation for lightbox
+    $(document).on('keydown', function(e) {
+        if ($('.myavana-ci-image-lightbox').length) {
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowRight') showNextImage();
+            if (e.key === 'ArrowLeft') showPrevImage();
+        }
+    });
+
     // Initialize when document is ready
     $(document).ready(function() {
         if ($('.myavana-community-container').length) {
             initCommunityFeed();
+            startActivityPolling();
         }
     });
 

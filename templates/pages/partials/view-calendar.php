@@ -258,7 +258,7 @@ if (empty($calendar_data['routines'])) {
 ?>
 
 <!-- Calendar View -->
-<div id="calendarView" class="view-content calendar-view-hjn">
+<div id="calendarView" class="view-content calendar-view-hjn active">
 
     <!-- Calendar Controls -->
     <div class="calendar-controls-hjn">

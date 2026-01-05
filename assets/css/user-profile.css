@@ -1,5 +1,5 @@
 /**
- * MYAVANA User Profile Modal Styles
+ * MYAVANA User Profile Offcanvas Styles
  * @package Myavana_Hair_Journey
  * @version 1.0.0
  */
@@ -23,29 +23,26 @@
 }
 
 /* ==========================================================================
-   Profile Modal
+   Profile Offcanvas Overlay
    ========================================================================== */
-.myavana-profile-modal {
+.myavana-upm-modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     z-index: 10001;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
 }
 
-.myavana-profile-modal.active {
+.myavana-upm-modal.active {
     opacity: 1;
     pointer-events: auto;
 }
 
-.myavana-profile-modal .myavana-modal-overlay {
+.myavana-upm-overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -55,28 +52,34 @@
     backdrop-filter: blur(6px);
 }
 
-.myavana-profile-modal-content {
-    position: relative;
+/* ==========================================================================
+   Profile Offcanvas Content
+   ========================================================================== */
+.myavana-upm-content {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    max-width: 500px;
+    height: 100%;
     background: var(--myavana-white);
-    border-radius: 20px;
-    max-width: 600px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(34, 35, 35, 0.4);
-    transform: scale(0.95);
+    box-shadow: -4px 0 24px rgba(34, 35, 35, 0.3);
+    transform: translateX(100%);
     transition: transform 0.3s ease;
+    overflow-y: auto;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
+    z-index: 1;
 }
 
-.myavana-profile-modal.active .myavana-profile-modal-content {
-    transform: scale(1);
+.myavana-upm-modal.active .myavana-upm-content {
+    transform: translateX(0);
 }
 
 /* ==========================================================================
    Profile Header
    ========================================================================== */
-.myavana-profile-header {
+.myavana-upm-header {
     position: sticky;
     top: 0;
     background: var(--myavana-white);
@@ -87,7 +90,7 @@
     z-index: 10;
 }
 
-.myavana-profile-close {
+.myavana-upm-close {
     width: 44px;
     height: 44px;
     border-radius: 50%;
@@ -101,7 +104,7 @@
     transition: all 0.2s;
 }
 
-.myavana-profile-close:hover {
+.myavana-upm-close:hover {
     background-color: var(--myavana-hover);
     color: var(--myavana-coral);
     transform: rotate(90deg);
@@ -110,13 +113,13 @@
 /* ==========================================================================
    Profile Info Section
    ========================================================================== */
-.myavana-profile-info {
+.myavana-upm-info {
     padding: 32px 24px;
     text-align: center;
     border-bottom: 1px solid var(--myavana-border);
 }
 
-.myavana-profile-avatar-large {
+.myavana-upm-avatar-large {
     width: 120px;
     height: 120px;
     margin: 0 auto 20px;
@@ -126,13 +129,13 @@
     box-shadow: 0 4px 12px rgba(231, 166, 144, 0.3);
 }
 
-.myavana-profile-avatar-large img {
+.myavana-upm-avatar-large img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.myavana-profile-name {
+.myavana-upm-name {
     font-family: 'Archivo Black', sans-serif;
     font-size: 28px;
     font-weight: 900;
@@ -142,21 +145,18 @@
     letter-spacing: 0.5px;
 }
 
-.myavana-profile-bio {
+.myavana-upm-bio {
     font-family: 'Archivo', sans-serif;
     font-size: 14px;
     line-height: 1.6;
     color: var(--myavana-blueberry);
     margin: 0 0 24px 0;
-    max-width: 400px;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 /* ==========================================================================
    Profile Stats
    ========================================================================== */
-.myavana-profile-stats {
+.myavana-upm-stats {
     display: flex;
     justify-content: center;
     gap: 32px;
@@ -164,21 +164,21 @@
     padding: 20px 0;
 }
 
-.myavana-profile-stat {
+.myavana-upm-stat {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4px;
 }
 
-.myavana-stat-number {
+.myavana-upm-stat-number {
     font-family: 'Archivo Black', sans-serif;
     font-size: 24px;
     font-weight: 900;
     color: var(--myavana-coral);
 }
 
-.myavana-stat-label {
+.myavana-upm-stat-label {
     font-family: 'Archivo', sans-serif;
     font-size: 12px;
     font-weight: 600;
@@ -213,7 +213,7 @@
 /* ==========================================================================
    Profile Tabs
    ========================================================================== */
-.myavana-profile-tabs {
+.myavana-upm-tabs {
     display: flex;
     border-bottom: 2px solid var(--myavana-border);
     background: var(--myavana-white);
@@ -222,7 +222,7 @@
     z-index: 9;
 }
 
-.myavana-profile-tab {
+.myavana-upm-tab {
     flex: 1;
     padding: 16px;
     background: none;
@@ -238,62 +238,62 @@
     transition: all 0.2s;
 }
 
-.myavana-profile-tab:hover {
+.myavana-upm-tab:hover {
     background-color: var(--myavana-hover);
     color: var(--myavana-coral);
 }
 
-.myavana-profile-tab.active {
+.myavana-upm-tab.active {
     color: var(--myavana-coral);
     border-bottom-color: var(--myavana-coral);
 }
 
 /* ==========================================================================
-   Profile Content
+   Profile Tab Content
    ========================================================================== */
-.myavana-profile-content {
+.myavana-upm-tab-wrapper {
     position: relative;
 }
 
-.myavana-profile-tab-content {
+.myavana-upm-tab-content {
     display: none;
     padding: 24px;
 }
 
-.myavana-profile-tab-content.active {
+.myavana-upm-tab-content.active {
     display: block;
 }
 
 /* ==========================================================================
    Profile Posts Grid
    ========================================================================== */
-.myavana-profile-posts-grid {
+.myavana-upm-posts-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
 }
 
-.myavana-profile-post-item {
+.myavana-upm-post-item {
     position: relative;
     aspect-ratio: 1;
     cursor: pointer;
     overflow: hidden;
-    border-radius: 4px;
+    border-radius: 8px;
     background-color: var(--myavana-sand);
 }
 
-.myavana-profile-post-item img {
+.myavana-upm-post-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     transition: transform 0.3s ease;
 }
 
-.myavana-profile-post-item:hover img {
+.myavana-upm-post-item:hover img {
     transform: scale(1.1);
 }
 
-.myavana-profile-post-no-image {
+.myavana-upm-post-no-image {
     width: 100%;
     height: 100%;
     display: flex;
@@ -304,7 +304,7 @@
     opacity: 0.6;
 }
 
-.myavana-profile-post-overlay {
+.myavana-upm-post-overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -318,11 +318,11 @@
     transition: opacity 0.3s ease;
 }
 
-.myavana-profile-post-item:hover .myavana-profile-post-overlay {
+.myavana-upm-post-item:hover .myavana-upm-post-overlay {
     opacity: 1;
 }
 
-.myavana-profile-post-stats {
+.myavana-upm-post-stats {
     display: flex;
     gap: 16px;
     color: white;
@@ -331,7 +331,7 @@
     font-weight: 600;
 }
 
-.myavana-profile-post-stats span {
+.myavana-upm-post-stats span {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -340,24 +340,24 @@
 /* ==========================================================================
    Hair Journey Section
    ========================================================================== */
-.myavana-profile-journey {
+.myavana-upm-journey {
     min-height: 200px;
 }
 
-.myavana-journey-stats {
+.myavana-upm-journey-stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
+    grid-template-columns: 1fr;
+    gap: 16px;
 }
 
-.myavana-journey-stat {
+.myavana-upm-journey-stat {
     background: var(--myavana-sand);
     padding: 24px;
     border-radius: 12px;
     text-align: center;
 }
 
-.myavana-journey-label {
+.myavana-upm-journey-label {
     display: block;
     font-family: 'Archivo', sans-serif;
     font-size: 12px;
@@ -368,7 +368,7 @@
     margin-bottom: 8px;
 }
 
-.myavana-journey-value {
+.myavana-upm-journey-value {
     display: block;
     font-family: 'Archivo Black', sans-serif;
     font-size: 32px;
@@ -379,20 +379,20 @@
 /* ==========================================================================
    Empty States
    ========================================================================== */
-.myavana-profile-empty,
-.myavana-profile-error,
-.myavana-profile-loading {
+.myavana-upm-empty,
+.myavana-upm-error,
+.myavana-upm-loading {
     text-align: center;
     padding: 60px 20px;
     color: var(--myavana-blueberry);
     font-size: 14px;
 }
 
-.myavana-profile-loading .myavana-loader-spinner {
+.myavana-upm-loading .myavana-loader-spinner {
     margin: 0 auto 16px;
 }
 
-.myavana-profile-error {
+.myavana-upm-error {
     color: #dc3545;
 }
 
@@ -400,74 +400,66 @@
    Responsive Design
    ========================================================================== */
 @media (max-width: 768px) {
-    .myavana-profile-modal-content {
-        width: 100%;
+    .myavana-upm-content {
         max-width: 100%;
-        max-height: 100vh;
-        border-radius: 0;
     }
 
-    .myavana-profile-info {
+    .myavana-upm-info {
         padding: 24px 16px;
     }
 
-    .myavana-profile-name {
+    .myavana-upm-name {
         font-size: 24px;
     }
 
-    .myavana-profile-stats {
+    .myavana-upm-stats {
         gap: 20px;
     }
 
-    .myavana-stat-number {
+    .myavana-upm-stat-number {
         font-size: 20px;
     }
 
-    .myavana-profile-posts-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 3px;
-    }
-
-    .myavana-journey-stats {
-        grid-template-columns: 1fr;
-    }
-
-    .myavana-profile-tabs {
+    .myavana-upm-tabs {
         top: 61px;
     }
 }
 
 @media (max-width: 480px) {
-    .myavana-profile-avatar-large {
+    .myavana-upm-avatar-large {
         width: 100px;
         height: 100px;
     }
 
-    .myavana-profile-name {
+    .myavana-upm-name {
         font-size: 20px;
     }
 
-    .myavana-profile-bio {
+    .myavana-upm-bio {
         font-size: 13px;
     }
 
-    .myavana-profile-stats {
+    .myavana-upm-stats {
         gap: 16px;
     }
 
-    .myavana-stat-number {
+    .myavana-upm-stat-number {
         font-size: 18px;
     }
 
-    .myavana-stat-label {
+    .myavana-upm-stat-label {
         font-size: 11px;
+    }
+
+    .myavana-upm-posts-grid {
+        grid-template-columns: 1fr;
     }
 }
 
 /* ==========================================================================
    Animations
    ========================================================================== */
-@keyframes profileSlideIn {
+@keyframes upmSlideIn {
     from {
         opacity: 0;
         transform: translateY(-20px);
@@ -478,17 +470,17 @@
     }
 }
 
-.myavana-profile-info,
-.myavana-profile-tabs,
-.myavana-profile-content {
-    animation: profileSlideIn 0.4s ease;
+.myavana-upm-info,
+.myavana-upm-tabs,
+.myavana-upm-tab-wrapper {
+    animation: upmSlideIn 0.4s ease;
 }
 
 /* ==========================================================================
    Accessibility
    ========================================================================== */
-.myavana-profile-tab:focus-visible,
-.myavana-profile-close:focus-visible,
+.myavana-upm-tab:focus-visible,
+.myavana-upm-close:focus-visible,
 .follow-user-btn:focus-visible {
     outline: 3px solid var(--myavana-coral);
     outline-offset: 2px;
@@ -496,11 +488,11 @@
 
 /* Reduce motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
-    .myavana-profile-modal-content,
-    .myavana-profile-close,
-    .myavana-profile-tab,
+    .myavana-upm-content,
+    .myavana-upm-close,
+    .myavana-upm-tab,
     .clickable-avatar,
-    .myavana-profile-post-item img {
+    .myavana-upm-post-item img {
         transition: none !important;
         animation: none !important;
     }

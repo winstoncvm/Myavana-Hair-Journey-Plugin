@@ -338,10 +338,16 @@ class Myavana_Social_Features {
             $post->user_avatar = get_avatar_url($post->user_id);
             $post->user_profile_url = '#'; // Could be customized
             $post->is_liked = $this->is_post_liked($post->id, $this->user_id);
+            $post->is_bookmarked = $this->is_post_bookmarked($post->id, $this->user_id);
             $post->recent_comments = $this->get_recent_comments($post->id, 3);
             $post->formatted_date = human_time_diff(strtotime($post->created_at)) . ' ago';
+
+            // Add reaction data
+            $reactions_data = $this->get_post_reactions($post->id, $this->user_id);
+            $post->reactions = $reactions_data['reactions'];
+            $post->user_reaction = $reactions_data['user_reaction'];
         }
-        
+
         wp_send_json_success($posts);
     }
     
@@ -722,6 +728,7 @@ class Myavana_Social_Features {
 
         $comments_table = $wpdb->prefix . 'myavana_post_comments';
         $users_table = $wpdb->users;
+        $likes_table = $wpdb->prefix . 'myavana_ci_comment_likes';
 
         $comments = $wpdb->get_results($wpdb->prepare(
             "SELECT c.*, u.display_name
@@ -736,6 +743,25 @@ class Myavana_Social_Features {
         foreach ($comments as &$comment) {
             $comment->user_avatar = get_avatar_url($comment->user_id, 40);
             $comment->formatted_date = human_time_diff(strtotime($comment->created_at)) . ' ago';
+            $comment->post_id = $post_id;
+
+            // Get reply count
+            $comment->reply_count = (int)$wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $comments_table WHERE parent_id = %d",
+                $comment->id
+            ));
+
+            // Get like count and check if current user liked it
+            $comment->likes_count = (int)$wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $likes_table WHERE comment_id = %d",
+                $comment->id
+            ));
+
+            $comment->is_liked = (bool)$wpdb->get_var($wpdb->prepare(
+                "SELECT id FROM $likes_table WHERE comment_id = %d AND user_id = %d",
+                $comment->id,
+                $this->user_id
+            ));
         }
 
         wp_send_json_success($comments);
@@ -998,35 +1024,86 @@ class Myavana_Social_Features {
     // Helper methods
     private function is_post_liked($post_id, $user_id) {
         global $wpdb;
-        
+
         $likes_table = $wpdb->prefix . 'myavana_post_likes';
-        
+
         return (bool) $wpdb->get_var($wpdb->prepare(
             "SELECT id FROM $likes_table WHERE post_id = %d AND user_id = %d",
+            $post_id, $user_id
+        ));
+    }
+
+    private function is_post_bookmarked($post_id, $user_id) {
+        global $wpdb;
+
+        $bookmarks_table = $wpdb->prefix . 'myavana_post_bookmarks';
+
+        return (bool) $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM $bookmarks_table WHERE post_id = %d AND user_id = %d",
             $post_id, $user_id
         ));
     }
     
     private function get_recent_comments($post_id, $limit = 3) {
         global $wpdb;
-        
+
         $comments_table = $wpdb->prefix . 'myavana_post_comments';
         $users_table = $wpdb->users;
-        
+
         $comments = $wpdb->get_results($wpdb->prepare(
-            "SELECT c.*, u.display_name FROM $comments_table c 
-             LEFT JOIN $users_table u ON c.user_id = u.ID 
-             WHERE c.post_id = %d AND c.parent_id = 0 
+            "SELECT c.*, u.display_name FROM $comments_table c
+             LEFT JOIN $users_table u ON c.user_id = u.ID
+             WHERE c.post_id = %d AND c.parent_id = 0
              ORDER BY c.created_at DESC LIMIT %d",
             $post_id, $limit
         ));
-        
+
         foreach ($comments as &$comment) {
             $comment->user_avatar = get_avatar_url($comment->user_id, 32);
             $comment->formatted_date = human_time_diff(strtotime($comment->created_at)) . ' ago';
         }
-        
+
         return $comments;
+    }
+
+    /**
+     * Get reactions data for a post
+     */
+    private function get_post_reactions($post_id, $user_id) {
+        global $wpdb;
+
+        $reactions_table = $wpdb->prefix . 'myavana_ci_post_reactions';
+
+        // Get all reaction counts
+        $reactions = $wpdb->get_results($wpdb->prepare(
+            "SELECT reaction_type, COUNT(*) as count
+             FROM $reactions_table
+             WHERE post_id = %d
+             GROUP BY reaction_type",
+            $post_id
+        ), ARRAY_A);
+
+        $counts = [];
+        foreach ($reactions as $r) {
+            $counts[$r['reaction_type']] = (int)$r['count'];
+        }
+
+        // Ensure all reaction types are represented
+        $all_reactions = ['like' => 0, 'love' => 0, 'celebrate' => 0, 'insightful' => 0];
+        $reaction_counts = array_merge($all_reactions, $counts);
+
+        // Get user's reaction
+        $user_reaction = $wpdb->get_var($wpdb->prepare(
+            "SELECT reaction_type FROM $reactions_table
+             WHERE post_id = %d AND user_id = %d",
+            $post_id,
+            $user_id
+        ));
+
+        return [
+            'reactions' => $reaction_counts,
+            'user_reaction' => $user_reaction
+        ];
     }
     
     private function handle_image_upload($file) {
