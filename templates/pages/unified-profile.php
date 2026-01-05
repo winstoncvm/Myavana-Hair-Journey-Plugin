@@ -60,12 +60,24 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
     global $wpdb;
     $posts_table = $wpdb->prefix . 'myavana_community_posts';
     $followers_table = $wpdb->prefix . 'myavana_user_followers';
+    $likes_table = $wpdb->prefix . 'myavana_post_likes';
 
     // Get community stats
     $total_posts = $wpdb->get_var($wpdb->prepare(
-        "SELECT COUNT(*) FROM $posts_table WHERE user_id = %d AND status = 'published'",
-        $user_id
+            "SELECT COUNT(*) FROM $posts_table WHERE user_id = %d",
+            $user_id
     ));
+    $total_likes = $wpdb->get_var($wpdb->prepare(
+            "SELECT SUM(p.likes_count) FROM $posts_table p WHERE p.user_id = %d",
+            $user_id
+    )) ?: 0;
+    $total_comments = (int) $wpdb->get_var($wpdb->prepare(
+        "SELECT AVG(p.likes_count + p.comments_count)
+        FROM $posts_table p
+        WHERE p.user_id = %d
+        AND p.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)",
+        $user_id
+    )) ?: 0;
 
     $follower_count = $wpdb->get_var($wpdb->prepare(
         "SELECT COUNT(*) FROM $followers_table WHERE following_id = %d",
@@ -135,7 +147,7 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                     <div class="myavana-luxury-nav-menu" id="mainNavMenu">
                         <a href="/hair-journey/" class="myavana-luxury-nav-link">My Hair Journey</a>
                         <a href="/community/" class="myavana-luxury-nav-link">Community</a>
-                        <!-- <a href="/members/admin/hair_insights/" class="myavana-luxury-nav-link">Analytics</a> -->
+                        <a href="/profile" class="myavana-luxury-nav-link">Profile</a>
                         <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createGoal()">+ Goal</a>
                             <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createRoutine()">+ Routine</a>
                             <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="openAIAnalysisModal()">Smart Entry</a>
@@ -176,7 +188,8 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
 
                     <div class="mobile-menu-links">
                         <a href="/hair-journey/">My Hair Journey</a>
-                        <a href="/members/admin/hair_insights/">Analytics</a>
+                        <a href="/community/" >Community</a>
+                        <a href="/profile">Profile</a>
                         <hr>
                         <button type="button" class="mobile-menu-action" onclick="createGoal(); toggleMobileMenu()">+ Goal</button>
                         <button type="button" class="mobile-menu-action" onclick="createRoutine(); toggleMobileMenu()">+ Routine</button>
@@ -280,7 +293,20 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
             <div class="myavana-up-header-bottom">
                 <?php if ($is_owner): ?>
                 <div class="myavana-up-action-buttons">
-                    <button class="myavana-up-btn myavana-up-btn-primary" onclick="createGoal()">
+                    <button class="myavana-up-btn myavana-up-btn-primary" onclick="openAIAnalysisModal()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        </svg>
+                        Smart Entry
+                    </button>
+                    <button class="myavana-up-btn myavana-up-btn-secondary" onclick="createEntry()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        New Entry
+                    </button>
+                    <button class="myavana-up-btn myavana-up-btn-secondary" onclick="createGoal()">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10"></circle>
                             <polyline points="12 6 12 12 16 14"></polyline>
@@ -296,19 +322,7 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                         </svg>
                         New Routine
                     </button>
-                    <button class="myavana-up-btn myavana-up-btn-secondary" onclick="createSmartEntry()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                        </svg>
-                        Smart Entry
-                    </button>
-                    <button class="myavana-up-btn myavana-up-btn-secondary" onclick="createEntry()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                        New Entry
-                    </button>
+                    
                     <button class="myavana-up-btn myavana-up-btn-outline" onclick="myavanaUpOpenEditOffcanvas()">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -665,7 +679,7 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                                 </svg>
                             </div>
                             <div class="myavana-community-stat-content">
-                                <div class="myavana-community-stat-value" id="totalLikesReceived">--</div>
+                                <div class="myavana-community-stat-value" id="totalLikesReceived"><?php echo esc_html($total_likes); ?></div>
                                 <div class="myavana-community-stat-label">Likes Received</div>
                             </div>
                         </div>
@@ -677,7 +691,8 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                                 </svg>
                             </div>
                             <div class="myavana-community-stat-content">
-                                <div class="myavana-community-stat-value" id="totalCommentsReceived">--</div>
+                                <!-- lets write total comments as int -->
+                                <div class="myavana-community-stat-value" id="totalCommentsReceived"><?php echo esc_html($total_comments); ?></div>
                                 <div class="myavana-community-stat-label">Comments</div>
                             </div>
                         </div>

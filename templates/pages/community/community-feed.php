@@ -28,7 +28,7 @@ function myavana_community_feed_shortcode($atts = []) {
         'per_page' => '10',
         'show_filters' => 'true',
         'show_create_post' => 'true'
-    ], $atts, 'myavana_community_feed');
+    ], $atts, 'myavana_community_feed');  
 
     // Get user's hair diary entries from custom table
     global $wpdb;
@@ -90,7 +90,7 @@ function myavana_community_feed_shortcode($atts = []) {
                     <div class="myavana-luxury-nav-menu" id="mainNavMenu">
                         <a href="/hair-journey/" class="myavana-luxury-nav-link">My Hair Journey</a>
                         <a href="/community/" class="myavana-luxury-nav-link">Community</a>
-                        <!-- <a href="/members/admin/hair_insights/" class="myavana-luxury-nav-link">Analytics</a> -->
+                        <a href="/profile" class="myavana-luxury-nav-link">Profile</a>
                         <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createGoal()">+ Goal</a>
                             <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createRoutine()">+ Routine</a>
                             <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="openAIAnalysisModal()">Smart Entry</a>
@@ -131,7 +131,8 @@ function myavana_community_feed_shortcode($atts = []) {
 
                     <div class="mobile-menu-links">
                         <a href="/hair-journey/">My Hair Journey</a>
-                        <a href="/members/admin/hair_insights/">Analytics</a>
+                        <a href="/community/" >Community</a>
+                        <a href="/profile">Profile</a>
                         <hr>
                         <button type="button" class="mobile-menu-action" onclick="createGoal(); toggleMobileMenu()">+ Goal</button>
                         <button type="button" class="mobile-menu-action" onclick="createRoutine(); toggleMobileMenu()">+ Routine</button>
@@ -217,12 +218,12 @@ function myavana_community_feed_shortcode($atts = []) {
                         <p class="myavana-profile-widget-username">@<?php echo esc_html($current_user_data->user_login); ?></p>
                     </div>
                 </div>
-                <button class="myavana-profile-widget-edit" onclick="editMyProfile()">
+                <a href="/profile" class="myavana-profile-widget-edit">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
-                </button>
+                </a>
             </div>
 
             <div class="myavana-profile-widget-stats">

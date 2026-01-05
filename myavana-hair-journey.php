@@ -3,7 +3,7 @@
 Plugin Name: Myavana Hair Journey
 Plugin URI: https://myavana.com
 Description: Your personalized hair care companion. Track your hair journey with AI-powered insights, progress photos, routines, goals, and community features. Includes gamification, daily check-ins, and smart recommendations.
-Version: 2.4.7
+Version: 2.4.8
 Author: Myavana
 Author URI: https://myavana.com
 */
