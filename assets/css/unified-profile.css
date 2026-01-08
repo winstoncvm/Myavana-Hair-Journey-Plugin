@@ -1187,8 +1187,11 @@
 
 .myavana-post-card-image {
     width: 100%;
-    height: 200px;
-    object-fit: cover;
+    height: 500px;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+    display: block;
+
 }
 
 .myavana-post-card-content {

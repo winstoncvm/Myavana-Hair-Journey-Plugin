@@ -77,7 +77,7 @@ function myavana_hair_journey_page_shortcode($atts = [], $content = null){
                     <div class="myavana-luxury-nav-menu" id="mainNavMenu">
                         <a href="/hair-journey/" class="myavana-luxury-nav-link">My Hair Journey</a>
                         <a href="/community/" class="myavana-luxury-nav-link">Community</a>
-                        <!-- <a href="/members/admin/hair_insights/" class="myavana-luxury-nav-link">Analytics</a> -->
+                        <a href="/profile" class="myavana-luxury-nav-link">Profile</a>
                         <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createGoal()">+ Goal</a>
                             <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createRoutine()">+ Routine</a>
                             <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="openAIAnalysisModal()">Smart Entry</a>
@@ -92,9 +92,6 @@ function myavana_hair_journey_page_shortcode($atts = [], $content = null){
                             Logout
                         </a>
                     </div>
-
-                    
-
                     <!-- Mobile Menu Toggle -->
                     <!-- CORRECT — only jQuery handles it -->
                     <button class="myavana-luxury-mobile-toggle" aria-label="Toggle menu">
@@ -118,7 +115,8 @@ function myavana_hair_journey_page_shortcode($atts = [], $content = null){
 
                     <div class="mobile-menu-links">
                         <a href="/hair-journey/">My Hair Journey</a>
-                        <a href="/members/admin/hair_insights/">Analytics</a>
+                        <a href="/community/" >Community</a>
+                        <a href="/profile">Profile</a>
                         <hr>
                         <button type="button" class="mobile-menu-action" onclick="createGoal(); toggleMobileMenu()">+ Goal</button>
                         <button type="button" class="mobile-menu-action" onclick="createRoutine(); toggleMobileMenu()">+ Routine</button>

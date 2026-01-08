@@ -242,11 +242,14 @@
     /**
      * Load User Community Posts
      */
+    /**
+     * Load User Community Posts
+     */
     function loadUserCommunityPosts() {
         const userId = myavanaUpSettings.userId;
         const $grid = $('#userPostsGrid');
 
-        // Show loading
+        // Loading state
         $grid.html(`
             <div class="myavana-posts-loading">
                 <div class="myavana-spinner"></div>
@@ -262,66 +265,232 @@
                 nonce: myavanaUpSettings.nonce,
                 user_id: userId
             },
-            success: function(response) {
-                if (response.success) {
-                    const posts = response.data;
+            success(response) {
+                console.log('Community Posts Response:', response);
 
-                    if (posts.length === 0) {
-                        $grid.html(`
-                            <div class="myavana-empty-state">
-                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                                    <polyline points="14 2 14 8 20 8"></polyline>
-                                </svg>
-                                <h3>No community posts yet</h3>
-                                <p>Share your hair journey with the community</p>
-                            </div>
-                        `);
-                    } else {
-                        let postsHTML = posts.map(post => `
-                            <div class="myavana-user-post-card" data-post-id="${post.id}">
-                                ${post.image_url ? `
-                                    <div class="myavana-post-card-image" style="background-image: url('${post.image_url}')"></div>
-                                ` : ''}
-                                <div class="myavana-post-card-content">
-                                    <p>${post.content.substring(0, 150)}${post.content.length > 150 ? '...' : ''}</p>
-                                    <div class="myavana-post-card-meta">
-                                        <span>
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                                            </svg>
-                                            ${post.likes_count}
-                                        </span>
-                                        <span>
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                                            </svg>
-                                            ${post.comments_count}
-                                        </span>
-                                        <span class="myavana-post-card-date">${post.formatted_date}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('');
-
-                        $grid.html(postsHTML);
-                    }
-                } else {
-                    $grid.html(`
-                        <div class="myavana-empty-state">
-                            <p>Failed to load posts</p>
-                        </div>
-                    `);
+                if (!response.success) {
+                    renderUserPostsError($grid);
+                    return;
                 }
+
+                const posts = response.data || [];
+
+                if (!posts.length) {
+                    renderUserPostsEmptyState($grid);
+                    return;
+                }
+
+                // 🔥 Render using createPostCard
+                const postsHTML = posts.map(post => createPostCard(post)).join('');
+                $grid.html(postsHTML);
+
+                // Optional: attach listeners if needed
+                initPostCardInteractions?.();
             },
-            error: function() {
-                $grid.html(`
-                    <div class="myavana-empty-state">
-                        <p>Error loading posts. Please refresh the page.</p>
-                    </div>
-                `);
+            error() {
+                renderUserPostsError($grid);
             }
         });
+    }
+    function renderUserPostsEmptyState($grid) {
+        $grid.html(`
+            <div class="myavana-empty-state">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                <h3>No community posts yet</h3>
+                <p>Share your hair journey with the community</p>
+            </div>
+        `);
+    }
+
+    function renderUserPostsError($grid) {
+        $grid.html(`
+            <div class="myavana-empty-state">
+                <p>Failed to load posts. Please refresh.</p>
+            </div>
+        `);
+    }
+    /**
+     * Escape HTML to prevent XSS
+     */
+    function escapeHtml(text) {
+        // Handle null, undefined, or non-string values
+        if (text === null || text === undefined) {
+            return '';
+        }
+
+        // Convert to string if not already
+        text = String(text);
+
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+    /**
+     * Parse text with @mentions and #hashtags
+     */
+    function parseTextWithMentionsAndHashtags(text) {
+        if (!text) return '';
+
+        // Parse @mentions
+        text = text.replace(/@(\w+)/g, '<span class="myavana-mention">@$1</span>');
+
+        // Parse #hashtags
+        text = text.replace(/#(\w+)/g, '<span class="myavana-hashtag">#$1</span>');
+
+        // Parse simple formatting (bold, italic)
+        text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+        return text;
+    }
+
+     /**
+     * Create HTML for a single post card
+     */
+    function createPostCard(post) {
+        const reactions = post.reactions || {};
+        const userReaction = post.user_reaction || null;
+        const isLiked = post.is_liked || false;
+
+        // Calculate total reactions - use likes_count if reactions are not available
+        const totalReactions = post.likes_count || Object.values(reactions).reduce((sum, count) => sum + count, 0);
+
+        const imageHtml = post.image_url ? `
+            <div class="myavana-post-image-wrapper">
+                <img src="${escapeHtml(post.image_url)}"
+                     alt="${escapeHtml(post.title)}"
+                     class="myavana-post-image"
+                     loading="lazy">
+            </div>
+        ` : '';
+
+        const typeLabels = {
+            'progress': 'Progress Update',
+            'transformation': 'Transformation',
+            'routine': 'Routine',
+            'products': 'Product Review',
+            'tips': 'Tips & Advice',
+            'general': 'General'
+        };
+
+        // Reaction counts HTML
+        const reactionEmojis = {
+            'like': '❤️',
+            'love': '😍',
+            'celebrate': '🎉',
+            'insightful': '💡'
+        };
+
+        let reactionCountsHtml = '';
+        if (totalReactions > 0) {
+            const reactionItems = Object.entries(reactions)
+                .filter(([type, count]) => count > 0)
+                .map(([type, count]) => `
+                    <div class="myavana-reaction-count-item" data-reaction="${type}">
+                        <span class="reaction-emoji">${reactionEmojis[type]}</span>
+                        <span class="reaction-count">${count}</span>
+                    </div>
+                `).join('');
+
+            reactionCountsHtml = `
+                <div class="myavana-reaction-counts">
+                    ${reactionItems}
+                </div>
+            `;
+        }
+
+        return `
+            <article class="myavana-post-card" data-post-id="${post.id}">
+                <div class="myavana-post-header">
+                    <img src="${escapeHtml(post.user_avatar)}"
+                         alt="${escapeHtml(post.display_name)}"
+                         class="myavana-post-avatar clickable-avatar"
+                         data-user-id="${post.user_id}"
+                         title="View ${escapeHtml(post.display_name)}'s profile">
+                    <div class="myavana-post-user-info">
+                        <h3 class="myavana-post-username clickable-username" data-user-id="${post.user_id}">${escapeHtml(post.display_name)}</h3>
+                        <time class="myavana-post-time">${escapeHtml(post.formatted_date)}</time>
+                    </div>
+                    <span class="myavana-post-type-badge">${typeLabels[post.post_type] || 'General'}</span>
+                    
+                </div>
+
+                ${imageHtml}
+
+                <div class="myavana-post-content">
+                    <h2 class="myavana-post-title">${escapeHtml(post.title)}</h2>
+                    <p class="myavana-post-text ${post.content.length > 200 ? 'truncated' : ''}">${parseTextWithMentionsAndHashtags(escapeHtml(post.content))}</p>
+                    ${post.content.length > 200 ? '<a href="#" class="myavana-read-more">Read more</a>' : ''}
+                </div>
+
+                ${reactionCountsHtml}
+
+                <div class="myavana-post-actions">
+                    <div class="myavana-reactions-picker" data-post-id="${post.id}">
+                        <button class="myavana-reaction-option" data-reaction="like" title="Like">❤️</button>
+                        <button class="myavana-reaction-option" data-reaction="love" title="Love">😍</button>
+                        <button class="myavana-reaction-option" data-reaction="celebrate" title="Celebrate">🎉</button>
+                        <button class="myavana-reaction-option" data-reaction="insightful" title="Insightful">💡</button>
+                    </div>
+
+                    <button class="myavana-action-btn myavana-ci-react-btn ${(userReaction || isLiked) ? 'reacted' : ''}"
+                            data-post-id="${post.id}"
+                            data-user-reaction="${userReaction || (isLiked ? 'like' : '')}">
+                        <span class="reaction-display">${userReaction ? reactionEmojis[userReaction] : '❤️'}</span>
+                        <span class="myavana-action-count">${totalReactions || 0}</span>
+                    </button>
+
+                    <button class="myavana-action-btn comment-btn" data-post-id="${post.id}">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <span class="myavana-action-count">${post.comments_count || 0}</span>
+                    </button>
+
+                    <button class="myavana-action-btn share-btn" data-post-id="${post.id}">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        </svg>
+                    </button>
+
+                    <button class="myavana-action-btn bookmark-btn ${post.is_bookmarked || post.is_saved ? 'bookmarked' : ''}" data-post-id="${post.id}" title="${post.is_bookmarked || post.is_saved ? 'Saved' : 'Save post'}">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="${post.is_bookmarked || post.is_saved ? 'var(--myavana-coral)' : 'none'}" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </button>
+
+                    
+                </div>
+
+                <!-- Comments Section -->
+                <div class="myavana-post-comments" id="comments-${post.id}" style="display: none;">
+                    <div class="myavana-comments-list"></div>
+                    <div class="myavana-comment-form">
+                        <div class="myavana-comment-input-wrapper">
+                            <textarea class="myavana-comment-input" placeholder="Write a comment..." rows="1"></textarea>
+                            <button class="myavana-comment-submit" data-post-id="${post.id}">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        `;
     }
 
     /**

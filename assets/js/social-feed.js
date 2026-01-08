@@ -63,7 +63,7 @@
                 filter: currentFilter,
                 page: currentPage,
                 per_page: settings.perPage || 10
-            },
+            },   
             success: function(response) {
                 if (response.success) {
                     const posts = response.data;
@@ -300,6 +300,8 @@
             </article>
         `;
     }
+
+    
 
     /**
      * Setup filter button handlers
