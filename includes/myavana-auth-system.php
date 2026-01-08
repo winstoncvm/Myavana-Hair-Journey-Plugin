@@ -50,6 +50,9 @@ class Myavana_Auth_System {
         // New onboarding save handler
         add_action('wp_ajax_myavana_save_onboarding', [$this, 'handle_save_onboarding']);
 
+        // Manual rewrite flush handler
+        add_action('wp_ajax_myavana_flush_rewrites', [$this, 'handle_flush_rewrites']);
+
         // Password reset shortcode
         add_shortcode('myavana_password_reset', [$this, 'password_reset_shortcode']);
 
@@ -236,6 +239,7 @@ class Myavana_Auth_System {
                 <button type="button" class="button button-secondary" onclick="myavanaTestModal()">🧪 Test Auth Modal</button>
                 <button type="button" class="button button-secondary" onclick="myavanaResetOnboarding()">🔄 Reset My Onboarding</button>
                 <button type="button" class="button button-primary" onclick="myavanaExportUsers()">📊 Export User Data</button>
+                <button type="button" class="button button-secondary" onclick="myavanaFlushRewrites()">🔄 Fix Password Reset (Flush Rewrites)</button>
             </div>
         </div>
 
@@ -260,6 +264,23 @@ class Myavana_Auth_System {
 
         function myavanaExportUsers() {
             window.open(ajaxurl + '?action=myavana_export_users&nonce=' + '<?php echo wp_create_nonce('myavana_export'); ?>');
+        }
+
+        function myavanaFlushRewrites() {
+            if (confirm('This will flush WordPress rewrite rules to fix the password reset 404 error. Continue?')) {
+                fetch(ajaxurl, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'action=myavana_flush_rewrites&nonce=' + '<?php echo wp_create_nonce('myavana_flush_rewrites'); ?>'
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('✅ Rewrite rules flushed successfully! Password reset should now work at /password-reset/');
+                    } else {
+                        alert('❌ Error: ' + data.data.message);
+                    }
+                });
+            }
         }
         </script>
         <?php
@@ -1114,6 +1135,33 @@ class Myavana_Auth_System {
         // Track event
         $this->track_user_event($user_id, 'onboarding_completed');
 
+        // Create first hair journey entry
+        $first_entry_id = wp_insert_post([
+            'post_title' => 'Welcome to My Hair Journey!',
+            'post_content' => 'This is my first entry. Excited to start tracking my hair care journey with MYAVANA!',
+            'post_type' => 'hair_journey_entry',
+            'post_status' => 'publish',
+            'post_author' => $user_id,
+            'post_date' => current_time('mysql')
+        ]);
+
+        if ($first_entry_id && !is_wp_error($first_entry_id)) {
+            // Save entry metadata
+            update_post_meta($first_entry_id, 'mood_demeanor', 'Excited');
+            update_post_meta($first_entry_id, 'health_rating', 5);
+            update_post_meta($first_entry_id, 'entry_type', 'onboarding');
+            update_post_meta($first_entry_id, 'environment', 'home');
+
+            // Update user meta to track first entry
+            update_user_meta($user_id, 'myavana_first_entry_created', true);
+            update_user_meta($user_id, 'myavana_first_entry_id', $first_entry_id);
+            update_user_meta($user_id, 'myavana_first_entry_date', current_time('mysql'));
+
+            error_log('MYAVANA: Created first entry (ID: ' . $first_entry_id . ') for user ' . $user_id . ' during onboarding');
+        } else {
+            error_log('MYAVANA: Failed to create first entry for user ' . $user_id . ' during onboarding');
+        }
+
         wp_send_json_success([
             'message' => 'Profile saved successfully!',
             'redirect' => home_url('/hair-journey/?welcome=1')
@@ -1237,6 +1285,24 @@ class Myavana_Auth_System {
     // =========================
 
     /**
+     * Handle manual flush of rewrite rules
+     */
+    public function handle_flush_rewrites() {
+        // Verify nonce and permission
+        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'myavana_flush_rewrites') || !current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
+
+        // Flush rewrite rules
+        flush_rewrite_rules();
+
+        // Update version to force re-flush on next page load
+        delete_option('myavana_auth_rewrite_version');
+
+        wp_send_json_success(['message' => 'Rewrite rules flushed successfully!']);
+    }
+
+    /**
      * Password reset shortcode handler
      */
     // public function password_reset_shortcode($atts) {
@@ -1356,12 +1422,14 @@ class Myavana_Auth_System {
             'index.php?myavana_password_reset=1',
             'top'
         );
-        
+
         // Flush rewrite rules on activation (add this to your plugin activation hook)
         // You only need to do this once when the plugin is activated or updated
-        if (get_option('myavana_auth_rewrite_flushed') !== '1.0') {
+        $current_version = '2.4.7';
+        if (get_option('myavana_auth_rewrite_version') !== $current_version) {
             flush_rewrite_rules();
-            update_option('myavana_auth_rewrite_flushed', '1.0');
+            update_option('myavana_auth_rewrite_version', $current_version);
+            error_log('MYAVANA: Rewrite rules flushed for version ' . $current_version);
         }
     }
     

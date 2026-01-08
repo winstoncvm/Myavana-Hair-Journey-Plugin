@@ -374,9 +374,33 @@
                             type="text"
                             id="productsUsed"
                             class="form-input"
+                            list="hairProductSuggestions"
                             placeholder="${isMobile ? 'Shampoo, Conditioner...' : 'e.g., Moisturizing Shampoo, Deep Conditioner'}"
                         >
-                        <div class="form-hint">${isMobile ? 'Separate with commas' : 'Separate multiple products with commas'}</div>
+                        <datalist id="hairProductSuggestions">
+                            <!-- TODO: Replace with MYAVANA Products API -->
+                            <option value="Moisturizing Shampoo">
+                            <option value="Clarifying Shampoo">
+                            <option value="Protein Shampoo">
+                            <option value="Sulfate-Free Shampoo">
+                            <option value="Deep Conditioner">
+                            <option value="Leave-In Conditioner">
+                            <option value="Protein Treatment">
+                            <option value="Hair Mask">
+                            <option value="Hot Oil Treatment">
+                            <option value="Curl Cream">
+                            <option value="Edge Control">
+                            <option value="Hair Oil">
+                            <option value="Styling Gel">
+                            <option value="Mousse">
+                            <option value="Hair Spray">
+                            <option value="Heat Protectant">
+                            <option value="Detangler">
+                            <option value="Scalp Treatment">
+                            <option value="Hair Growth Serum">
+                            <option value="Anti-Frizz Serum">
+                        </datalist>
+                        <div class="form-hint">${isMobile ? 'Separate with commas' : 'Separate multiple products with commas • Start typing for suggestions'}</div>
                     </div>
 
                     <!-- Entry Preview Card - Only show on desktop -->
@@ -495,19 +519,23 @@
             //     $(this).addClass('selected');
             //     self.formData.mood = $(this).data('mood');
             // });
-             // Star rating - improved for mobile touch
-             $(document).on('click touchstart', '.star', function(e) {
+             // Star rating - improved for mobile touch (scoped to premium modal)
+             $(document).on('click touchstart', '#myavanaPremiumEntryModal .star', function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 const rating = $(this).data('rating');
+                console.log('[Premium Entry Form] Star clicked, rating:', rating);
                 self.setRating(rating);
             });
 
-            // Mood selector - improved for mobile touch
-            $(document).on('click touchstart', '.mood-option', function(e) {
+            // Mood selector - improved for mobile touch (scoped to premium modal)
+            $(document).on('click touchstart', '#myavanaPremiumEntryModal .mood-option', function(e) {
                 e.preventDefault();
-                $('.mood-option').removeClass('selected');
+                e.stopPropagation();
+                $('#myavanaPremiumEntryModal .mood-option').removeClass('selected');
                 $(this).addClass('selected');
                 self.formData.mood = $(this).data('mood');
+                console.log('[Premium Entry Form] Mood selected:', self.formData.mood);
             });
 
             // Character count for description (scoped to premium modal)
@@ -675,9 +703,10 @@
          */
         setRating: function(rating) {
             this.formData.rating = rating;
+            console.log('[Premium Entry Form] Rating selected:', rating);
 
-            // Update stars visual
-            $('.star').each(function(index) {
+            // Update stars visual (scoped to premium modal)
+            $('#myavanaPremiumEntryModal .star').each(function(index) {
                 if (index < rating) {
                     $(this).addClass('selected');
                 } else {
@@ -687,7 +716,7 @@
 
             // Update label
             const labels = ['Poor', 'Fair', 'Good', 'Great', 'Excellent'];
-            $('#ratingLabel').text(labels[rating - 1]);
+            $('#myavanaPremiumEntryModal #ratingLabel').text(labels[rating - 1]);
         },
 
         /**

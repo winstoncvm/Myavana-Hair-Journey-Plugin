@@ -117,7 +117,7 @@ class Myavana_Share_To_Community {
     }
 }
 
-// Initialize
+// Initialize the share to community feature
 new Myavana_Share_To_Community();
 
 /**

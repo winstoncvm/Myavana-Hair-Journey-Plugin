@@ -77,8 +77,8 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
         $user_id
     ));
 
-    // Calculate gamification points (placeholder - should be from gamification system)
-    $total_points = ($total_entries * 10) + ($total_posts * 15) + ($user_stats['days_active'] * 5);
+    // Get real gamification points from user meta
+    $total_points = intval(get_user_meta($user_id, 'myavana_points', true) ?: 0);
 
     // Get additional user profile data
     $user_location = get_user_meta($user_id, 'myavana_up_location', true);

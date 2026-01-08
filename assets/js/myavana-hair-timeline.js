@@ -1405,6 +1405,10 @@
                                 alert('AI Tip: ' + response.data.tip);
                             }, 1000);
                         }
+                        // Reload page to show new entry in timeline
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
                     } else {
                         self.showError(response.data);
                     }

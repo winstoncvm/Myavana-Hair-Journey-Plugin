@@ -474,8 +474,41 @@ Important guidelines:
         ];
     }
 
+    /**
+     * Get AI-generated tip based on user context
+     *
+     * HOW TO UPDATE AI RECOMMENDATIONS:
+     *
+     * 1. MODIFY THE PROMPT (Line 486):
+     *    - Change the prompt text to adjust the style, tone, or focus of recommendations
+     *    - Example prompts:
+     *      * "Provide expert hair care advice for: $context"
+     *      * "Give a personalized hair tip with emoji based on: $context"
+     *      * "Suggest a product recommendation for: $context"
+     *
+     * 2. CHANGE THE AI MODEL:
+     *    - Update $this->text_model in __construct() (around line 4)
+     *    - Available models: gemini-pro, gemini-1.5-flash, etc.
+     *
+     * 3. ADJUST RESPONSE LENGTH:
+     *    - Add maxOutputTokens parameter to the request body:
+     *      'generationConfig' => ['maxOutputTokens' => 100]
+     *
+     * 4. CUSTOMIZE FOR DIFFERENT CONTEXTS:
+     *    - Check $context parameter to provide different prompts based on user action
+     *    - Example: if (strpos($context, 'entry') !== false) { ... }
+     *
+     * 5. ADD FILTERING/PERSONALIZATION:
+     *    - Access user data before generating tip
+     *    - Include user's hair type, goals, etc. in the prompt
+     *
+     * @param string $context - Description of user action (e.g., "User added a manual hair journey entry")
+     * @return string - AI-generated tip or fallback message
+     */
     public function get_ai_tip($context) {
         $url = sprintf($this->url, $this->text_model, 'generateContent', $this->api_key);
+
+        // CUSTOMIZE THIS PROMPT to change recommendation style/content:
         $prompt = "Provide a concise, fun hair care tip based on this context: $context";
 
         $response = wp_remote_post($url, [

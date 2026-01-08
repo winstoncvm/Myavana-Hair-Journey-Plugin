@@ -44,6 +44,7 @@ require_once MYAVANA_DIR . 'includes/social-features.php';
 require_once MYAVANA_DIR . 'includes/photo-comparison.php';
 require_once MYAVANA_DIR . 'includes/gamification.php';
 require_once MYAVANA_DIR . 'includes/community-integration.php';
+require_once MYAVANA_DIR . 'includes/share-to-community.php';
 
 // Include shortcode files
 require_once MYAVANA_DIR . 'templates/login-shortcode.php';
