@@ -311,7 +311,7 @@ class Myavana_Social_Features {
             FROM $posts_table p
             LEFT JOIN $users_table u ON p.user_id = u.ID
             $where_clause
-            ORDER BY p.created_at DESC
+            ORDER BY p.is_pinned DESC, p.created_at DESC
             LIMIT %d OFFSET %d
         ";
         
@@ -872,10 +872,10 @@ class Myavana_Social_Features {
         // Get recent posts
         $posts_table = $wpdb->prefix . 'myavana_community_posts';
         $recent_posts = $wpdb->get_results($wpdb->prepare(
-            "SELECT id, title, content, image_url, likes_count, comments_count, created_at
+            "SELECT id, title, content, image_url, likes_count, comments_count, created_at, is_pinned
              FROM $posts_table
              WHERE user_id = %d AND privacy_level = 'public'
-             ORDER BY created_at DESC
+             ORDER BY is_pinned DESC, created_at DESC
              LIMIT 9",
             $user_id
         ));

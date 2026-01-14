@@ -481,6 +481,32 @@
     border-radius: 12px;
 }
 
+.myavana-pinned-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    color: #8b6914;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 12px;
+    margin-left: 8px;
+    box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+    animation: pinPulse 2s ease-in-out infinite;
+}
+
+@keyframes pinPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 3px 8px rgba(255, 215, 0, 0.5);
+    }
+}
+
 .myavana-post-actions-menu {
     display: flex;
     gap: 4px;

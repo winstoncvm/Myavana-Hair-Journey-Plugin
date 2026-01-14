@@ -140,9 +140,9 @@ function myavana_ci_delete_post_handler() {
     }
 
     // Delete related data first
-    $comments_table = $wpdb->prefix . 'myavana_community_comments';
+    $comments_table = $wpdb->prefix . 'myavana_post_comments';
     $reactions_table = $wpdb->prefix . 'myavana_ci_post_reactions';
-    $bookmarks_table = $wpdb->prefix . 'myavana_community_bookmarks';
+    $bookmarks_table = $wpdb->prefix . 'myavana_post_bookmarks';
 
     $wpdb->delete($comments_table, ['post_id' => $post_id], ['%d']);
     $wpdb->delete($reactions_table, ['post_id' => $post_id], ['%d']);
@@ -343,7 +343,7 @@ function myavana_ci_reply_to_comment_handler() {
     }
 
     global $wpdb;
-    $comments_table = $wpdb->prefix . 'myavana_community_comments';
+    $comments_table = $wpdb->prefix . 'myavana_post_comments';
 
     // Verify parent comment exists
     $parent_exists = $wpdb->get_var($wpdb->prepare(
@@ -480,7 +480,7 @@ function myavana_ci_load_comments_handler() {
 
     global $wpdb;
     $current_user_id = get_current_user_id();
-    $comments_table = $wpdb->prefix . 'myavana_community_comments';
+    $comments_table = $wpdb->prefix . 'myavana_post_comments';
     $likes_table = $wpdb->prefix . 'myavana_ci_comment_likes';
 
     // Get comments (only top-level)
@@ -548,7 +548,7 @@ function myavana_ci_get_replies_handler() {
 
     global $wpdb;
     $current_user_id = get_current_user_id();
-    $comments_table = $wpdb->prefix . 'myavana_community_comments';
+    $comments_table = $wpdb->prefix . 'myavana_post_comments';
     $likes_table = $wpdb->prefix . 'myavana_ci_comment_likes';
 
     // Get replies

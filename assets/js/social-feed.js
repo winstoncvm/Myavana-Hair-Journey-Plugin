@@ -198,6 +198,7 @@
                         <time class="myavana-post-time">${escapeHtml(post.formatted_date)}</time>
                     </div>
                     <span class="myavana-post-type-badge">${typeLabels[post.post_type] || 'General'}</span>
+                    ${post.is_pinned ? `<span class="myavana-pinned-badge" title="Pinned post">📌 PINNED</span>` : ''}
                     ${post.user_id == settings.userId ? `
                         <div class="myavana-post-actions-menu">
                             <button class="myavana-ci-pin-btn ${post.is_pinned ? 'pinned' : ''}" data-post-id="${post.id}" title="${post.is_pinned ? 'Unpin post' : 'Pin post'}">

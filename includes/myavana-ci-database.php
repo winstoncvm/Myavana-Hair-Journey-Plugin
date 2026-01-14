@@ -112,7 +112,7 @@ function myavana_ci_create_tables() {
     dbDelta($sql);
 
     // Add parent_id column to existing comments table if not exists
-    $comments_table = $wpdb->prefix . 'myavana_community_comments';
+    $comments_table = $wpdb->prefix . 'myavana_post_comments';
     $column_exists = $wpdb->get_results("SHOW COLUMNS FROM $comments_table LIKE 'parent_id'");
 
     if (empty($column_exists)) {
