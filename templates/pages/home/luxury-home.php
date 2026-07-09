@@ -24,16 +24,130 @@ function myavana_luxury_home_shortcode() {
     // Get user stats for logged-in users
     $user_stats = [];
     $is_new_user = false;
+    $active_goals = [];
+    $current_routines = [];
+    $completed_goals = 0;
     if ($is_logged_in) {
         global $wpdb;
         $entries_count = $wpdb->get_var($wpdb->prepare(
             "SELECT COUNT(*) FROM {$wpdb->prefix}posts WHERE post_author = %d AND post_type = 'hair_journey_entry' AND post_status = 'publish'",
             $current_user->ID
         ));
-        $days_active = $wpdb->get_var($wpdb->prepare(
+        $days_active_raw = $wpdb->get_var($wpdb->prepare(
             "SELECT DATEDIFF(CURDATE(), MIN(post_date)) FROM {$wpdb->prefix}posts WHERE post_author = %d AND post_type = 'hair_journey_entry'",
             $current_user->ID
         ));
+        $entries_this_month = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}posts WHERE post_author = %d AND post_type = 'hair_journey_entry' AND post_status = 'publish' AND post_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)",
+            $current_user->ID
+        ));
+        $entry_days = $wpdb->get_col($wpdb->prepare(
+            "SELECT DISTINCT DATE(post_date) FROM {$wpdb->prefix}posts WHERE post_author = %d AND post_type = 'hair_journey_entry' AND post_status = 'publish' ORDER BY DATE(post_date) DESC",
+            $current_user->ID
+        ));
+
+        $days_active = 0;
+        if ($entries_count) {
+            $days_active = max(1, intval($days_active_raw) + 1);
+        }
+
+        $entry_streak = 0;
+        if (!empty($entry_days)) {
+            $entry_days_lookup = array_fill_keys(array_map('strval', $entry_days), true);
+            $cursor = current_time('timestamp');
+            while ($cursor) {
+                $key = wp_date('Y-m-d', $cursor);
+                if (empty($entry_days_lookup[$key])) {
+                    break;
+                }
+                $entry_streak++;
+                $cursor -= DAY_IN_SECONDS;
+            }
+        }
+
+        $goals_raw = get_user_meta($current_user->ID, 'myavana_hair_goals_structured', true);
+        if (!is_array($goals_raw)) {
+            $goals_raw = [];
+        }
+
+        foreach ($goals_raw as $goal) {
+            $title = trim((string) ($goal['title'] ?? ($goal['goal_title'] ?? '')));
+            if ($title === '') {
+                continue;
+            }
+
+            $progress = max(0, min(100, intval($goal['progress'] ?? ($goal['progress_percent'] ?? 0))));
+            $status = strtolower(trim((string) ($goal['status'] ?? 'active')));
+            if ($status === '' || ($progress < 100 && $status !== 'paused')) {
+                $status = 'active';
+            }
+            if ($progress >= 100) {
+                $status = 'completed';
+            }
+            if ($status === 'completed') {
+                $completed_goals++;
+                continue;
+            }
+
+            $active_goals[] = [
+                'title' => $title,
+                'category' => trim((string) ($goal['goal_category'] ?? 'Goal')) ?: 'Goal',
+                'progress' => $progress,
+                'target_date' => trim((string) ($goal['target_date'] ?? ($goal['end_date'] ?? ''))),
+                'status' => $status,
+            ];
+        }
+
+        usort($active_goals, static function ($left, $right) {
+            $left_date = !empty($left['target_date']) ? strtotime($left['target_date']) : PHP_INT_MAX;
+            $right_date = !empty($right['target_date']) ? strtotime($right['target_date']) : PHP_INT_MAX;
+            return $left_date <=> $right_date;
+        });
+
+        $routines_raw = get_user_meta($current_user->ID, 'myavana_current_routine', true);
+        if (!is_array($routines_raw)) {
+            $routines_raw = [];
+        }
+
+        $routine_completion_map = get_user_meta($current_user->ID, 'myavana_routine_completions', true);
+        if (!is_array($routine_completion_map)) {
+            $routine_completion_map = [];
+        }
+        $today_key = current_time('Y-m-d');
+        $today_completed_routine_ids = array_map('intval', $routine_completion_map[$today_key] ?? []);
+
+        foreach ($routines_raw as $index => $routine) {
+            $title = trim((string) ($routine['title'] ?? ($routine['routine_title'] ?? ($routine['name'] ?? ''))));
+            if ($title === '') {
+                continue;
+            }
+
+            $status = strtolower(trim((string) ($routine['status'] ?? 'active')));
+            if ($status === '') {
+                $status = 'active';
+            }
+            if ($status === 'paused') {
+                continue;
+            }
+
+            $steps = $routine['steps'] ?? ($routine['routine_steps'] ?? []);
+            if (is_string($steps)) {
+                $steps = preg_split('/\r\n|\r|\n|,/', $steps);
+            }
+            if (!is_array($steps)) {
+                $steps = [];
+            }
+            $steps = array_values(array_filter(array_map('trim', array_map('strval', $steps))));
+
+            $current_routines[] = [
+                'title' => $title,
+                'type' => trim((string) ($routine['routine_type'] ?? 'Routine')) ?: 'Routine',
+                'frequency' => trim((string) ($routine['frequency'] ?? ($routine['routine_frequency'] ?? 'Weekly'))) ?: 'Weekly',
+                'time' => trim((string) ($routine['routine_time'] ?? ($routine['time'] ?? ''))),
+                'steps_count' => max(1, count($steps)),
+                'completed_today' => in_array((int) $index, $today_completed_routine_ids, true),
+            ];
+        }
 
         // Check if user is new (no entries and recent registration)
         $user_registered = strtotime($current_user->user_registered);
@@ -47,12 +161,47 @@ function myavana_luxury_home_shortcode() {
         $user_stats = [
             'entries' => $entries_count ?: 0,
             'days_active' => $days_active ?: 0,
-            'streak' => 7, // Placeholder for streak calculation
+            'streak' => $entry_streak,
             'is_new_user' => $is_new_user,
             'show_onboarding' => $show_onboarding,
-            'onboarding_completed' => ($onboarding_completed === 'completed') ? true : false
+            'onboarding_completed' => ($onboarding_completed === 'completed') ? true : false,
+            'entries_this_month' => intval($entries_this_month ?: 0),
+            'active_goals' => count($active_goals),
+            'current_routines' => count($current_routines),
+            'completed_today' => count($today_completed_routine_ids),
+            'health_score' => $user_profile && isset($user_profile->hair_health_rating) ? floatval($user_profile->hair_health_rating) : 0,
         ];
     }
+
+    $home_urls = [
+        'timeline' => home_url('/hair-journey/'),
+        'goals' => home_url('/goals/'),
+        'routines' => home_url('/routines/'),
+        'community' => home_url('/community/'),
+        'insights' => home_url('/hair-insights/'),
+    ];
+
+    $goal_preview = array_slice($active_goals, 0, 3);
+    $routine_preview = array_slice($current_routines, 0, 3);
+    $routine_completion_ratio = (!empty($current_routines) && !empty($user_stats['current_routines']))
+        ? (int) round(($user_stats['completed_today'] / max(1, $user_stats['current_routines'])) * 100)
+        : 0;
+    $health_score_label = ($user_stats['health_score'] ?? 0) > 0
+        ? number_format_i18n((float) $user_stats['health_score'], 1) . '/10'
+        : 'Building';
+
+    $format_home_date = static function ($date_value) {
+        if (empty($date_value)) {
+            return 'No target set';
+        }
+
+        $timestamp = strtotime((string) $date_value);
+        if (!$timestamp) {
+            return 'No target set';
+        }
+
+        return wp_date('M j, Y', $timestamp);
+    };
 
     
     wp_enqueue_style('myavana-free-analysis', MYAVANA_URL . 'assets/css/free-hair-analysis.css', [], '1.0.0');
@@ -61,7 +210,8 @@ function myavana_luxury_home_shortcode() {
 
     // Enqueue AI Analysis Modal for logged-in users
     if (is_user_logged_in()) {
-        wp_enqueue_script('myavana-ai-analysis-modal', MYAVANA_URL . 'assets/js/ai-analysis-modal.js', ['jquery'], '1.0.0', true);
+        $ai_modal_version = defined('WP_DEBUG') && WP_DEBUG ? time() : '1.0.2';
+        wp_enqueue_script('myavana-ai-analysis-modal', MYAVANA_URL . 'assets/js/ai-analysis-modal.js', ['jquery'], $ai_modal_version, true);
         wp_localize_script('myavana-ai-analysis-modal', 'myavanaAjax', [
             'ajaxurl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('myavana_profile_nonce')
@@ -72,6 +222,7 @@ function myavana_luxury_home_shortcode() {
     wp_localize_script('myavana-luxury-home', 'myavanaLuxuryData', [
         'ajaxUrl' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('myavana_nonce'),
+        'aiToolUrl' => 'https://www.myavana.com/pages/consumer',
         'isLoggedIn' => $is_logged_in,
         'currentUserId' => $is_logged_in ? $current_user->ID : 0,
         'currentUserName' => $is_logged_in ? $current_user->display_name : '',
@@ -84,99 +235,6 @@ function myavana_luxury_home_shortcode() {
     ?>
 
     <div class="myavana-luxury-homepage">
-        <!-- Luxury Navigation -->
-        <nav class="myavana-luxury-nav">
-            <div class="myavana-luxury-nav-container">
-                <a href="<?php echo home_url(); ?>" class="myavana-luxury-logo">
-                    <div class="myavana-logo-section">
-                        <img src="<?php echo esc_url(home_url()); ?>/wp-content/plugins/myavana-hair-journey/assets/images/myavana-primary-logo.png"
-                            alt="Myavana Logo" class="myavana-logo" />
-                    </div>
-                </a>
-
-                <?php if (!$is_logged_in): ?>
-                    <!-- GUEST NAV -->
-                    <div class="myavana-luxury-nav-menu">
-                        <a href="#features" class="myavana-luxury-nav-link">Features</a>
-                        <a href="#how-it-works" class="myavana-luxury-nav-link">How It Works</a>
-                        <a href="#" onclick="showMyavanaModal('login'); return false;" class="myavana-luxury-nav-link myavana-nav-signin-mobile">
-                            Sign In
-                        </a>
-                    </div>
-
-                    <div class="myavana-luxury-nav-actions">
-                        <button class="myavana-luxury-btn-secondary" onclick="showMyavanaModal('login')">Sign In</button>
-                        <button class="myavana-luxury-btn-primary" onclick="showMyavanaModal('register')">Start Your Journey</button>
-                    </div>
-
-                <?php else: ?>
-                    <!-- LOGGED-IN NAV -->
-                    <div class="myavana-luxury-nav-menu" id="mainNavMenu">
-                        <a href="/hair-journey/" class="myavana-luxury-nav-link">My Hair Journey</a>
-                        <a href="/community/" class="myavana-luxury-nav-link">Community</a>
-                        <a href="/profile" class="myavana-luxury-nav-link">Profile</a>
-                        <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createGoal()">+ Goal</a>
-                            <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createRoutine()">+ Routine</a>
-                            <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="openAIAnalysisModal()">Smart Entry</a>
-                            <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createEntry()">+ Entry</a>
-                        <!-- Action Buttons - Desktop -->
-                        <!-- <div class="myavana-luxury-nav-action-buttons desktop-only">
-                           
-                        </div> -->
-
-                        <!-- Logout always visible on desktop -->
-                        <a href="<?php echo wp_logout_url(home_url()); ?>" class="myavana-luxury-nav-link myavana-nav-logout-desktop">
-                            Logout
-                        </a>
-                    </div>
-
-                    <!-- Right side: Avatar + Action Buttons on Mobile -->
-                    <!-- <div class="myavana-luxury-nav-actions" id="mobileActionArea">
-                        <div class="myavana-luxury-profile-dropdown">
-                            <img src="<?php echo get_avatar_url($current_user->ID, ['size' => 40]); ?>"
-                                alt="<?php echo esc_attr($current_user->display_name); ?>"
-                                class="myavana-luxury-avatar"
-                                onclick="toggleProfileDropdown(event)">
-                        </div>
-                    </div> -->
-
-                    <!-- Mobile Menu Toggle -->
-                    <!-- CORRECT — only jQuery handles it -->
-                    <button class="myavana-luxury-mobile-toggle" aria-label="Toggle menu">
-                        <span></span><span></span><span></span>
-                    </button>
-                <?php endif; ?>
-
-                <!-- MOBILE SLIDE-OUT MENU (only for logged-in users) -->
-                <?php if ($is_logged_in): ?>
-                <div class="myavana-mobile-menu-overlay" id="mobileMenuOverlay" onclick="toggleMobileMenu()"></div>
-                <div class="myavana-mobile-menu-panel" id="mobileMenuPanel">
-                    <div class="mobile-menu-header">
-                        <div class="mobile-menu-user">
-                            <img src="<?php echo get_avatar_url($current_user->ID, ['size' => 60]); ?>" alt="Avatar" class="mobile-menu-avatar">
-                            <div>
-                                <strong><?php echo esc_html($current_user->display_name); ?></strong>
-                                <small>Welcome back!</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mobile-menu-links">
-                        <a href="/hair-journey/">My Hair Journey</a>
-                        <a href="/community/" >Community</a>
-                        <a href="/profile">Profile</a>
-                        <hr>
-                        <button type="button" class="mobile-menu-action" onclick="createGoal(); toggleMobileMenu()">+ Goal</button>
-                        <button type="button" class="mobile-menu-action" onclick="createRoutine(); toggleMobileMenu()">+ Routine</button>
-                        <button type="button" class="mobile-menu-action smart" onclick="openAIAnalysisModal(); toggleMobileMenu()">Smart Entry</button>
-                        <button type="button" class="mobile-menu-action primary" onclick="createEntry(); toggleMobileMenu()">+ Entry</button>
-                        <hr>
-                        <a href="<?php echo wp_logout_url(home_url()); ?>" class="mobile-menu-logout">Logout</a>
-                    </div>
-                </div>
-                <?php endif; ?>
-            </div>
-        </nav>
         <!-- Hero Section -->
         <section class="myavana-luxury-hero">
             <div class="myavana-luxury-hero-container">
@@ -285,17 +343,21 @@ function myavana_luxury_home_shortcode() {
                             </h2>
                             <p class="myavana-luxury-hero-description">
                                 <?php if ($user_profile && isset($user_profile->hair_health_rating)): ?>
-                                    Your current hair health score: <strong><?php echo esc_html($user_profile->hair_health_rating); ?>/10</strong>
-                                    <br>Keep up the amazing progress on your hair care routine!
+                                    Your current hair health score: <strong><?php echo esc_html(number_format_i18n((float) $user_profile->hair_health_rating, 1)); ?>/10</strong>,
+                                    with <strong><?php echo esc_html($user_stats['active_goals']); ?></strong> active goals and
+                                    <strong><?php echo esc_html($user_stats['current_routines']); ?></strong> current routines.
+                                    <br>Keep building consistency so your timeline can surface stronger patterns and insights.
                                 <?php else: ?>
-                                    You have <strong><?php echo $user_stats['entries']; ?></strong> entries in your journey.
-                                    Keep documenting your progress to see amazing transformations!
+                                    You have <strong><?php echo esc_html($user_stats['entries']); ?></strong> entries,
+                                    <strong><?php echo esc_html($user_stats['active_goals']); ?></strong> active goals,
+                                    and <strong><?php echo esc_html($user_stats['current_routines']); ?></strong> routines in motion.
+                                    <br>Keep documenting your progress to turn daily care into visible transformation.
                                 <?php endif; ?>
                             </p>
                             <div class="myavana-luxury-hero-actions">
-                                <a class="myavana-luxury-btn-primary" href="/hair-journey/">
+                                <a class="myavana-luxury-btn-primary" href="<?php echo esc_url($home_urls['timeline']); ?>">
                                     <i class="fas fa-camera"></i>
-                                    My Hair Diary
+                                    My Hair Timeline
                                 </a>
                                 <button class="myavana-luxury-btn-secondary" onclick="showMyavanaModal('ai-analysis')">
                                     <i class="fas fa-magic"></i>
@@ -313,49 +375,179 @@ function myavana_luxury_home_shortcode() {
                                 <span class="myavana-luxury-stat-label">Entries</span>
                             </div>
                             <div class="myavana-luxury-stat">
-                                <span class="myavana-luxury-stat-number"><?php echo $user_stats['days_active']; ?></span>
-                                <span class="myavana-luxury-stat-label">Days Active</span>
-                            </div>
-                            <div class="myavana-luxury-stat">
                                 <span class="myavana-luxury-stat-number"><?php echo $user_stats['streak']; ?></span>
                                 <span class="myavana-luxury-stat-label">Day Streak</span>
+                            </div>
+                            <div class="myavana-luxury-stat">
+                                <span class="myavana-luxury-stat-number"><?php echo $user_stats['active_goals']; ?></span>
+                                <span class="myavana-luxury-stat-label">Active Goals</span>
                             </div>
                         </div>
 
                         <!-- Quick Actions Dashboard -->
                         <div class="myavana-luxury-quick-dashboard">
-                            <div class="quick-action-card" onclick="showMyavanaModal('timeline')">
+                            <a class="quick-action-card" href="<?php echo esc_url($home_urls['timeline']); ?>">
                                 <div class="action-icon">
                                     <i class="fas fa-timeline"></i>
                                 </div>
                                 <div class="action-content">
-                                    <h4>View Timeline</h4>
-                                    <p>See your hair journey progress</p>
+                                    <h4>Timeline</h4>
+                                    <p>Review your latest entries</p>
                                 </div>
-                            </div>
-                            <div class="quick-action-card" onclick="showMyavanaModal('analytics')">
+                            </a>
+                            <a class="quick-action-card" href="<?php echo esc_url($home_urls['routines']); ?>">
                                 <div class="action-icon">
-                                    <i class="fas fa-chart-line"></i>
+                                    <i class="fas fa-repeat"></i>
                                 </div>
                                 <div class="action-content">
-                                    <h4>Analytics</h4>
-                                    <p>Track your improvements</p>
+                                    <h4>Routines</h4>
+                                    <p>Stay consistent with your plan</p>
                                 </div>
-                            </div>
-                            <div class="quick-action-card" onclick="showMyavanaModal('ai-chat')">
+                            </a>
+                            <a class="quick-action-card" href="<?php echo esc_url($home_urls['goals']); ?>">
                                 <div class="action-icon">
-                                    <i class="fas fa-robot"></i>
+                                    <i class="fas fa-bullseye"></i>
                                 </div>
                                 <div class="action-content">
-                                    <h4>AI Assistant</h4>
-                                    <p>Get personalized advice</p>
+                                    <h4>Goals</h4>
+                                    <p>Adjust what you're working toward</p>
                                 </div>
-                            </div>
+                            </a>
                         </div>
                     </div>
                 <?php endif; ?>
             </div>
         </section>
+
+        <?php if ($is_logged_in): ?>
+            <section class="myavana-luxury-member-hub" id="member-hub">
+                <div class="myavana-luxury-member-hub-container">
+                    <div class="myavana-luxury-member-overview">
+                        <article class="myavana-luxury-member-highlight">
+                            <div class="myavana-luxury-member-highlight-head">
+                                <span class="myavana-luxury-section-badge">Your Snapshot</span>
+                                <h2 class="myavana-luxury-member-title">A quick look at what your hair journey needs next.</h2>
+                            </div>
+                            <p class="myavana-luxury-member-description">
+                                You logged <strong><?php echo esc_html($user_stats['entries_this_month']); ?></strong> entries in the last 30 days,
+                                completed <strong><?php echo esc_html($user_stats['completed_today']); ?></strong> routines today,
+                                and have <strong><?php echo esc_html($completed_goals); ?></strong> completed goals so far.
+                            </p>
+                            <div class="myavana-luxury-member-metrics">
+                                <div class="myavana-luxury-member-metric">
+                                    <span class="value"><?php echo esc_html($health_score_label); ?></span>
+                                    <span class="label">Hair Health</span>
+                                </div>
+                                <div class="myavana-luxury-member-metric">
+                                    <span class="value"><?php echo esc_html($user_stats['days_active']); ?></span>
+                                    <span class="label">Active Days</span>
+                                </div>
+                                <div class="myavana-luxury-member-metric">
+                                    <span class="value"><?php echo esc_html($routine_completion_ratio); ?>%</span>
+                                    <span class="label">Routine Pace</span>
+                                </div>
+                            </div>
+                            <div class="myavana-luxury-member-actions">
+                                <a class="myavana-luxury-btn-primary" href="<?php echo esc_url($home_urls['community']); ?>">
+                                    <i class="fas fa-users"></i>
+                                    Community
+                                </a>
+                                <a class="myavana-luxury-btn-secondary" href="<?php echo esc_url($home_urls['insights']); ?>">
+                                    <i class="fas fa-chart-line"></i>
+                                    Hair Insights
+                                </a>
+                            </div>
+                        </article>
+
+                        <article class="myavana-luxury-member-card">
+                            <div class="myavana-luxury-member-card-head">
+                                <div>
+                                    <span class="eyebrow">Goals</span>
+                                    <h3>Active goals</h3>
+                                </div>
+                                <a href="<?php echo esc_url($home_urls['goals']); ?>">View all</a>
+                            </div>
+
+                            <?php if (!empty($goal_preview)): ?>
+                                <div class="myavana-luxury-member-list">
+                                    <?php foreach ($goal_preview as $goal): ?>
+                                        <article class="myavana-luxury-member-item">
+                                            <div class="myavana-luxury-member-item-row">
+                                                <div>
+                                                    <span class="item-type"><?php echo esc_html($goal['category']); ?></span>
+                                                    <h4><?php echo esc_html($goal['title']); ?></h4>
+                                                </div>
+                                                <span class="item-pill"><?php echo esc_html($goal['progress']); ?>%</span>
+                                            </div>
+                                            <div class="myavana-luxury-progress-bar" aria-hidden="true">
+                                                <span style="width: <?php echo esc_attr($goal['progress']); ?>%;"></span>
+                                            </div>
+                                            <div class="myavana-luxury-member-meta">
+                                                <span>Target <?php echo esc_html($format_home_date($goal['target_date'])); ?></span>
+                                                <span><?php echo esc_html(ucfirst($goal['status'])); ?></span>
+                                            </div>
+                                        </article>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <div class="myavana-luxury-member-empty">
+                                    <h4>No active goals yet</h4>
+                                    <p>Create a goal so your timeline and routines have a clear target to work toward.</p>
+                                </div>
+                            <?php endif; ?>
+
+                            <div class="myavana-luxury-member-card-actions">
+                                <a class="myavana-luxury-btn-secondary" href="<?php echo esc_url($home_urls['goals']); ?>?create=goal">Add Goal</a>
+                            </div>
+                        </article>
+
+                        <article class="myavana-luxury-member-card">
+                            <div class="myavana-luxury-member-card-head">
+                                <div>
+                                    <span class="eyebrow">Routines</span>
+                                    <h3>Current routines</h3>
+                                </div>
+                                <a href="<?php echo esc_url($home_urls['routines']); ?>">View all</a>
+                            </div>
+
+                            <?php if (!empty($routine_preview)): ?>
+                                <div class="myavana-luxury-member-list">
+                                    <?php foreach ($routine_preview as $routine): ?>
+                                        <article class="myavana-luxury-member-item">
+                                            <div class="myavana-luxury-member-item-row">
+                                                <div>
+                                                    <span class="item-type"><?php echo esc_html($routine['type']); ?></span>
+                                                    <h4><?php echo esc_html($routine['title']); ?></h4>
+                                                </div>
+                                                <span class="item-pill <?php echo $routine['completed_today'] ? 'is-success' : ''; ?>">
+                                                    <?php echo $routine['completed_today'] ? 'Done' : 'Up next'; ?>
+                                                </span>
+                                            </div>
+                                            <div class="myavana-luxury-member-meta">
+                                                <span><?php echo esc_html($routine['steps_count']); ?> steps</span>
+                                                <span><?php echo esc_html($routine['frequency']); ?></span>
+                                                <?php if (!empty($routine['time'])): ?>
+                                                    <span><?php echo esc_html($routine['time']); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </article>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <div class="myavana-luxury-member-empty">
+                                    <h4>No routines in progress</h4>
+                                    <p>Add a routine to turn your products and habits into a repeatable plan.</p>
+                                </div>
+                            <?php endif; ?>
+
+                            <div class="myavana-luxury-member-card-actions">
+                                <a class="myavana-luxury-btn-secondary" href="<?php echo esc_url($home_urls['routines']); ?>?create=routine">Add Routine</a>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+        <?php endif; ?>
 
         <?php if (!$is_logged_in): ?>
             <!-- Free Hair Analysis CTA Section -->
@@ -877,7 +1069,7 @@ function myavana_luxury_home_shortcode() {
             const dropdownHTML = `
                 <div class="myavana-luxury-profile-dropdown-menu">
                     <a href="/members/<?php echo $current_user->user_login; ?>/profile/">View Profile</a>
-                    <a href="/hair-journey/">My Hair Journey</a>
+                    <a href="/hair-journey/">My Timeline</a>
                     <a href="<?php echo wp_logout_url(home_url()); ?>" class="logout">Logout</a>
                 </div>
             `;
@@ -906,6 +1098,8 @@ function myavana_luxury_home_shortcode() {
                 alert('Registration modal would open here');
             } else if (modalType === 'login') {
                 alert('Login modal would open here');
+            } else if (modalType === 'ai-analysis') {
+                window.location.href = 'https://www.myavana.com/pages/consumer';
             }
         };
     }

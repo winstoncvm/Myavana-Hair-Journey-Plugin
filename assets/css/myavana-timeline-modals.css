@@ -421,13 +421,13 @@ textarea.form-input {
    ============================================ */
 @media (max-width: 768px) {
     .myavana-timeline-modal-overlay {
-        padding: 10px !important;
+        padding: 10px 10px calc(80px + env(safe-area-inset-bottom)) 10px !important;
         align-items: flex-start !important;
     }
 
     .myavana-timeline-modal-container {
         max-width: 100% !important;
-        max-height: 100% !important;
+        max-height: calc(100dvh - 90px - env(safe-area-inset-bottom)) !important;
         border-radius: 12px !important;
         margin-top: 20px !important;
     }

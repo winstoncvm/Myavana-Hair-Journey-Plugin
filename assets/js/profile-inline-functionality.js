@@ -84,34 +84,31 @@ jQuery(document).ready(function($) {
     // Handle Analysis View in Offcanvas
     $(document).on('click', '.myavana-history-details-btn, .view-details, .analysis-action-btn', function(e) {
         e.preventDefault();
-        console.log('View Details clicked', this);
-        
-        let analysisData = $(this).data('analysis');
-        console.log('Raw Analysis Data:', analysisData);
 
-        // Parse the data if it's a string
+        let analysisData = $(this).data('analysis');
+
         try {
             if (typeof analysisData === 'string') {
                 analysisData = JSON.parse(analysisData);
             }
-            console.log('Parsed Analysis Data:', analysisData);
 
             if (!analysisData || !analysisData.hair_analysis) {
                 throw new Error('Invalid analysis data structure');
             }
 
-            const timestamp = new Date(analysisData.timestamp);
-            const formattedDate = timestamp.toLocaleDateString('en-US', { 
-                weekday: 'long',
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric'
-            });
+            const hair = analysisData.hair_analysis || {};
+            const timestamp = analysisData.timestamp ? new Date(analysisData.timestamp) : null;
+            const formattedDate = timestamp && !Number.isNaN(timestamp.getTime())
+                ? timestamp.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                })
+                : 'Date unavailable';
 
-            // Update offcanvas content
+            // Update header and image
             $('#analysis-date').text(formattedDate);
-
-            // Update image
             if (analysisData.image_url) {
                 $('#analysis-image').attr('src', analysisData.image_url).show();
             } else {
@@ -120,106 +117,95 @@ jQuery(document).ready(function($) {
 
             // Update metrics with animation
             const metrics = {
-                health: analysisData.hair_analysis.health_score || 0,
-                hydration: analysisData.hair_analysis.hydration || 0,
-                elasticity: analysisData.hair_analysis.elasticity || 0
+                health: parseInt(hair.health_score, 10) || 0,
+                hydration: parseInt(hair.hydration, 10) || 0,
+                elasticity: parseInt(hair.elasticity, 10) || 0
             };
 
             Object.entries(metrics).forEach(([key, value]) => {
                 const score = $(`#${key}-score`);
                 const progress = $(`#${key}-progress`);
-                
+
                 score.text(value + '%');
                 progress.css('width', '0%').animate({
                     width: value + '%'
-                }, 800, 'easeOutQuart');
+                }, 700);
             });
 
-            // Update hair details
-            $('#hair-type').text(analysisData.hair_analysis.type || '--');
-            $('#curl-pattern').text(analysisData.hair_analysis.curl_pattern || '--');
-            $('#porosity').text(analysisData.hair_analysis.porosity || '--');
+            // Primary details
+            $('#hair-type').text(hair.type || '--');
+            $('#curl-pattern').text(hair.curl_pattern || '--');
+            $('#porosity').text(hair.porosity || '--');
 
-            // Update summary
+            // Extended details
+            $('#detail-length').text(hair.length || '--');
+            $('#detail-texture').text(hair.texture || '--');
+            $('#detail-density').text(hair.density || '--');
+            $('#detail-hairstyle').text(hair.hairstyle || '--');
+            $('#detail-hair-color').text(hair.hair_color || '--');
+            $('#detail-scalp-health').text(hair.scalp_health || '--');
+            $('#detail-damage').text(hair.damage || '--');
+            $('#detail-strand-thickness').text(hair.strand_thickness || '--');
+            $('#detail-growth-pattern').text(hair.growth_pattern || '--');
+            $('#detail-mood-demeanor').text(analysisData.mood_demeanor || '--');
+            $('#detail-environment').text(analysisData.environment || '--');
+            $('#detail-confidence-level').text(analysisData.confidence_level ? `${analysisData.confidence_level}%` : '--');
+
+            // Summary and context
             $('#analysis-summary').text(analysisData.summary || 'No summary available');
+            $('#analysis-full-context').text(analysisData.full_context || 'No additional AI notes available');
 
-            // Update recommendations
-            const recommendations = analysisData.recommendations || [];
-            const recsHtml = recommendations.length ? 
-                recommendations.map(rec => `
-                    <div class="recommendation-item">
-                        <div class="rec-icon">💡</div>
-                        <div class="rec-text">${rec}</div>
+            // Recommendations
+            const recommendations = Array.isArray(analysisData.recommendations) ? analysisData.recommendations : [];
+            const recsHtml = recommendations.length
+                ? recommendations.map(rec => `
+                    <div class=\"recommendation-item\">
+                        <div class=\"rec-icon\">💡</div>
+                        <div class=\"rec-text\">${escapeHtml(rec)}</div>
                     </div>
-                `).join('') :
-                '<div class="no-recommendations">No recommendations available</div>';
-            
+                `).join('')
+                : '<div class="no-recommendations">No recommendations available</div>';
             $('#analysis-recommendations').html(recsHtml);
+
+            // Products
+            const productsRaw = Array.isArray(analysisData.products) ? analysisData.products : [];
+            const products = productsRaw.map(item => {
+                if (typeof item === 'string') {
+                    return item;
+                }
+                if (item && typeof item === 'object' && item.name) {
+                    return item.name;
+                }
+                return '';
+            }).filter(Boolean);
+
+            const productHtml = products.length
+                ? products.map(product => `
+                    <div class=\"recommendation-item\">
+                        <div class=\"rec-icon\">🛍️</div>
+                        <div class=\"rec-text\">${escapeHtml(product)}</div>
+                    </div>
+                `).join('')
+                : '<div class="no-recommendations">No product recommendations available</div>';
+            $('#analysis-products').html(productHtml);
 
             // Show the offcanvas
             $('#analysisViewOffcanvas').addClass('active');
             $('#viewOffcanvasOverlay').addClass('active');
             $('body').addClass('offcanvas-active');
-
         } catch (error) {
             console.error('Error processing analysis data:', error);
-            return;
-
-            // Update header
-            $('#analysis-date').text(formattedDate);
-
-            // Update image
-            if (analysisData.image_url) {
-                $('#analysis-image').attr('src', analysisData.image_url).show();
-            } else {
-                $('#analysis-image').hide();
-            }
-
-            // Update metrics with animation
-            const metrics = {
-                health: analysisData.hair_analysis.health_score || 0,
-                hydration: analysisData.hair_analysis.hydration || 0,
-                elasticity: analysisData.hair_analysis.elasticity || 0
-            };
-
-            // Animate metrics
-            Object.entries(metrics).forEach(([key, value]) => {
-                const score = $(`#${key}-score`);
-                const progress = $(`#${key}-progress`);
-                
-                score.text(value + '%');
-                progress.css('width', '0%').animate({
-                    width: value + '%'
-                }, 800, 'easeOutQuart');
-            });
-
-            // Update hair details
-            $('#hair-type').text(analysisData.hair_analysis.type || '--');
-            $('#curl-pattern').text(analysisData.hair_analysis.curl_pattern || '--');
-            $('#porosity').text(analysisData.hair_analysis.porosity || '--');
-
-            // Update summary
-            $('#analysis-summary').text(analysisData.summary || 'No summary available');
-
-            // Update recommendations
-            const recommendations = analysisData.recommendations || [];
-            const recsHtml = recommendations.length ? 
-                recommendations.map(rec => `
-                    <div class="recommendation-item">
-                        <div class="rec-icon">💡</div>
-                        <div class="rec-text">${rec}</div>
-                    </div>
-                `).join('') :
-                '<div class="no-recommendations">No recommendations available</div>';
-            
-            $('#analysis-recommendations').html(recsHtml);
-
-            // Show offcanvas
-            $('#analysisViewOffcanvas').addClass('show');
-            $('#viewOffcanvasOverlay').addClass('show');
-            $('body').addClass('offcanvas-open');
         }
     });
+
+    function escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/\"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
 
     // Close offcanvas
     $(document).on('click', '.offcanvas-close-hjn, #viewOffcanvasOverlay', function() {

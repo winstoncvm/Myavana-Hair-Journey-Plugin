@@ -29,7 +29,9 @@
 
         openSmartEntry: function(e) {
             e.preventDefault();
-            console.log('[Smart Entry] Opening camera interface');
+            const aiToolUrl = window.myavanaAiToolUrl || 'https://www.myavana.com/pages/consumer';
+            window.location.href = aiToolUrl;
+            return;
 
             const modalHTML = `
                 <div class="myavana-smart-entry-modal" id="smartEntryModal">

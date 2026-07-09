@@ -93,6 +93,8 @@
     font-size: 1.125rem;
     font-weight: 500;
     color: var(--myavana-onyx);
+    line-height: 1.35;
+    word-break: break-word;
 }
 
 .analysis-summary-section,

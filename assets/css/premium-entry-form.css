@@ -744,6 +744,16 @@
     background: #F5F5F7;
 }
 
+.btn-cancel {
+    color: #5f6473;
+    border-color: rgba(74, 77, 104, 0.28);
+}
+
+.btn-cancel:hover {
+    color: #222323;
+    border-color: #4A4D68;
+}
+
 .btn-primary {
     background: #E7A690;
     color: white;
@@ -892,12 +902,27 @@
 
     .premium-modal-footer {
         padding: 16px 20px;
+        flex-wrap: wrap;
     }
 
     .btn-secondary,
     .btn-primary {
         padding: 12px 20px;
         font-size: 14px;
+    }
+
+    .btn-cancel {
+        order: 1;
+    }
+
+    #btnPrevious {
+        order: 2;
+    }
+
+    #btnNext,
+    #btnSave {
+        order: 3;
+        margin-left: auto;
     }
 }
 

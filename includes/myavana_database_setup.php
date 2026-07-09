@@ -36,9 +36,32 @@ function myavana_create_tables() {
         KEY session_id (session_id)
     ) $charset_collate;";
 
+    // Create wp_myavana_site_analytics table
+    $analytics_table = $wpdb->prefix . 'myavana_site_analytics';
+    $analytics_sql = "CREATE TABLE $analytics_table (
+        id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+        session_id VARCHAR(64) NOT NULL,
+        user_id BIGINT(20) UNSIGNED DEFAULT NULL,
+        path VARCHAR(255) NOT NULL,
+        page_title VARCHAR(255) DEFAULT NULL,
+        referrer VARCHAR(255) DEFAULT NULL,
+        device_type VARCHAR(20) DEFAULT NULL,
+        viewport VARCHAR(20) DEFAULT NULL,
+        time_spent_seconds INT UNSIGNED DEFAULT 0,
+        visited_at DATETIME NOT NULL,
+        last_seen_at DATETIME NOT NULL,
+        meta_json LONGTEXT DEFAULT NULL,
+        PRIMARY KEY (id),
+        KEY session_id (session_id),
+        KEY user_id (user_id),
+        KEY path (path(191)),
+        KEY visited_at (visited_at)
+    ) $charset_collate;";
+
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';
     dbDelta($profiles_sql);
     dbDelta($conversations_sql);
+    dbDelta($analytics_sql);
     
     // Add performance indexes (check if they exist first)
     $index_exists = $wpdb->get_var("SHOW INDEX FROM {$conversations_table} WHERE Key_name = 'idx_user_conversations'");

@@ -77,7 +77,11 @@ class Myavana_Asset_Optimizer {
      */
     public function optimize_assets() {
         global $wp_styles, $wp_scripts;
-        
+
+        if ($this->is_myavana_app_request()) {
+            return;
+        }
+
         if (!$this->minify_enabled && !$this->combine_enabled) {
             return;
         }
@@ -111,6 +115,10 @@ class Myavana_Asset_Optimizer {
      * Combine CSS files
      */
     public function combine_css() {
+        if ($this->is_myavana_app_request()) {
+            return;
+        }
+
         if (!$this->combine_enabled) {
             return;
         }
@@ -145,6 +153,10 @@ class Myavana_Asset_Optimizer {
      * Combine JS files
      */
     public function combine_js() {
+        if ($this->is_myavana_app_request()) {
+            return;
+        }
+
         if (!$this->combine_enabled) {
             return;
         }
@@ -376,6 +388,45 @@ class Myavana_Asset_Optimizer {
             
             return 'url(' . $url . ')';
         }, $css);
+    }
+
+    /**
+     * Skip optimization/combine on core Myavana app pages.
+     * These pages rely on strict CSS/JS handle order and can break when merged.
+     */
+    private function is_myavana_app_request() {
+        if (is_admin()) {
+            return false;
+        }
+
+        $path = trim(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/');
+        if ((bool) preg_match('#^(hair-journey|goals|routines|community|profile|members)(/|$)#', $path)) {
+            return true;
+        }
+
+        global $post;
+        if (!is_a($post, 'WP_Post') || empty($post->post_content)) {
+            return false;
+        }
+
+        $shortcodes = [
+            'myavana_hair-journey-page',
+            'myavana_hair_journey_page',
+            'myavana_hair_journey_timeline',
+            'myavana_goals_page',
+            'myavana_routines_page',
+            'myavana_community_feed',
+            'myavana_unified_profile',
+            'myavana_luxury_home',
+        ];
+
+        foreach ($shortcodes as $shortcode) {
+            if (has_shortcode($post->post_content, $shortcode)) {
+                return true;
+            }
+        }
+
+        return false;
     }
     
     /**

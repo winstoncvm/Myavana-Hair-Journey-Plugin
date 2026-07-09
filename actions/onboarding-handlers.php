@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-require_once MYAVANA_PATH . 'includes/onboarding-db-schema.php';
+require_once MYAVANA_DIR . 'includes/onboarding-db-schema.php';
 
 /**
  * Save Onboarding Step 1: Hair Profile
@@ -228,24 +228,22 @@ function myavana_save_onboarding_step_3() {
         'skipped_routine' => $skipped
     ]);
 
-    // Award gamification points
-    if (class_exists('Myavana_Gamification')) {
-        global $wpdb;
-        $stats_table = $wpdb->prefix . 'myavana_user_stats';
-
-        // Add 50 points for completing onboarding
-        $wpdb->query($wpdb->prepare(
-            "INSERT INTO {$stats_table} (user_id, total_points, level)
-             VALUES (%d, 50, 1)
-             ON DUPLICATE KEY UPDATE total_points = total_points + 50",
-            $user_id
-        ));
+    if (function_exists('myavana_award_points')) {
+        $onboarding_points = Myavana_Gamification::get_reward_value('onboarding_completed', 25);
+        myavana_award_points(
+            $user_id,
+            $onboarding_points,
+            'Onboarding completed',
+            'onboarding',
+            3,
+            'onboarding_completed:' . $user_id
+        );
     }
 
     wp_send_json_success([
         'message' => 'Onboarding completed successfully!',
         'step' => 3,
-        'points_earned' => 50,
+        'points_earned' => $onboarding_points ?? 0,
         'skipped_routine' => $skipped,
         'redirect' => home_url('/hair-journey/'), // Adjust redirect URL as needed
         'data' => $step_data

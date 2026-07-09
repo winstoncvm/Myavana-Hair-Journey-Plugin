@@ -484,7 +484,7 @@ function myavana_home_one_shortcode() {
                     setupAIFeatures() {
                         // AI feature buttons
                         $('[data-action="open-ai-camera"]').on('click', function() {
-                            window.location.href = '<?php echo home_url("/dashboard?view=ai-analysis"); ?>';
+                            window.location.href = 'https://www.myavana.com/pages/consumer';
                         });
 
                         $('[data-action="open-ai-chat"]').on('click', function() {

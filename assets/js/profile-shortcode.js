@@ -68,29 +68,13 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // Section edit toggles - THIS IS WHERE THE MAIN BUG IS
+    // Section edit toggles
     $('.section-edit').on('click', function() {
         const section = $(this).data('section');
 
         if (section === 'analysis') {
-            const analysisButton = $(this);
-            const isActive = analysisButton.hasClass('cancel-active');
-
-            if (!isActive) {
-                // Switch to active/cancel state
-                $('.hair-analysis-container').addClass('hidden');
-                $('.myavana-tryon').removeClass('hidden');
-                analysisButton.addClass('cancel-active');
-                analysisButton.find('i').removeClass('fa-plus').addClass('fa-times');
-                analysisButton.find('span').text('Cancel Analysis');
-            } else {
-                // Cancel: revert UI + button
-                $('.hair-analysis-container').removeClass('hidden');
-                $('.myavana-tryon').addClass('hidden');
-                analysisButton.removeClass('cancel-active');
-                analysisButton.find('i').removeClass('fa-times').addClass('fa-plus');
-                analysisButton.find('span').text('Add Analysis');
-            }
+            window.location.href = window.myavanaAiToolUrl || 'https://www.myavana.com/pages/consumer';
+            return;
         } else if (section === 'about-me') {
             $('#about-me-text').prop('disabled', false);
             $('#save-about-me, #cancel-about-me').removeClass('hidden');
@@ -386,8 +370,7 @@ jQuery(document).ready(function($) {
     // Hair Analysis - Fix the camera/analysis handlers
     let cameraStreamAnalysis = null;
     $('#use-camera-analysis, #start-first-analysis').click(function() {
-        $('.myavana-tryon').removeClass('hidden');
-        $('.hair-analysis-container').addClass('hidden');
+        window.location.href = window.myavanaAiToolUrl || 'https://www.myavana.com/pages/consumer';
     });
 
     // Routine Management - Fixed class selectors

@@ -38,6 +38,7 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
     $current_routine = $shared_data['current_routine'];
     $user_stats = $shared_data['stats'];
     $analytics_data = $shared_data['analytics'];
+    $gamification_data = $shared_data['gamification'] ?? [];
     $total_entries = $analytics_data['total_entries'];
     $analysis_history = $shared_data['analysis_history'];
 
@@ -55,6 +56,16 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
 
     // Generate dynamic AI insight
     $ai_insight = myavana_generate_ai_insights_new($user_id);
+    $ai_insight_summary = '';
+    $ai_insight_recommendations = [];
+    if (is_array($ai_insight)) {
+        $ai_insight_summary = $ai_insight['summary'] ?? '';
+        $ai_insight_recommendations = !empty($ai_insight['recommendations']) && is_array($ai_insight['recommendations'])
+            ? $ai_insight['recommendations']
+            : [];
+    } elseif (is_string($ai_insight)) {
+        $ai_insight_summary = $ai_insight;
+    }
 
     // Fetch Community data
     global $wpdb;
@@ -89,8 +100,28 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
         $user_id
     ));
 
-    // Get real gamification points from user meta
-    $total_points = intval(get_user_meta($user_id, 'myavana_points', true) ?: 0);
+    $total_points = intval($gamification_data['total_points'] ?? 0);
+    $current_streak = intval($gamification_data['current_streak'] ?? ($analytics_data['current_streak'] ?? 0));
+    $current_level = intval($gamification_data['level'] ?? 1);
+    $badges_earned = intval($gamification_data['badges_earned'] ?? 0);
+    $checked_in_today = !empty($gamification_data['checked_in_today']);
+    $xp_progress_percent = intval($gamification_data['xp_progress_percent'] ?? 0);
+    $points_to_next_level = intval($gamification_data['points_to_next_level'] ?? 100);
+    $next_badge = $gamification_data['next_badge'] ?? null;
+    $daily_quests = !empty($gamification_data['daily_quests']) && is_array($gamification_data['daily_quests']) ? $gamification_data['daily_quests'] : [];
+    $weekly_quests = !empty($gamification_data['weekly_quests']) && is_array($gamification_data['weekly_quests']) ? $gamification_data['weekly_quests'] : [];
+    $active_challenges = !empty($gamification_data['active_challenges']) && is_array($gamification_data['active_challenges']) ? $gamification_data['active_challenges'] : [];
+    $recent_rewards = !empty($gamification_data['recent_rewards']) && is_array($gamification_data['recent_rewards']) ? $gamification_data['recent_rewards'] : [];
+    $recent_badges = !empty($gamification_data['recent_badges']) && is_array($gamification_data['recent_badges']) ? $gamification_data['recent_badges'] : [];
+    $routine_tracking = function_exists('myavana_get_routine_tracking_context')
+        ? myavana_get_routine_tracking_context($user_id, (array) $current_routine)
+        : [];
+    $routine_tracking_summary = !empty($routine_tracking['summary']) && is_array($routine_tracking['summary'])
+        ? $routine_tracking['summary']
+        : [];
+    $routine_tracking_notifications = !empty($routine_tracking['notifications']) && is_array($routine_tracking['notifications'])
+        ? $routine_tracking['notifications']
+        : [];
 
     // Get additional user profile data
     $user_location = get_user_meta($user_id, 'myavana_up_location', true);
@@ -99,6 +130,55 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
     $hair_porosity = get_user_meta($user_id, 'hair_porosity', true);
     $hair_length = get_user_meta($user_id, 'hair_length', true);
     $structured_goals = get_user_meta($user_id, 'myavana_hair_goals_structured', true) ?: [];
+
+    // Profile completion and suggested next actions
+    $completion_checks = [
+        'bio' => !empty($user_profile->bio),
+        'location' => !empty($user_location),
+        'hair_type' => !empty($user_profile->hair_type),
+        'porosity' => !empty($hair_porosity),
+        'length' => !empty($hair_length),
+        'concerns' => !empty($hair_concerns) && is_array($hair_concerns),
+        'goals' => !empty($structured_goals) && is_array($structured_goals),
+        'routine' => !empty($current_routine),
+    ];
+    $missing_profile_labels = [
+        'bio' => 'Bio',
+        'location' => 'Location',
+        'hair_type' => 'Hair Type',
+        'porosity' => 'Porosity',
+        'length' => 'Hair Length',
+        'concerns' => 'Hair Concerns',
+        'goals' => 'Hair Goals',
+        'routine' => 'Routine',
+    ];
+    $completed_fields = count(array_filter($completion_checks));
+    $profile_completion = (int) round(($completed_fields / max(1, count($completion_checks))) * 100);
+    $missing_profile_fields = [];
+    foreach ($completion_checks as $key => $is_complete) {
+        if (!$is_complete && isset($missing_profile_labels[$key])) {
+            $missing_profile_fields[] = $missing_profile_labels[$key];
+        }
+    }
+
+    $next_steps = [];
+    if (empty($hair_goals)) {
+        $next_steps[] = 'Create your first hair goal to track outcomes over time.';
+    }
+    if (empty($current_routine)) {
+        $next_steps[] = 'Build a routine so AI recommendations can map to your regimen.';
+    }
+    if (empty($snapshots) && $can_analyze) {
+        $next_steps[] = 'Run your first AI analysis to unlock personalized trend insights.';
+    } elseif (!empty($snapshots) && $analysis_count < $analysis_limit && $can_analyze) {
+        $next_steps[] = 'Add a fresh AI analysis this week to measure progress changes.';
+    }
+    if ($profile_completion < 100) {
+        $next_steps[] = 'Complete your profile details to improve recommendation quality.';
+    }
+    if (empty($next_steps)) {
+        $next_steps[] = 'You are fully set up. Share your latest progress with the community.';
+    }
 
     // Time-based greeting
     $hour = date('G');
@@ -117,91 +197,6 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
     ob_start();
     ?>
     <div class="myavana-unified-profile-container" data-theme="light"> 
-        <!-- Luxury Navigation -->
-        <nav class="myavana-luxury-nav">
-            <div class="myavana-luxury-nav-container">
-                <a href="<?php echo home_url(); ?>" class="myavana-luxury-logo">
-                    <div class="myavana-logo-section">
-                        <img src="<?php echo esc_url(home_url()); ?>/wp-content/plugins/myavana-hair-journey/assets/images/myavana-primary-logo.png"
-                            alt="Myavana Logo" class="myavana-logo" />
-                    </div>
-                </a>
-
-                <?php if (!$is_logged_in): ?>
-                    <!-- GUEST NAV -->
-                    <div class="myavana-luxury-nav-menu">
-                        <a href="#features" class="myavana-luxury-nav-link">Features</a>
-                        <a href="#how-it-works" class="myavana-luxury-nav-link">How It Works</a>
-                        <a href="#" onclick="showMyavanaModal('login'); return false;" class="myavana-luxury-nav-link myavana-nav-signin-mobile">
-                            Sign In
-                        </a>
-                    </div>
-
-                    <div class="myavana-luxury-nav-actions">
-                        <button class="myavana-luxury-btn-secondary" onclick="showMyavanaModal('login')">Sign In</button>
-                        <button class="myavana-luxury-btn-primary" onclick="showMyavanaModal('register')">Start Your Journey</button>
-                    </div>
-
-                <?php else: ?>
-                    <!-- LOGGED-IN NAV -->
-                    <div class="myavana-luxury-nav-menu" id="mainNavMenu">
-                        <a href="/hair-journey/" class="myavana-luxury-nav-link">My Hair Journey</a>
-                        <a href="/community/" class="myavana-luxury-nav-link">Community</a>
-                        <a href="/profile" class="myavana-luxury-nav-link">Profile</a>
-                        <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createGoal()">+ Goal</a>
-                            <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createRoutine()">+ Routine</a>
-                            <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="openAIAnalysisModal()">Smart Entry</a>
-                            <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createEntry()">+ Entry</a>
-                        <!-- Action Buttons - Desktop -->
-                        <!-- <div class="myavana-luxury-nav-action-buttons desktop-only">
-                           
-                        </div> -->
-
-                        <!-- Logout always visible on desktop -->
-                        <a href="<?php echo wp_logout_url(home_url()); ?>" class="myavana-luxury-nav-link myavana-nav-logout-desktop">
-                            Logout
-                        </a>
-                    </div>
-
-                    
-
-                    <!-- Mobile Menu Toggle -->
-                    <!-- CORRECT — only jQuery handles it -->
-                    <button class="myavana-luxury-mobile-toggle" aria-label="Toggle menu">
-                        <span></span><span></span><span></span>
-                    </button>
-                <?php endif; ?>
-
-                <!-- MOBILE SLIDE-OUT MENU (only for logged-in users) -->
-                <?php if ($is_logged_in): ?>
-                <div class="myavana-mobile-menu-overlay" id="mobileMenuOverlay" onclick="toggleMobileMenu()"></div>
-                <div class="myavana-mobile-menu-panel" id="mobileMenuPanel">
-                    <div class="mobile-menu-header">
-                        <div class="mobile-menu-user">
-                            <img src="<?php echo get_avatar_url($current_user->ID, ['size' => 60]); ?>" alt="Avatar" class="mobile-menu-avatar">
-                            <div>
-                                <strong><?php echo esc_html($current_user->display_name); ?></strong>
-                                <small>Welcome back!</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mobile-menu-links">
-                        <a href="/hair-journey/">My Hair Journey</a>
-                        <a href="/community/" >Community</a>
-                        <a href="/profile">Profile</a>
-                        <hr>
-                        <button type="button" class="mobile-menu-action" onclick="createGoal(); toggleMobileMenu()">+ Goal</button>
-                        <button type="button" class="mobile-menu-action" onclick="createRoutine(); toggleMobileMenu()">+ Routine</button>
-                        <button type="button" class="mobile-menu-action smart" onclick="openAIAnalysisModal(); toggleMobileMenu()">Smart Entry</button>
-                        <button type="button" class="mobile-menu-action primary" onclick="createEntry(); toggleMobileMenu()">+ Entry</button>
-                        <hr>
-                        <a href="<?php echo wp_logout_url(home_url()); ?>" class="mobile-menu-logout">Logout</a>
-                    </div>
-                </div>
-                <?php endif; ?>
-            </div>
-        </nav>
         <!-- Dashboard Header -->
         <div class="myavana-up-dashboard-header">
             <div class="myavana-up-header-top">
@@ -252,7 +247,7 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/>
                         </svg>
-                        <span><?php echo esc_html($user_stats['days_active']); ?> Days Active</span>
+                        <span><?php echo esc_html($current_streak); ?> Day Streak</span>
                     </div>
                     <div class="myavana-up-stat-pill">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -293,12 +288,6 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
             <div class="myavana-up-header-bottom">
                 <?php if ($is_owner): ?>
                 <div class="myavana-up-action-buttons">
-                    <button class="myavana-up-btn myavana-up-btn-primary" onclick="openAIAnalysisModal()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                        </svg>
-                        Smart Entry
-                    </button>
                     <button class="myavana-up-btn myavana-up-btn-secondary" onclick="createEntry()">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -354,7 +343,7 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                 <div class="myavana-up-streak-card">
                     <div class="myavana-up-streak-icon">🔥</div>
                     <div class="myavana-up-streak-info">
-                        <div class="myavana-up-streak-count"><?php echo esc_html($user_stats['days_active']); ?> Day Streak</div>
+                        <div class="myavana-up-streak-count"><?php echo esc_html($current_streak); ?> Day Streak</div>
                         <div class="myavana-up-streak-label">Keep it going!</div>
                     </div>
                 </div>
@@ -471,8 +460,8 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                     <div class="myavana-up-card-body">
                         <div class="myavana-up-stats-grid">
                             <div class="myavana-up-stat-item">
-                                <div class="myavana-up-stat-number"><?php echo esc_html($user_stats['days_active']); ?></div>
-                                <div class="myavana-up-stat-text">Days Active</div>
+                                <div class="myavana-up-stat-number"><?php echo esc_html($current_streak); ?></div>
+                                <div class="myavana-up-stat-text">Current Streak</div>
                             </div>
                             <div class="myavana-up-stat-item">
                                 <div class="myavana-up-stat-number"><?php echo esc_html($total_entries); ?></div>
@@ -491,7 +480,7 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                 </div>
 
                 <!-- AI Insights Card -->
-                <?php if ($ai_insight && !empty($ai_insight['summary'])): ?>
+                <?php if (!empty($ai_insight_summary)): ?>
                 <div class="myavana-up-info-card myavana-up-card-wide">
                     <div class="myavana-up-card-header">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -501,12 +490,12 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                     </div>
                     <div class="myavana-up-card-body">
                         <div class="myavana-up-ai-insight">
-                            <p><?php echo esc_html($ai_insight['summary']); ?></p>
-                            <?php if (!empty($ai_insight['recommendations'])): ?>
+                            <p><?php echo esc_html($ai_insight_summary); ?></p>
+                            <?php if (!empty($ai_insight_recommendations)): ?>
                             <div class="myavana-up-recommendations">
                                 <h4>Recommendations:</h4>
                                 <ul>
-                                    <?php foreach ($ai_insight['recommendations'] as $recommendation): ?>
+                                    <?php foreach ($ai_insight_recommendations as $recommendation): ?>
                                     <li><?php echo esc_html($recommendation); ?></li>
                                     <?php endforeach; ?>
                                 </ul>
@@ -516,6 +505,60 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                     </div>
                 </div>
                 <?php endif; ?>
+
+                <div class="myavana-up-info-card">
+                    <div class="myavana-up-card-header">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 12h-4l-3 9L9 3 6 12H2"></path>
+                        </svg>
+                        <h3>Profile Completion</h3>
+                    </div>
+                    <div class="myavana-up-card-body">
+                        <div class="myavana-up-completion-track">
+                            <div class="myavana-up-completion-fill" style="width: <?php echo esc_attr($profile_completion); ?>%;"></div>
+                        </div>
+                        <div class="myavana-up-completion-meta">
+                            <strong><?php echo esc_html($profile_completion); ?>%</strong>
+                            <span>Complete</span>
+                        </div>
+                        <?php if (!empty($missing_profile_fields)): ?>
+                        <div class="myavana-up-missing-fields">
+                            <?php foreach (array_slice($missing_profile_fields, 0, 4) as $missing_field): ?>
+                            <span class="myavana-up-missing-tag"><?php echo esc_html($missing_field); ?></span>
+                            <?php endforeach; ?>
+                            <?php if (count($missing_profile_fields) > 4): ?>
+                            <span class="myavana-up-missing-tag">+<?php echo esc_html(count($missing_profile_fields) - 4); ?> more</span>
+                            <?php endif; ?>
+                        </div>
+                        <?php else: ?>
+                        <p class="myavana-up-empty-state">Profile completed. Your personalization is fully tuned.</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <div class="myavana-up-info-card myavana-up-card-wide">
+                    <div class="myavana-up-card-header">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 20V10"></path>
+                            <path d="M18 20V4"></path>
+                            <path d="M6 20v-6"></path>
+                        </svg>
+                        <h3>Action Center</h3>
+                    </div>
+                    <div class="myavana-up-card-body">
+                        <ul class="myavana-up-action-list">
+                            <?php foreach (array_slice($next_steps, 0, 3) as $next_step): ?>
+                            <li><?php echo esc_html($next_step); ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                        <div class="myavana-up-action-row">
+                            <button class="myavana-btn-secondary" onclick="switchProfileTab('analytics')">Open Analytics</button>
+                            <?php if ($is_owner): ?>
+                            <button class="myavana-btn-primary" onclick="return goToMyavanaAiTool()">Run AI Analysis</button>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -536,12 +579,6 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                     </svg>
                     Community
-                </button>
-                <button class="myavana-profile-tab" data-tab="ai-analysis" onclick="switchProfileTab('ai-analysis')">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z"/>
-                    </svg>
-                    AI Analysis
                 </button>
                 <button class="myavana-profile-tab" data-tab="goals" onclick="switchProfileTab('goals')">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -564,6 +601,15 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                 </button>
             </div>
         </nav>
+        <div class="myavana-profile-quick-strip">
+            <button class="myavana-profile-quick-chip active" data-tab="journey" onclick="switchProfileTab('journey')">Journey Overview</button>
+            <button class="myavana-profile-quick-chip" data-tab="analytics" onclick="switchProfileTab('analytics')">Analytics</button>
+            <button class="myavana-profile-quick-chip" data-tab="community" onclick="switchProfileTab('community')">Community Activity</button>
+            <?php if ($is_owner): ?>
+            <button class="myavana-profile-quick-chip" onclick="createEntry()">New Entry</button>
+            <?php endif; ?>
+            <button class="myavana-profile-quick-chip" onclick="copyProfileLink()">Copy Profile Link</button>
+        </div>
 
         <!-- Profile Content Area -->
         <div class="myavana-profile-content">
@@ -587,15 +633,196 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                         <div class="myavana-profile-sidebar-card">
                             <h3 class="myavana-profile-sidebar-title">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--myavana-coral)" stroke-width="2">
+                                    <path d="M12 2l2.9 6.26 6.85.69-5.05 4.5 1.42 6.55L12 16.9 5.88 20l1.42-6.55-5.05-4.5 6.85-.69L12 2z"></path>
+                                </svg>
+                                Journey Rewards
+                            </h3>
+                            <div class="myavana-ai-insights-content">
+                                <div class="myavana-quick-stats">
+                                    <div class="myavana-quick-stat-item">
+                                        <div class="myavana-quick-stat-label">Points</div>
+                                        <div class="myavana-quick-stat-value"><?php echo esc_html($total_points); ?></div>
+                                    </div>
+                                    <div class="myavana-quick-stat-item">
+                                        <div class="myavana-quick-stat-label">Level</div>
+                                        <div class="myavana-quick-stat-value">Level <?php echo esc_html($current_level); ?></div>
+                                    </div>
+                                    <div class="myavana-quick-stat-item">
+                                        <div class="myavana-quick-stat-label">Badges</div>
+                                        <div class="myavana-quick-stat-value"><?php echo esc_html($badges_earned); ?></div>
+                                    </div>
+                                    <div class="myavana-quick-stat-item">
+                                        <div class="myavana-quick-stat-label">XP Progress</div>
+                                        <div class="myavana-quick-stat-value"><?php echo esc_html($xp_progress_percent); ?>%</div>
+                                    </div>
+                                </div>
+                                <p>
+                                    <?php echo $checked_in_today ? 'Daily check-in completed today.' : 'Check in today to protect your streak and earn points.'; ?>
+                                </p>
+                                <?php if (!empty($next_badge['name'])): ?>
+                                <p>
+                                    Next badge: <strong><?php echo esc_html($next_badge['name']); ?></strong>
+                                    · <?php echo esc_html(intval($next_badge['remaining'])); ?> to go
+                                </p>
+                                <?php else: ?>
+                                <p><?php echo esc_html($points_to_next_level); ?> points to your next level.</p>
+                                <?php endif; ?>
+                                <?php if (!empty($recent_badges)): ?>
+                                <div class="myavana-gamification-chip-list">
+                                    <?php foreach (array_slice($recent_badges, 0, 3) as $badge): ?>
+                                    <span class="myavana-gamification-chip"><?php echo esc_html($badge['name'] ?? 'Badge'); ?></span>
+                                    <?php endforeach; ?>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <div class="myavana-profile-sidebar-card">
+                            <h3 class="myavana-profile-sidebar-title">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--myavana-coral)" stroke-width="2">
+                                    <path d="M8 2v4"></path>
+                                    <path d="M16 2v4"></path>
+                                    <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                                    <path d="M3 10h18"></path>
+                                </svg>
+                                Routine Cadence
+                            </h3>
+                            <div class="myavana-routine-health-grid">
+                                <div class="myavana-routine-health-stat">
+                                    <strong><?php echo esc_html(intval($routine_tracking_summary['due_today'] ?? 0)); ?></strong>
+                                    <span>Due today</span>
+                                </div>
+                                <div class="myavana-routine-health-stat">
+                                    <strong><?php echo esc_html(intval($routine_tracking_summary['completed_today'] ?? 0)); ?></strong>
+                                    <span>Completed</span>
+                                </div>
+                                <div class="myavana-routine-health-stat">
+                                    <strong><?php echo esc_html(intval($routine_tracking_summary['overdue'] ?? 0)); ?></strong>
+                                    <span>Overdue</span>
+                                </div>
+                                <div class="myavana-routine-health-stat">
+                                    <strong><?php echo esc_html(intval($routine_tracking_summary['adherence_30d'] ?? 0)); ?>%</strong>
+                                    <span>30-day adherence</span>
+                                </div>
+                            </div>
+                            <div class="myavana-routine-health-banner">
+                                <strong><?php echo esc_html(intval($routine_tracking_summary['best_routine_streak'] ?? 0)); ?>-session best streak</strong>
+                                <span><?php echo esc_html(intval($routine_tracking_summary['pending_today'] ?? 0)); ?> routine reminders still open today.</span>
+                            </div>
+                            <?php if (!empty($routine_tracking_notifications)): ?>
+                            <div class="myavana-routine-health-stack">
+                                <?php foreach (array_slice($routine_tracking_notifications, 0, 3) as $routine_notice): ?>
+                                <div class="myavana-routine-health-row is-<?php echo esc_attr($routine_notice['type'] ?? 'due'); ?>">
+                                    <div>
+                                        <strong><?php echo esc_html($routine_notice['title'] ?? 'Routine'); ?></strong>
+                                        <span><?php echo esc_html($routine_notice['message'] ?? 'Scheduled in your planner.'); ?></span>
+                                    </div>
+                                    <em><?php echo esc_html(!empty($routine_notice['date']) ? date_i18n('M j', strtotime($routine_notice['date'])) : 'Soon'); ?></em>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <?php else: ?>
+                            <p>Your routine planner is clear right now. Keep logging sessions from the calendar to feed your profile stats.</p>
+                            <?php endif; ?>
+                            <div class="myavana-routine-health-actions">
+                                <a href="<?php echo esc_url(home_url('/hair-journey/')); ?>" class="myavana-btn-primary-small">Open Calendar</a>
+                                <a href="<?php echo esc_url(home_url('/routines/')); ?>" class="myavana-btn-secondary">Manage Routines</a>
+                            </div>
+                        </div>
+
+                        <div class="myavana-profile-sidebar-card">
+                            <h3 class="myavana-profile-sidebar-title">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--myavana-coral)" stroke-width="2">
+                                    <path d="M9 11l3 3L22 4"></path>
+                                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                                </svg>
+                                Active Quests
+                            </h3>
+                            <div class="myavana-gamification-stack">
+                                <?php foreach (array_slice($daily_quests, 0, 3) as $quest): ?>
+                                <?php
+                                $quest_current = intval($quest['current'] ?? 0);
+                                $quest_target = max(1, intval($quest['target'] ?? 1));
+                                $quest_done = $quest_current >= $quest_target;
+                                $quest_pct = min(100, intval(round(($quest_current / $quest_target) * 100)));
+                                ?>
+                                <div class="myavana-gamification-quest<?php echo $quest_done ? ' is-complete' : ''; ?>">
+                                    <div class="myavana-gamification-quest-copy">
+                                        <strong><?php echo esc_html($quest['label'] ?? 'Quest'); ?></strong>
+                                        <span><?php echo esc_html($quest['description'] ?? ''); ?></span>
+                                    </div>
+                                    <div class="myavana-gamification-quest-meta">
+                                        <span><?php echo esc_html($quest_current); ?>/<?php echo esc_html($quest_target); ?></span>
+                                        <div class="myavana-gamification-quest-bar"><span style="width:<?php echo esc_attr($quest_pct); ?>%"></span></div>
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                                <?php foreach (array_slice($weekly_quests, 0, 1) as $quest): ?>
+                                <?php
+                                $quest_current = intval($quest['current'] ?? 0);
+                                $quest_target = max(1, intval($quest['target'] ?? 1));
+                                $quest_pct = min(100, intval(round(($quest_current / $quest_target) * 100)));
+                                ?>
+                                <div class="myavana-gamification-quest is-weekly">
+                                    <div class="myavana-gamification-quest-copy">
+                                        <strong><?php echo esc_html($quest['label'] ?? 'Weekly quest'); ?></strong>
+                                        <span><?php echo esc_html($quest['reward_label'] ?? ''); ?></span>
+                                    </div>
+                                    <div class="myavana-gamification-quest-meta">
+                                        <span><?php echo esc_html($quest_current); ?>/<?php echo esc_html($quest_target); ?></span>
+                                        <div class="myavana-gamification-quest-bar"><span style="width:<?php echo esc_attr($quest_pct); ?>%"></span></div>
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                                <?php foreach (array_slice($active_challenges, 0, 2) as $challenge): ?>
+                                <div class="myavana-gamification-quest is-weekly<?php echo !empty($challenge['completed']) ? ' is-complete' : ''; ?>">
+                                    <div class="myavana-gamification-quest-copy">
+                                        <strong><?php echo esc_html($challenge['title'] ?? 'Challenge'); ?></strong>
+                                        <span><?php echo esc_html($challenge['description'] ?? ''); ?><?php echo !empty($challenge['window_label']) ? ' · ' . esc_html($challenge['window_label']) : ''; ?></span>
+                                    </div>
+                                    <div class="myavana-gamification-quest-meta">
+                                        <span><?php echo esc_html(intval($challenge['current'] ?? 0)); ?>/<?php echo esc_html(intval($challenge['target'] ?? 1)); ?> · +<?php echo esc_html(intval($challenge['reward_points'] ?? 0)); ?> pts</span>
+                                        <div class="myavana-gamification-quest-bar"><span style="width:<?php echo esc_attr(intval($challenge['progress_percent'] ?? 0)); ?>%"></span></div>
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <div class="myavana-profile-sidebar-card">
+                            <h3 class="myavana-profile-sidebar-title">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--myavana-coral)" stroke-width="2">
+                                    <path d="M12 8v4l3 3"></path>
+                                    <circle cx="12" cy="12" r="9"></circle>
+                                </svg>
+                                Recent Rewards
+                            </h3>
+                            <div class="myavana-gamification-stack">
+                                <?php if (!empty($recent_rewards)): ?>
+                                    <?php foreach (array_slice($recent_rewards, 0, 4) as $reward): ?>
+                                    <div class="myavana-gamification-reward-row">
+                                        <div>
+                                            <strong><?php echo esc_html($reward['reason'] ?? 'Reward earned'); ?></strong>
+                                            <span><?php echo esc_html($reward['relative_time'] ?? ''); ?></span>
+                                        </div>
+                                        <em>+<?php echo esc_html(intval($reward['points_change'] ?? 0)); ?></em>
+                                    </div>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                <p>No rewards yet. Complete a quest or add a new journey update.</p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <div class="myavana-profile-sidebar-card">
+                            <h3 class="myavana-profile-sidebar-title">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--myavana-coral)" stroke-width="2">
                                     <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4Z"/>
                                 </svg>
                                 AI Insights
                             </h3>
                             <div class="myavana-ai-insights-content">
-                                <?php
-                                $ai_insight = myavana_generate_ai_insights_new($user_id);
-                                echo '<p>' . esc_html($ai_insight) . '</p>';
-                                ?>
+                                <p><?php echo esc_html($ai_insight_summary ?: 'Capture a new AI analysis to unlock guided recommendations.'); ?></p>
                             </div>
                         </div>
 
@@ -611,7 +838,7 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                             <div class="myavana-quick-stats">
                                 <div class="myavana-quick-stat-item">
                                     <div class="myavana-quick-stat-label">Current Streak</div>
-                                    <div class="myavana-quick-stat-value"><?php echo esc_html($analytics_data['current_streak']); ?> days</div>
+                                    <div class="myavana-quick-stat-value"><?php echo esc_html($current_streak); ?> days</div>
                                 </div>
                                 <div class="myavana-quick-stat-item">
                                     <div class="myavana-quick-stat-label">Avg Health Score</div>
@@ -847,6 +1074,21 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                                                                 </div>
                                                             </div>
 
+                                                            <div class="analysis-meta-tags">
+                                                                <?php if (!empty($snapshot['hair_analysis']['porosity'])): ?>
+                                                                    <span class="analysis-meta-tag">Porosity: <?php echo esc_html($snapshot['hair_analysis']['porosity']); ?></span>
+                                                                <?php endif; ?>
+                                                                <?php if (!empty($snapshot['hair_analysis']['texture'])): ?>
+                                                                    <span class="analysis-meta-tag">Texture: <?php echo esc_html($snapshot['hair_analysis']['texture']); ?></span>
+                                                                <?php endif; ?>
+                                                                <?php if (!empty($snapshot['hair_analysis']['density'])): ?>
+                                                                    <span class="analysis-meta-tag">Density: <?php echo esc_html($snapshot['hair_analysis']['density']); ?></span>
+                                                                <?php endif; ?>
+                                                                <?php if (!empty($snapshot['hair_analysis']['length'])): ?>
+                                                                    <span class="analysis-meta-tag">Length: <?php echo esc_html($snapshot['hair_analysis']['length']); ?></span>
+                                                                <?php endif; ?>
+                                                            </div>
+
                                                             <div class="analysis-summary">
                                                                 <?php echo esc_html(wp_trim_words($snapshot['summary'] ?? '', 25)); ?>
                                                             </div>
@@ -858,15 +1100,31 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                                                                     'timestamp' => $snapshot['timestamp'] ?? '',
                                                                     'image_url' => $snapshot['image_url'] ?? '',
                                                                     'summary' => $snapshot['summary'] ?? '',
+                                                                    'full_context' => $snapshot['full_context'] ?? '',
+                                                                    'environment' => $snapshot['environment'] ?? '',
+                                                                    'user_description' => $snapshot['user_description'] ?? '',
+                                                                    'mood_demeanor' => $snapshot['mood_demeanor'] ?? '',
+                                                                    'confidence_level' => $snapshot['confidence_level'] ?? 0,
                                                                     'hair_analysis' => [
                                                                         'health_score' => $snapshot['hair_analysis']['health_score'] ?? 0,
                                                                         'hydration' => $snapshot['hair_analysis']['hydration'] ?? 0,
                                                                         'elasticity' => $snapshot['hair_analysis']['elasticity'] ?? 0,
                                                                         'type' => $snapshot['hair_analysis']['type'] ?? '--',
                                                                         'curl_pattern' => $snapshot['hair_analysis']['curl_pattern'] ?? '--',
-                                                                        'porosity' => $snapshot['hair_analysis']['porosity'] ?? '--'
+                                                                        'porosity' => $snapshot['hair_analysis']['porosity'] ?? '--',
+                                                                        'length' => $snapshot['hair_analysis']['length'] ?? '--',
+                                                                        'texture' => $snapshot['hair_analysis']['texture'] ?? '--',
+                                                                        'density' => $snapshot['hair_analysis']['density'] ?? '--',
+                                                                        'hairstyle' => $snapshot['hair_analysis']['hairstyle'] ?? '--',
+                                                                        'damage' => $snapshot['hair_analysis']['damage'] ?? '--',
+                                                                        'scalp_health' => $snapshot['hair_analysis']['scalp_health'] ?? '--',
+                                                                        'hair_color' => $snapshot['hair_analysis']['hair_color'] ?? '--',
+                                                                        'strand_thickness' => $snapshot['hair_analysis']['strand_thickness'] ?? '--',
+                                                                        'growth_pattern' => $snapshot['hair_analysis']['growth_pattern'] ?? '--'
                                                                     ],
-                                                                    'recommendations' => $snapshot['recommendations'] ?? []
+                                                                    'recommendations' => $snapshot['recommendations'] ?? [],
+                                                                    'products' => $snapshot['products'] ?? [],
+                                                                    'recommendations_priority' => $snapshot['recommendations_priority'] ?? []
                                                                 ];
                                                                 ?>
                                                                 <button class="analysis-action-btn action-view" data-analysis='<?php echo htmlspecialchars(json_encode($analysisData), ENT_QUOTES, 'UTF-8'); ?>'>
@@ -911,6 +1169,7 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                                 <?php else: ?>
                                     <div class="myavana-history-grid">
                                         <?php foreach ($analysis_history as $index => $analysis): ?>
+                                            <?php $history_summary = $analysis['summary'] ?? ($analysis['full_analysis']['summary'] ?? ''); ?>
                                             <div class="myavana-history-card">
                                                 <div class="myavana-history-header">
                                                     <h4 class="o-6"><?php echo esc_html(date('M j, Y', strtotime($analysis['date']))); ?></h4>
@@ -921,7 +1180,7 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                                                 </div>
 
                                                 <div class="myavana-history-preview">
-                                                    <p><?php echo esc_html(wp_trim_words($analysis['summary'], 15)); ?></p>
+                                                    <p><?php echo esc_html(wp_trim_words($history_summary, 15)); ?></p>
                                                 </div>
 
                                                 <div class="myavana-history-meta">
@@ -940,16 +1199,32 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                                                 $historyAnalysisData = [
                                                     'timestamp' => $analysis['date'],
                                                     'image_url' => $analysis['full_analysis']['image_url'] ?? '',
-                                                    'summary' => $analysis['summary'] ?? '',
+                                                    'summary' => $history_summary,
+                                                    'full_context' => $analysis['full_analysis']['full_context'] ?? '',
+                                                    'environment' => $analysis['full_analysis']['environment'] ?? '',
+                                                    'user_description' => $analysis['full_analysis']['user_description'] ?? '',
+                                                    'mood_demeanor' => $analysis['full_analysis']['mood_demeanor'] ?? '',
+                                                    'confidence_level' => $analysis['full_analysis']['confidence_level'] ?? 0,
                                                     'hair_analysis' => [
                                                         'health_score' => $analysis['full_analysis']['hair_analysis']['health_score'] ?? 0,
                                                         'hydration' => $analysis['full_analysis']['hair_analysis']['hydration'] ?? 0,
                                                         'elasticity' => $analysis['full_analysis']['hair_analysis']['elasticity'] ?? 0,
                                                         'type' => $analysis['full_analysis']['hair_analysis']['type'] ?? '--',
                                                         'curl_pattern' => $analysis['full_analysis']['hair_analysis']['curl_pattern'] ?? '--',
-                                                        'porosity' => $analysis['full_analysis']['hair_analysis']['porosity'] ?? '--'
+                                                        'porosity' => $analysis['full_analysis']['hair_analysis']['porosity'] ?? '--',
+                                                        'length' => $analysis['full_analysis']['hair_analysis']['length'] ?? '--',
+                                                        'texture' => $analysis['full_analysis']['hair_analysis']['texture'] ?? '--',
+                                                        'density' => $analysis['full_analysis']['hair_analysis']['density'] ?? '--',
+                                                        'hairstyle' => $analysis['full_analysis']['hair_analysis']['hairstyle'] ?? '--',
+                                                        'damage' => $analysis['full_analysis']['hair_analysis']['damage'] ?? '--',
+                                                        'scalp_health' => $analysis['full_analysis']['hair_analysis']['scalp_health'] ?? '--',
+                                                        'hair_color' => $analysis['full_analysis']['hair_analysis']['hair_color'] ?? '--',
+                                                        'strand_thickness' => $analysis['full_analysis']['hair_analysis']['strand_thickness'] ?? '--',
+                                                        'growth_pattern' => $analysis['full_analysis']['hair_analysis']['growth_pattern'] ?? '--'
                                                     ],
-                                                    'recommendations' => $analysis['full_analysis']['recommendations'] ?? []
+                                                    'recommendations' => $analysis['full_analysis']['recommendations'] ?? [],
+                                                    'products' => $analysis['full_analysis']['products'] ?? [],
+                                                    'recommendations_priority' => $analysis['full_analysis']['recommendations_priority'] ?? []
                                                 ];
                                                 ?>
                                                 <button class="myavana-history-details-btn" data-analysis='<?php echo htmlspecialchars(json_encode($historyAnalysisData), ENT_QUOTES, 'UTF-8'); ?>'>
@@ -1006,7 +1281,11 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                                     $progress = isset($goal['progress']) ? intval($goal['progress']) : 0;
                                     $start = $goal['start_date'] ?? '';
                                     $end = $goal['end_date'] ?? '';
+                                    $goal_description = $goal['description'] ?? $goal['notes'] ?? '';
                                     $milestones = $goal['milestones'] ?? [];
+                                    $goal_id = $goal['id'] ?? $goal['goal_id'] ?? $idx;
+                                    $goal_progress_history = $goal['progress_history'] ?? [];
+                                    $goal_progress_notes = $goal['progress_text'] ?? [];
 
                                     $completed_milestones = 0;
                                     foreach ($milestones as $milestone) {
@@ -1015,7 +1294,15 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                                         }
                                     }
                                 ?>
-                                <div class="myavana-goal-card" onclick="openViewOffcanvas('goal', <?php echo esc_js($idx); ?>)">
+                                <div
+                                    class="myavana-goal-card"
+                                    data-goal-index="<?php echo esc_attr($idx); ?>"
+                                    data-goal-id="<?php echo esc_attr($goal_id); ?>"
+                                    data-goal-description="<?php echo esc_attr($goal_description); ?>"
+                                    data-goal-milestones="<?php echo esc_attr(wp_json_encode($milestones)); ?>"
+                                    data-goal-progress-history="<?php echo esc_attr(wp_json_encode($goal_progress_history)); ?>"
+                                    data-goal-progress-notes="<?php echo esc_attr(wp_json_encode($goal_progress_notes)); ?>"
+                                    onclick="openViewOffcanvas('goal', <?php echo esc_js($idx); ?>)">
                                     <div class="myavana-goal-header">
                                         <h3 class="myavana-goal-title"><?php echo esc_html($title); ?></h3>
                                         <span class="myavana-goal-progress-badge"><?php echo $progress; ?>%</span>
@@ -1091,8 +1378,21 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                                     $r_title = $step['title'] ?? $step['name'] ?? 'Routine Step';
                                     $schedule = $step['schedule'] ?? $step['frequency'] ?? '';
                                     $description = $step['description'] ?? $step['notes'] ?? '';
+                                    $routine_id = $step['id'] ?? $step['routine_id'] ?? $r_idx;
+                                    $routine_steps = $step['steps'] ?? [];
+                                    $routine_products = $step['products'] ?? [];
                                 ?>
-                                <div class="myavana-routine-card" onclick="openViewOffcanvas('routine', <?php echo esc_js($r_idx); ?>)">
+                                <div
+                                    class="myavana-routine-card"
+                                    data-routine-index="<?php echo esc_attr($r_idx); ?>"
+                                    data-routine-id="<?php echo esc_attr($routine_id); ?>"
+                                    data-routine-frequency="<?php echo esc_attr($step['frequency'] ?? ''); ?>"
+                                    data-routine-time="<?php echo esc_attr($step['time'] ?? $step['routine_time'] ?? ''); ?>"
+                                    data-routine-duration="<?php echo esc_attr($step['duration'] ?? $step['routine_duration'] ?? ''); ?>"
+                                    data-routine-description="<?php echo esc_attr($description); ?>"
+                                    data-routine-steps="<?php echo esc_attr(wp_json_encode($routine_steps)); ?>"
+                                    data-routine-products="<?php echo esc_attr(wp_json_encode($routine_products)); ?>"
+                                    onclick="openViewOffcanvas('routine', <?php echo esc_js($r_idx); ?>)">
                                     <div class="myavana-routine-header">
                                         <div class="myavana-routine-icon">
                                             <?php echo strtoupper(substr($schedule, 0, 1)); ?>
@@ -1159,7 +1459,7 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
                                 </svg>
                             </div>
                             <div class="myavana-stat-content">
-                                <div class="myavana-stat-number"><?php echo esc_html($analytics_data['current_streak']); ?></div>
+                                <div class="myavana-stat-number"><?php echo esc_html($current_streak); ?></div>
                                 <div class="myavana-stat-label">Day Streak</div>
                             </div>
                         </div>
@@ -1302,75 +1602,6 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
             </div>
         </div>
 
-        <!-- Mobile Bottom Navigation -->
-        <nav class="myavana-mobile-bottom-nav">
-            <button class="myavana-mobile-nav-btn active" data-tab="journey" onclick="switchProfileTab('journey')">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/>
-                </svg>
-                <span>Journey</span>
-            </button>
-            <button class="myavana-mobile-nav-btn" data-tab="community" onclick="switchProfileTab('community')">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                <span>Community</span>
-            </button>
-            <button class="myavana-mobile-nav-btn myavana-fab" onclick="openCreateMenu()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-            </button>
-            <button class="myavana-mobile-nav-btn" data-tab="goals" onclick="switchProfileTab('goals')">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="16"></line>
-                    <line x1="8" y1="12" x2="16" y2="12"></line>
-                </svg>
-                <span>Goals</span>
-            </button>
-            <button class="myavana-mobile-nav-btn" data-tab="settings" onclick="switchProfileTab('settings')">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M12 1v6m0 6v6"></path>
-                </svg>
-                <span>Settings</span>
-            </button>
-        </nav>
-
-        <!-- FAB Create Menu -->
-        <div class="myavana-fab-menu" id="fabMenu" style="display: none;">
-            <button class="myavana-fab-menu-item" onclick="createEntry(); closeFabMenu();">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/>
-                </svg>
-                <span>New Entry</span>
-            </button>
-            <button class="myavana-fab-menu-item" onclick="document.getElementById('myavana-create-post-btn').click(); closeFabMenu();">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                </svg>
-                <span>New Post</span>
-            </button>
-            <button class="myavana-fab-menu-item" onclick="createGoal(); closeFabMenu();">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12,2L14.39,8.26L21,9.27L16.5,13.65L17.61,20.24L12,17.27L6.39,20.24L7.5,13.65L3,9.27L9.61,8.26L12,2Z"/>
-                </svg>
-                <span>New Goal</span>
-            </button>
-            <button class="myavana-fab-menu-item" onclick="createRoutine(); closeFabMenu();">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-                <span>New Routine</span>
-            </button>
-        </div>
-
         <!-- Compare Analysis Modal -->
         <div id="compareAnalysisModal" class="modal" style="display: none;">
             <div class="modal-content" style="max-width: 1200px;">
@@ -1408,7 +1639,9 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
 
         <!-- Include necessary partials -->
         <?php
-        $partials_dir = dirname(dirname(__FILE__)) . '/partials';
+        if (!isset($partials_dir) || !is_dir($partials_dir)) {
+            $partials_dir = __DIR__ . '/partials';
+        }
 
         // Include view offcanvas for viewing details
         if (file_exists($partials_dir . '/view-offcanvas.php')) {
@@ -1429,19 +1662,46 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
     </div>
 
     <script>
+        const MYAVANA_AI_TOOL_URL = 'https://www.myavana.com/pages/consumer';
+
+        function goToMyavanaAiTool() {
+            window.myavanaAiToolUrl = window.myavanaAiToolUrl || MYAVANA_AI_TOOL_URL;
+            window.location.href = window.myavanaAiToolUrl;
+            return false;
+        }
+
+        // Force override on profile page so stale cached handlers cannot open legacy AI modals.
+        window.myavanaAiToolUrl = window.myavanaAiToolUrl || MYAVANA_AI_TOOL_URL;
+        window.openAIAnalysisModal = goToMyavanaAiTool;
+
+        // Intercept legacy analysis triggers early (capture phase).
+        document.addEventListener('click', function(event) {
+            const trigger = event.target.closest('#addAnalysisBtn, #start-first-analysis, button.section-edit[data-section="analysis"]');
+            if (!trigger) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            window.location.href = window.myavanaAiToolUrl || MYAVANA_AI_TOOL_URL;
+        }, true);
+
         // Profile tab switching
         function switchProfileTab(tabName) {
+            if (tabName === 'ai-analysis') {
+                goToMyavanaAiTool();
+                return;
+            }
+
             // Update tab buttons
             document.querySelectorAll('.myavana-profile-tab').forEach(tab => {
                 tab.classList.remove('active');
             });
             document.querySelector(`.myavana-profile-tab[data-tab="${tabName}"]`)?.classList.add('active');
-
-            // Update mobile nav
-            document.querySelectorAll('.myavana-mobile-nav-btn').forEach(btn => {
+            document.querySelectorAll('.myavana-profile-quick-chip[data-tab]').forEach(btn => {
                 btn.classList.remove('active');
             });
-            document.querySelector(`.myavana-mobile-nav-btn[data-tab="${tabName}"]`)?.classList.add('active');
+            document.querySelector(`.myavana-profile-quick-chip[data-tab="${tabName}"]`)?.classList.add('active');
 
             // Update tab content
             document.querySelectorAll('.myavana-profile-tab-content').forEach(content => {
@@ -1450,6 +1710,7 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
             document.getElementById(tabName + 'TabContent')?.classList.add('active');
 
             // Save active tab preference
+            localStorage.setItem('myavanaActiveProfileTab', tabName);
             localStorage.setItem('activeProfileTab', tabName);
 
             // Load tab-specific content
@@ -1478,27 +1739,25 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
             }
         }
 
-        // FAB menu
-        function openCreateMenu() {
-            const fabMenu = document.getElementById('fabMenu');
-            fabMenu.style.display = 'flex';
-            setTimeout(() => fabMenu.classList.add('active'), 10);
-        }
-
-        function closeFabMenu() {
-            const fabMenu = document.getElementById('fabMenu');
-            fabMenu.classList.remove('active');
-            setTimeout(() => fabMenu.style.display = 'none', 300);
-        }
-
-        // Close FAB menu when clicking outside
-        document.addEventListener('click', function(e) {
-            const fabMenu = document.getElementById('fabMenu');
-            const fab = document.querySelector('.myavana-fab');
-            if (fabMenu && !fabMenu.contains(e.target) && !fab.contains(e.target)) {
-                closeFabMenu();
+        function copyProfileLink() {
+            const profileUrl = window.location.href.split('#')[0];
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(profileUrl).then(() => {
+                    alert('Profile link copied.');
+                }).catch(() => {
+                    alert('Unable to copy profile link.');
+                });
+                return;
             }
-        });
+
+            const tempInput = document.createElement('input');
+            tempInput.value = profileUrl;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            alert('Profile link copied.');
+        }
 
         // Load user community posts
         function loadUserCommunityPosts() {
@@ -1590,7 +1849,12 @@ function myavana_unified_profile_shortcode($atts = [], $content = null) {
 
         // Load active tab on page load
         jQuery(document).ready(function($) {
-            const activeTab = localStorage.getItem('activeProfileTab') || 'journey';
+            let activeTab = localStorage.getItem('myavanaActiveProfileTab') || localStorage.getItem('activeProfileTab') || 'journey';
+            if (activeTab === 'ai-analysis') {
+                activeTab = 'journey';
+                localStorage.setItem('myavanaActiveProfileTab', 'journey');
+                localStorage.setItem('activeProfileTab', 'journey');
+            }
             switchProfileTab(activeTab);
 
             // Ensure listView has active class if journey tab is active

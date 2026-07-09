@@ -76,6 +76,54 @@
                     <h4>Porosity</h4>
                     <div class="detail-content" id="porosity">--</div>
                 </div>
+                <div class="details-card">
+                    <h4>Length</h4>
+                    <div class="detail-content" id="detail-length">--</div>
+                </div>
+                <div class="details-card">
+                    <h4>Texture</h4>
+                    <div class="detail-content" id="detail-texture">--</div>
+                </div>
+                <div class="details-card">
+                    <h4>Density</h4>
+                    <div class="detail-content" id="detail-density">--</div>
+                </div>
+                <div class="details-card">
+                    <h4>Hairstyle</h4>
+                    <div class="detail-content" id="detail-hairstyle">--</div>
+                </div>
+                <div class="details-card">
+                    <h4>Hair Color</h4>
+                    <div class="detail-content" id="detail-hair-color">--</div>
+                </div>
+                <div class="details-card">
+                    <h4>Scalp Health</h4>
+                    <div class="detail-content" id="detail-scalp-health">--</div>
+                </div>
+                <div class="details-card">
+                    <h4>Damage</h4>
+                    <div class="detail-content" id="detail-damage">--</div>
+                </div>
+                <div class="details-card">
+                    <h4>Strand Thickness</h4>
+                    <div class="detail-content" id="detail-strand-thickness">--</div>
+                </div>
+                <div class="details-card">
+                    <h4>Growth Pattern</h4>
+                    <div class="detail-content" id="detail-growth-pattern">--</div>
+                </div>
+                <div class="details-card">
+                    <h4>Mood</h4>
+                    <div class="detail-content" id="detail-mood-demeanor">--</div>
+                </div>
+                <div class="details-card">
+                    <h4>Environment</h4>
+                    <div class="detail-content" id="detail-environment">--</div>
+                </div>
+                <div class="details-card">
+                    <h4>Confidence</h4>
+                    <div class="detail-content" id="detail-confidence-level">--</div>
+                </div>
             </div>
 
             <!-- Analysis Summary -->
@@ -84,10 +132,20 @@
                 <div class="summary-content" id="analysis-summary"></div>
             </div>
 
+            <div class="analysis-summary-section">
+                <h3>AI Notes</h3>
+                <div class="summary-content" id="analysis-full-context"></div>
+            </div>
+
             <!-- Recommendations -->
             <div class="analysis-recommendations-section">
                 <h3>Recommendations</h3>
                 <div class="recommendations-list" id="analysis-recommendations"></div>
+            </div>
+
+            <div class="analysis-recommendations-section">
+                <h3>Suggested Products</h3>
+                <div class="recommendations-list" id="analysis-products"></div>
             </div>
         </div>
     </div>
@@ -120,6 +178,17 @@
 
             <!-- Entry Image Gallery -->
             <div class="view-gallery-hjn" id="entryGallery"></div>
+
+            <!-- Entry Video Gallery -->
+            <div class="view-section-hjn" id="entryVideosSection" style="display: none;">
+                <div class="view-section-header-hjn">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="currentColor" d="M17,10.5V6C17,4.89 16.1,4 15,4H5A2,2 0 0,0 3,6V18A2,2 0 0,0 5,20H15A2,2 0 0,0 17,18V13.5L22,18.5V5.5L17,10.5Z"/>
+                    </svg>
+                    <h4>Videos</h4>
+                </div>
+                <div class="view-media-grid-hjn" id="entryVideos"></div>
+            </div>
 
             <!-- Entry Header -->
             <div class="view-header-hjn">
@@ -177,6 +246,26 @@
                     <h4>Products Used</h4>
                 </div>
                 <div class="view-tag-list-hjn" id="entryProducts"></div>
+            </div>
+
+            <div class="view-section-hjn" id="entryDetailsSection" style="display: none;">
+                <div class="view-section-header-hjn">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="currentColor" d="M11,7H13V9H11V7M11,11H13V17H11V11M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
+                    </svg>
+                    <h4>Entry Details</h4>
+                </div>
+                <div class="view-detail-grid-hjn" id="entryDetailsGrid"></div>
+            </div>
+
+            <div class="view-section-hjn" id="entryFollowUpSection" style="display: none;">
+                <div class="view-section-header-hjn">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="currentColor" d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
+                    </svg>
+                    <h4>Notes & Next Step</h4>
+                </div>
+                <div class="view-followup-stack-hjn" id="entryFollowUpStack"></div>
             </div>
 
             <!-- Entry AI Analysis -->
@@ -261,6 +350,16 @@
                     <h4>Description</h4>
                 </div>
                 <div class="view-text-content-hjn" id="goalDescription"></div>
+            </div>
+
+            <div class="view-section-hjn" id="goalDetailsSection" style="display: none;">
+                <div class="view-section-header-hjn">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="currentColor" d="M11,7H13V9H11V7M11,11H13V17H11V11M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
+                    </svg>
+                    <h4>Goal Details</h4>
+                </div>
+                <div class="view-detail-grid-hjn" id="goalDetailsGrid"></div>
             </div>
 
             
@@ -376,6 +475,16 @@
                 <div class="view-text-content-hjn" id="routineDescription"></div>
             </div>
 
+            <div class="view-section-hjn" id="routineDetailsSection" style="display: none;">
+                <div class="view-section-header-hjn">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="currentColor" d="M11,7H13V9H11V7M11,11H13V17H11V11M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
+                    </svg>
+                    <h4>Routine Details</h4>
+                </div>
+                <div class="view-detail-grid-hjn" id="routineDetailsGrid"></div>
+            </div>
+
             <!-- Routine Steps -->
             <div class="view-section-hjn" id="routineStepsSection">
                 <div class="view-section-header-hjn">
@@ -422,6 +531,16 @@
 
     <div class="offcanvas-footer-hjn">
         <button class="btn-hjn btn-secondary-hjn" onclick="closeTimelineViewOffcanvas()">Close</button>
+        <button
+            class="btn-hjn btn-secondary-hjn"
+            onclick="toggleCurrentRoutineCompletion(this)"
+            id="routineCompleteBtn"
+            data-date="<?php echo esc_attr(current_time('Y-m-d')); ?>">
+            <svg viewBox="0 0 24 24" width="18" height="18">
+                <path fill="currentColor" d="M9,16.17L4.83,12L3.41,13.41L9,19L21,7L19.59,5.59L9,16.17Z"/>
+            </svg>
+            Mark Complete Today
+        </button>
         <button class="btn-hjn btn-danger-hjn" onclick="deleteRoutine()" id="deleteRoutineBtn">
             <svg viewBox="0 0 24 24" width="18" height="18">
                 <path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>

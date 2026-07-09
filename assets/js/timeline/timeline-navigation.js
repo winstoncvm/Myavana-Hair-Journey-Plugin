@@ -91,13 +91,22 @@ MyavanaTimeline.Navigation = (function() {
      * @param {string} viewName - The view to switch to: 'calendar', 'slider', or 'list'
      */
     function switchView(viewName) {
-        console.log('[Navigation] Switching to view:', viewName);
+        const requestedView = String(viewName || '').toLowerCase();
+        const availableViews = ['timeline', 'calendar', 'list', 'slider'];
+        let safeView = availableViews.includes(requestedView) ? requestedView : 'timeline';
+
+        const targetExists = !!document.getElementById(safeView + 'View');
+        if (!targetExists) {
+            safeView = 'timeline';
+        }
+
+        console.log('[Navigation] Switching to view:', safeView);
 
         // Update header view buttons
         document.querySelectorAll('.view-btn').forEach(btn => {
             btn.classList.remove('active');
         });
-        const headerBtn = document.querySelector(`.view-btn[data-view="${viewName}"]`);
+        const headerBtn = document.querySelector(`.view-btn[data-view="${safeView}"]`);
         if (headerBtn) {
             headerBtn.classList.add('active');
         }
@@ -105,35 +114,50 @@ MyavanaTimeline.Navigation = (function() {
         // Update timeline control tabs
         document.querySelectorAll('.tab').forEach(tab => {
             tab.classList.remove('active');
+            tab.setAttribute('aria-selected', 'false');
         });
-        const controlTab = document.querySelector(`.tab[onclick="switchView('${viewName}')"]`);
+        const controlTab = document.querySelector(`.tab[onclick="switchView('${safeView}')"]`);
         if (controlTab) {
             controlTab.classList.add('active');
+            controlTab.setAttribute('aria-selected', 'true');
         }
 
-        // Switch view content
+        // Switch view content (class + inline display hardening)
         document.querySelectorAll('.view-content').forEach(view => {
             view.classList.remove('active');
+            view.style.display = 'none';
         });
 
+        // Activate target view
+        const targetView = document.getElementById(safeView + 'View');
+        if (targetView) {
+            targetView.classList.add('active');
+            targetView.style.display = 'block';
+        }
+
         // Initialize view-specific functionality
-        if (viewName === 'list') {
-            // Call the global function if available (for backward compatibility)
-            if (typeof window.initListView === 'function') {
-                window.initListView();
-            } else if (typeof initListView === 'function') {
-                initListView();
+        if (safeView === 'list') {
+            try {
+                if (MyavanaTimeline.ListView && typeof MyavanaTimeline.ListView.init === 'function') {
+                    MyavanaTimeline.ListView.init();
+                    if (typeof MyavanaTimeline.ListView.update === 'function') {
+                        MyavanaTimeline.ListView.update();
+                    }
+                }
+
+                // Backward compatibility with legacy scripts, non-blocking
+                if (typeof window.initListView === 'function') {
+                    window.initListView();
+                } else if (typeof initListView === 'function') {
+                    initListView();
+                }
+            } catch (error) {
+                console.warn('[Navigation] List view initialization error:', error);
             }
         }
 
-        // Activate target view
-        const targetView = document.getElementById(viewName + 'View');
-        if (targetView) {
-            targetView.classList.add('active');
-        }
-
         // Initialize slider with delay if slider view
-        if (viewName === 'slider') {
+        if (safeView === 'slider') {
             setTimeout(() => {
                 initSlider();
             }, 100);
@@ -141,7 +165,7 @@ MyavanaTimeline.Navigation = (function() {
 
         // Dispatch event for other modules
         document.dispatchEvent(new CustomEvent('myavana:view:changed', {
-            detail: { view: viewName }
+            detail: { view: safeView }
         }));
     }
 
@@ -227,8 +251,8 @@ MyavanaTimeline.Navigation = (function() {
     function init() {
         console.log('[Navigation] Initializing navigation module');
 
-        // Set calendar as default view on initialization
-        switchView('calendar');
+        // Set timeline as default view on initialization
+        switchView('timeline');
         setCalendarView('month');
 
         // View buttons (header) - Remove if already attached
@@ -272,28 +296,20 @@ MyavanaTimeline.Navigation = (function() {
     };
 })();
 
-// Expose global functions for backward compatibility with inline onclick handlers
-// These reference the module functions so existing HTML will continue to work
-if (!window.switchView) {
-    window.switchView = function(viewName) {
-        MyavanaTimeline.Navigation.switchView(viewName);
-    };
-}
+// Expose global functions for backward compatibility with inline onclick handlers.
+// Always bind to this module to prevent legacy scripts from overriding view behavior.
+window.switchView = function(viewName) {
+    MyavanaTimeline.Navigation.switchView(viewName);
+};
 
-if (!window.setCalendarView) {
-    window.setCalendarView = function(view) {
-        MyavanaTimeline.Navigation.setCalendarView(view);
-    };
-}
+window.setCalendarView = function(view) {
+    MyavanaTimeline.Navigation.setCalendarView(view);
+};
 
-if (!window.scrollCarousel) {
-    window.scrollCarousel = function(direction) {
-        MyavanaTimeline.Navigation.scrollCarousel(direction);
-    };
-}
+window.scrollCarousel = function(direction) {
+    MyavanaTimeline.Navigation.scrollCarousel(direction);
+};
 
-if (!window.initSlider) {
-    window.initSlider = function() {
-        MyavanaTimeline.Navigation.initSlider();
-    };
-}
+window.initSlider = function() {
+    MyavanaTimeline.Navigation.initSlider();
+};

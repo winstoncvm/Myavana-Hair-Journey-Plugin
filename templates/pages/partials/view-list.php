@@ -190,12 +190,20 @@ $total_all = $total_goals + $total_routines + $total_entries;
                         </div>
                     </div>
 
-                    <button class="list-item-action-hjn"
-                            data-action="view-goal"
-                            data-index="<?php echo esc_attr($idx); ?>"
-                            onclick="openViewOffcanvas('goal', <?php echo esc_js($idx); ?>)">
-                        View Details
-                    </button>
+                    <div class="list-item-actions-hjn">
+                        <button class="list-item-action-hjn"
+                                data-action="view-goal"
+                                data-index="<?php echo esc_attr($idx); ?>"
+                                onclick="openViewOffcanvas('goal', <?php echo esc_js($idx); ?>)">
+                            View
+                        </button>
+                        <button class="list-item-action-hjn is-secondary"
+                                data-action="edit-goal"
+                                data-index="<?php echo esc_attr($idx); ?>"
+                                onclick="editGoal(<?php echo esc_js($idx); ?>)">
+                            Edit
+                        </button>
+                    </div>
                 </div>
                 <?php endforeach; ?>
             <?php endif; ?>
@@ -298,12 +306,20 @@ $total_all = $total_goals + $total_routines + $total_entries;
                         </div>
                     </div>
 
-                    <button class="list-item-action-hjn"
-                            data-action="view-entry"
-                            data-entry-id="<?php echo esc_attr($post_id); ?>"
-                            onclick="openViewOffcanvas('entry', <?php echo esc_js($post_id); ?>)">
-                        View Details
-                    </button>
+                    <div class="list-item-actions-hjn">
+                        <button class="list-item-action-hjn"
+                                data-action="view-entry"
+                                data-entry-id="<?php echo esc_attr($post_id); ?>"
+                                onclick="openViewOffcanvas('entry', <?php echo esc_js($post_id); ?>)">
+                            View
+                        </button>
+                        <button class="list-item-action-hjn is-secondary"
+                                data-action="edit-entry"
+                                data-entry-id="<?php echo esc_attr($post_id); ?>"
+                                onclick="editEntry(<?php echo esc_js($post_id); ?>)">
+                            Edit
+                        </button>
+                    </div>
                 </div>
                 <?php endforeach; ?>
             <?php endif; ?>
@@ -364,12 +380,20 @@ $total_all = $total_goals + $total_routines + $total_entries;
                         </div>
                     </div>
 
-                    <button class="list-item-action-hjn"
-                            data-action="view-routine"
-                            data-index="<?php echo esc_attr($r_idx); ?>"
-                            onclick="openViewOffcanvas('routine', <?php echo esc_js($r_idx); ?>)">
-                        View Details
-                    </button>
+                    <div class="list-item-actions-hjn">
+                        <button class="list-item-action-hjn"
+                                data-action="view-routine"
+                                data-index="<?php echo esc_attr($r_idx); ?>"
+                                onclick="openViewOffcanvas('routine', <?php echo esc_js($r_idx); ?>)">
+                            View
+                        </button>
+                        <button class="list-item-action-hjn is-secondary"
+                                data-action="edit-routine"
+                                data-index="<?php echo esc_attr($r_idx); ?>"
+                                onclick="editRoutine(<?php echo esc_js($r_idx); ?>)">
+                            Edit
+                        </button>
+                    </div>
                 </div>
                 <?php endforeach; ?>
             <?php endif; ?>

@@ -1152,6 +1152,12 @@
 }
 
 @media (max-width: 768px) {
+    .myavana-modal-overlay,
+    .myavana-share-modal {
+        align-items: flex-start;
+        padding: 12px 12px calc(80px + env(safe-area-inset-bottom));
+    }
+
     .myavana-diary-main {
         padding: var(--myavana-space-md);
         gap: var(--myavana-space-md);
@@ -1197,8 +1203,13 @@
     }
 
     .mya-modal {
-        margin: var(--myavana-space-md);
-        max-height: calc(100vh - 2rem);
+        margin: 0;
+        max-height: calc(100dvh - 92px - env(safe-area-inset-bottom));
+    }
+
+    .myavana-share-content {
+        max-height: calc(100dvh - 92px - env(safe-area-inset-bottom));
+        overflow-y: auto;
     }
 
     .myavana-toast-container {
@@ -2520,4 +2531,3 @@
         transform: scale(1) translateY(0);
     }
 }
-

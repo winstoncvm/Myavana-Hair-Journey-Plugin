@@ -80,6 +80,17 @@
                 self.toggleMobileMenu();
             });
 
+            // Mobile app header profile dropdown
+            $(document).on('click', '.myavana-app-profile-toggle', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                self.toggleAppProfileMenu($(this));
+            });
+
+            $(document).on('click', '.myavana-app-profile-menu a', function() {
+                self.closeAppProfileMenu();
+            });
+
             // CTA buttons
             $(document).on('click', '[data-modal]', function(e) {
                 e.preventDefault();
@@ -92,12 +103,18 @@
                 if (self.state.isMobileMenuOpen && !$(e.target).closest('.myavana-luxury-nav').length) {
                     self.closeMobileMenu();
                 }
+                if (!$(e.target).closest('.myavana-app-profile-dropdown').length) {
+                    self.closeAppProfileMenu();
+                }
             });
 
             // Keyboard navigation
             $(document).on('keydown', function(e) {
                 if (e.key === 'Escape' && self.state.isMobileMenuOpen) {
                     self.closeMobileMenu();
+                }
+                if (e.key === 'Escape') {
+                    self.closeAppProfileMenu();
                 }
             });
         },
@@ -171,7 +188,7 @@
             // Only initialize if IntersectionObserver is supported
             if (typeof IntersectionObserver === 'undefined') {
                 // Fallback: show all elements immediately
-                $('.myavana-luxury-feature-card, .myavana-luxury-step, .myavana-luxury-stat').addClass('animate-in');
+                $('.myavana-luxury-feature-card, .myavana-luxury-step, .myavana-luxury-stat, .myavana-luxury-member-highlight, .myavana-luxury-member-card').addClass('animate-in');
                 return;
             }
 
@@ -191,7 +208,7 @@
             }, observerOptions);
 
             // Observe elements for animation
-            $('.myavana-luxury-feature-card, .myavana-luxury-step, .myavana-luxury-stat').each(function() {
+            $('.myavana-luxury-feature-card, .myavana-luxury-step, .myavana-luxury-stat, .myavana-luxury-member-highlight, .myavana-luxury-member-card').each(function() {
                 self.observer.observe(this);
             });
         },
@@ -350,7 +367,7 @@
             const windowTop = $(window).scrollTop();
             const windowBottom = windowTop + $(window).height();
 
-            $('.myavana-luxury-feature-card, .myavana-luxury-step, .myavana-luxury-stat').each((index, element) => {
+            $('.myavana-luxury-feature-card, .myavana-luxury-step, .myavana-luxury-stat, .myavana-luxury-member-highlight, .myavana-luxury-member-card').each((index, element) => {
                 const $element = $(element);
                 if ($element.hasClass('animate-in')) return;
 
@@ -427,6 +444,22 @@
 
             // Reset toggle button
             $toggle.find('span').css('transform', '');
+        },
+
+        toggleAppProfileMenu: function($trigger) {
+            const $dropdown = $trigger.closest('.myavana-app-profile-dropdown');
+            const isOpen = $dropdown.hasClass('is-open');
+            this.closeAppProfileMenu();
+
+            if (!isOpen) {
+                $dropdown.addClass('is-open');
+                $trigger.attr('aria-expanded', 'true');
+            }
+        },
+
+        closeAppProfileMenu: function() {
+            $('.myavana-app-profile-dropdown').removeClass('is-open');
+            $('.myavana-app-profile-toggle').attr('aria-expanded', 'false');
         },
 
         // Modal integration
@@ -506,62 +539,15 @@
             $('#myavanaEntryModal').remove();
 
             const modalHTML = `
-                <div id="myavanaEntryModal" class="myavana-modal-overlay" style="
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: rgba(0, 0, 0, 0.8);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    z-index: 10002;
-                    opacity: 0;
-                    transition: opacity 0.3s ease;
-                ">
-                    <div class="myavana-modal-content" style="
-                        background: var(--myavana-white);
-                        border-radius: var(--border-radius-lg);
-                        box-shadow: var(--shadow-strong);
-                        max-width: 800px;
-                        width: 90%;
-                        max-height: 90vh;
-                        overflow-y: auto;
-                        position: relative;
-                        transform: scale(0.9);
-                        transition: transform 0.3s ease;
-                    ">
-                        <button class="myavana-modal-close" onclick="MyavanaLuxuryHomepage.closeEntryModal()" style="
-                            position: absolute;
-                            top: 20px;
-                            right: 20px;
-                            background: none;
-                            border: none;
-                            font-size: 24px;
-                            color: var(--myavana-onyx);
-                            cursor: pointer;
-                            z-index: 1;
-                            width: 40px;
-                            height: 40px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            border-radius: 50%;
-                            transition: var(--transition);
-                        ">
+                <div id="myavanaEntryModal" class="myavana-modal-overlay myavana-entry-modal-overlay">
+                    <div class="myavana-modal-content myavana-entry-modal-content">
+                        <button class="myavana-modal-close myavana-entry-modal-close" onclick="MyavanaLuxuryHomepage.closeEntryModal()">
                             <i class="fas fa-times"></i>
                         </button>
-                        <div id="myavanaEntryFormContainer" style="padding: 40px;">
-                            <div class="loading-spinner" style="
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                height: 200px;
-                                color: var(--myavana-coral);
-                            ">
+                        <div id="myavanaEntryFormContainer" class="myavana-entry-form-container">
+                            <div class="loading-spinner">
                                 <i class="fas fa-spinner fa-spin fa-2x"></i>
-                                <span style="margin-left: 16px; font-size: 18px;">Loading entry form...</span>
+                                <span>Loading entry form...</span>
                             </div>
                         </div>
                     </div>
@@ -624,20 +610,20 @@
         // Show entry form fallback
         showEntryFormFallback: function() {
             const fallbackHTML = `
-                <div class="myavana-entry-form-fallback" style="text-align: center; padding: 40px;">
-                    <div style="margin-bottom: 24px;">
-                        <i class="fas fa-camera" style="font-size: 48px; color: var(--myavana-coral); margin-bottom: 16px;"></i>
+                <div class="myavana-entry-form-fallback">
+                    <div class="myavana-entry-form-fallback-icon">
+                        <i class="fas fa-camera"></i>
                     </div>
-                    <h3 style="margin-bottom: 16px; color: var(--myavana-onyx);">Add Hair Entry</h3>
-                    <p style="margin-bottom: 24px; color: var(--myavana-onyx); opacity: 0.7;">
+                    <h3>Add Hair Entry</h3>
+                    <p>
                         The entry form is currently loading. You can also access it through:
                     </p>
-                    <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-                        <a href="/members/admin/hair_profile/" class="myavana-luxury-btn-primary" style="text-decoration: none;">
+                    <div class="myavana-entry-form-fallback-actions">
+                        <a href="/members/admin/hair_profile/" class="myavana-luxury-btn-primary">
                             <i class="fas fa-user"></i> Profile Page
                         </a>
-                        <a href="/myavana-diary/" class="myavana-luxury-btn-secondary" style="text-decoration: none;">
-                            <i class="fas fa-book"></i> Hair Diary
+                        <a href="/hair-journey/" class="myavana-luxury-btn-secondary">
+                            <i class="fas fa-book"></i> My Hair Timeline
                         </a>
                     </div>
                 </div>
@@ -648,15 +634,15 @@
         // Show entry form error
         showEntryFormError: function(message) {
             const errorHTML = `
-                <div class="myavana-entry-form-error" style="text-align: center; padding: 40px;">
-                    <div style="margin-bottom: 24px;">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #e74c3c; margin-bottom: 16px;"></i>
+                <div class="myavana-entry-form-error">
+                    <div class="myavana-entry-form-error-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
                     </div>
-                    <h3 style="margin-bottom: 16px; color: var(--myavana-onyx);">Unable to Load Entry Form</h3>
-                    <p style="margin-bottom: 24px; color: var(--myavana-onyx); opacity: 0.7;">
+                    <h3>Unable to Load Entry Form</h3>
+                    <p>
                         ${message}
                     </p>
-                    <button onclick="MyavanaLuxuryHomepage.loadEntryForm()" class="myavana-luxury-btn-primary">
+                    <button type="button" onclick="MyavanaLuxuryHomepage.loadEntryForm()" class="myavana-luxury-btn-primary">
                         <i class="fas fa-redo"></i> Try Again
                     </button>
                 </div>
@@ -687,21 +673,14 @@
 
         // Open AI Analysis Modal
         openAIAnalysisModal: function() {
-            if (!this.isUserLoggedIn()) {
-                this.showNotification('Please log in to use AI analysis.', 'warning');
-                setTimeout(() => {
-                    if (typeof showMyavanaModal === 'function') {
-                        showMyavanaModal('login');
-                    }
-                }, 1500);
-                return;
-            }
+            const aiToolUrl = (window.myavanaLuxuryData && window.myavanaLuxuryData.aiToolUrl)
+                ? window.myavanaLuxuryData.aiToolUrl
+                : 'https://www.myavana.com/pages/consumer';
 
-            // Open the AI analysis modal
             if (typeof window.openAIAnalysisModal === 'function') {
                 window.openAIAnalysisModal();
             } else {
-                this.showNotification('AI Analysis modal not loaded. Please refresh the page.', 'error');
+                window.location.href = aiToolUrl;
             }
         },
 
@@ -717,7 +696,7 @@
 
         // Redirect functions
         redirectToTimeline: function() {
-            window.location.href = '/members/admin/hair_journey_timeline/';
+            window.location.href = '/hair-journey/';
         },
 
         redirectToAnalytics: function() {
@@ -981,56 +960,31 @@
         // Fallback onboarding (simple modal)
         fallbackOnboarding: function() {
             const onboardingHTML = `
-                <div class="myavana-onboarding-overlay myavana-fallback-onboarding" style="
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: rgba(34, 35, 35, 0.95);
-                    backdrop-filter: blur(15px);
-                    z-index: 1000000;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-family: var(--font-secondary);
-                ">
-                    <div style="
-                        background: var(--myavana-white);
-                        max-width: 600px;
-                        width: 90%;
-                        padding: 40px;
-                        border-radius: 20px;
-                        text-align: center;
-                        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
-                    ">
-                        <div style="margin-bottom: 30px;">
-                            <i class="fas fa-sparkles" style="font-size: 48px; color: var(--myavana-coral); margin-bottom: 20px;"></i>
-                            <h2 style="font-family: var(--font-primary); font-size: 32px; color: var(--myavana-onyx); margin-bottom: 15px; text-transform: uppercase;">
+                <div class="myavana-onboarding-overlay myavana-fallback-onboarding">
+                    <div class="myavana-fallback-onboarding-card">
+                        <div class="myavana-fallback-onboarding-header">
+                            <i class="fas fa-sparkles"></i>
+                            <h2>
                                 Welcome to MYAVANA
                             </h2>
-                            <p style="font-size: 18px; color: var(--myavana-onyx); opacity: 0.8; margin-bottom: 30px;">
+                            <p>
                                 Ready to start your personalized hair journey with AI-powered insights?
                             </p>
                         </div>
 
-                        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-                            <button onclick="MyavanaLuxuryHomepage.completeOnboarding()" class="myavana-luxury-btn-primary" style="
-                                margin: 0;
-                            ">
+                        <div class="myavana-fallback-onboarding-actions">
+                            <button type="button" onclick="MyavanaLuxuryHomepage.completeOnboarding()" class="myavana-luxury-btn-primary">
                                 <i class="fas fa-rocket"></i>
                                 Yes, Let's Start!
                             </button>
-                            <button onclick="MyavanaLuxuryHomepage.skipOnboarding()" class="myavana-luxury-btn-secondary" style="
-                                margin: 0;
-                            ">
+                            <button type="button" onclick="MyavanaLuxuryHomepage.skipOnboarding()" class="myavana-luxury-btn-secondary">
                                 <i class="fas fa-clock"></i>
                                 Maybe Later
                             </button>
                         </div>
 
-                        <div style="margin-top: 30px;">
-                            <p style="font-size: 14px; color: var(--myavana-onyx); opacity: 0.6;">
+                        <div class="myavana-fallback-onboarding-note">
+                            <p>
                                 We'll help you set up your profile and create your first hair journey entry.
                             </p>
                         </div>

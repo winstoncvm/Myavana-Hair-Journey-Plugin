@@ -417,10 +417,10 @@
      */
     function fixCloseButton() {
         // Remove all existing handlers
-        $(document).off('click', '.offcanvas-close-hjn, .offcanvas-overlay-hjn, #cancel-profile-edit');
+        $(document).off('click', '.offcanvas-close-hjn, .offcanvas-overlay-hjn.profile-edit-overlay, #cancel-profile-edit');
 
         // Attach new handler
-        $(document).on('click', '.offcanvas-close-hjn, .offcanvas-overlay-hjn, #cancel-profile-edit', function(e) {
+        $(document).on('click', '.offcanvas-close-hjn, .offcanvas-overlay-hjn.profile-edit-overlay, #cancel-profile-edit', function(e) {
             const target = $(e.target);
 
             // Don't close if clicking inside offcanvas content
@@ -447,7 +447,7 @@
     function closeProfileEditOffcanvasFixed() {
         console.log('Closing profile edit offcanvas');
 
-        $('.offcanvas-overlay-hjn').removeClass('active');
+        $('.offcanvas-overlay-hjn.profile-edit-overlay').removeClass('active');
         $('.offcanvas-hjn.profile-edit').removeClass('active');
         $('body').css('overflow', '');
 
@@ -502,7 +502,7 @@
             console.log('Opening profile edit offcanvas (fixed)');
 
             // Show overlay and offcanvas
-            $('.offcanvas-overlay-hjn').addClass('active');
+            $('.offcanvas-overlay-hjn.profile-edit-overlay').addClass('active');
             $('.offcanvas-hjn.profile-edit').addClass('active');
             $('body').css('overflow', 'hidden');
 

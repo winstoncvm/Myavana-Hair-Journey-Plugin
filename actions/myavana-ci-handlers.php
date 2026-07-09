@@ -15,6 +15,70 @@ if (!defined('ABSPATH')) {
 }
 
 /**
+ * Upload image/video media for community post edits.
+ *
+ * @param array  $file       Upload file array from $_FILES.
+ * @param string $media_type Allowed values: image|video.
+ * @return array|WP_Error
+ */
+function myavana_ci_upload_post_media($file, $media_type = 'image') {
+    if (!is_array($file) || empty($file['name'])) {
+        return new WP_Error('no_file', 'No file provided');
+    }
+
+    $error_code = isset($file['error']) ? (int) $file['error'] : UPLOAD_ERR_NO_FILE;
+    if ($error_code !== UPLOAD_ERR_OK) {
+        return new WP_Error('upload_error', 'Upload failed. Please try again.');
+    }
+
+    if (!function_exists('wp_handle_upload')) {
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+    }
+
+    $upload_overrides = [
+        'test_form' => false,
+    ];
+
+    if ($media_type === 'video') {
+        $max_size_bytes = 40 * 1024 * 1024; // 40MB
+        $file_size = isset($file['size']) ? (int) $file['size'] : 0;
+        if ($file_size > $max_size_bytes) {
+            return new WP_Error('file_too_large', 'Video file is too large. Maximum size is 40MB.');
+        }
+
+        $upload_overrides['mimes'] = [
+            'mp4' => 'video/mp4',
+            'm4v' => 'video/mp4',
+            'mov' => 'video/quicktime',
+            'webm' => 'video/webm',
+            'ogv' => 'video/ogg',
+        ];
+    } else {
+        $upload_overrides['mimes'] = [
+            'jpg|jpeg|jpe' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp',
+            'heic' => 'image/heic',
+            'heif' => 'image/heif',
+        ];
+    }
+
+    $uploaded_file = wp_handle_upload($file, $upload_overrides);
+    if (!is_array($uploaded_file) || isset($uploaded_file['error'])) {
+        $message = is_array($uploaded_file) && isset($uploaded_file['error'])
+            ? (string) $uploaded_file['error']
+            : 'Upload failed. Please try again.';
+        return new WP_Error('upload_failed', $message);
+    }
+
+    return [
+        'url' => esc_url_raw($uploaded_file['url']),
+        'file' => $uploaded_file['file'],
+    ];
+}
+
+/**
  * AJAX Handler: Edit community post
  * Action: myavana_ci_edit_post
  */
@@ -73,24 +137,99 @@ function myavana_ci_edit_post_handler() {
         ]);
     }
 
-    // Otherwise, update title and content
-    $title = sanitize_text_field($_POST['title'] ?? '');
-    $content = sanitize_textarea_field($_POST['content'] ?? '');
+    // Otherwise, update post content + media fields.
+    $title_raw = (string) wp_unslash($_POST['title'] ?? '');
+    $content_raw = (string) wp_unslash($_POST['content'] ?? '');
+    $title_raw = preg_replace('/\\\\+&#0*39;|\\\\+&#x0*27;|\\\\+&apos;/i', "'", $title_raw);
+    $content_raw = preg_replace('/\\\\+&#0*39;|\\\\+&#x0*27;|\\\\+&apos;/i', "'", $content_raw);
+    $title_raw = html_entity_decode($title_raw, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $content_raw = html_entity_decode($content_raw, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+    $title = sanitize_text_field($title_raw);
+    $content = sanitize_textarea_field($content_raw);
+    $post_type = sanitize_text_field($_POST['post_type'] ?? $post->post_type);
+    $privacy_level = sanitize_text_field($_POST['privacy_level'] ?? $post->privacy_level);
+    $video_url_input = esc_url_raw(wp_unslash($_POST['video_url'] ?? ''));
+    $hashtags_input = sanitize_text_field(wp_unslash($_POST['hashtags'] ?? ''));
+    $remove_image = !empty($_POST['remove_image']);
+    $remove_video = !empty($_POST['remove_video']);
+
+    $allowed_post_types = ['progress', 'transformation', 'routine', 'products', 'tips', 'video', 'general'];
+    if (!in_array($post_type, $allowed_post_types, true)) {
+        $post_type = 'general';
+    }
+
+    $allowed_privacy_levels = ['public', 'followers', 'private'];
+    if (!in_array($privacy_level, $allowed_privacy_levels, true)) {
+        $privacy_level = 'public';
+    }
 
     if (!$title || !$content) {
         wp_send_json_error('Missing required fields');
     }
 
+    $image_url = (string) ($post->image_url ?? '');
+    $video_url = (string) ($post->video_url ?? '');
+
+    if ($remove_image) {
+        $image_url = '';
+    }
+
+    if ($remove_video) {
+        $video_url = '';
+    }
+
+    if (!empty($_FILES['image']) && !empty($_FILES['image']['name'])) {
+        $image_upload = myavana_ci_upload_post_media($_FILES['image'], 'image');
+        if (is_wp_error($image_upload)) {
+            wp_send_json_error($image_upload->get_error_message());
+        }
+        $image_url = $image_upload['url'];
+        $remove_image = false;
+    }
+
+    if (!empty($_FILES['video']) && !empty($_FILES['video']['name'])) {
+        $video_upload = myavana_ci_upload_post_media($_FILES['video'], 'video');
+        if (is_wp_error($video_upload)) {
+            wp_send_json_error($video_upload->get_error_message());
+        }
+        $video_url = $video_upload['url'];
+        $remove_video = false;
+    } elseif ($video_url_input !== '') {
+        $video_url = $video_url_input;
+        $remove_video = false;
+    }
+
+    if ($post_type === 'video' && $video_url === '') {
+        wp_send_json_error('Video posts require a video URL or uploaded video.');
+    }
+
+    $media_type = 'text';
+    if ($video_url !== '') {
+        $media_type = 'video';
+    } elseif ($image_url !== '') {
+        $media_type = 'image';
+    }
+
+    $hashtags = implode(',', myavana_ci_normalize_hashtags($hashtags_input, 12));
+
     // Update post
+    $updated_at = current_time('mysql');
     $updated = $wpdb->update(
         $table_name,
         [
             'title' => $title,
             'content' => $content,
-            'updated_at' => current_time('mysql')
+            'image_url' => $image_url,
+            'video_url' => $video_url,
+            'media_type' => $media_type,
+            'post_type' => $post_type,
+            'privacy_level' => $privacy_level,
+            'hashtags' => $hashtags,
+            'updated_at' => $updated_at,
         ],
         ['id' => $post_id],
-        ['%s', '%s', '%s'],
+        ['%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'],
         ['%d']
     );
 
@@ -98,13 +237,30 @@ function myavana_ci_edit_post_handler() {
         wp_send_json_error('Failed to update post');
     }
 
+    $updated_post = $wpdb->get_row($wpdb->prepare(
+        "SELECT id, user_id, title, content, image_url, video_url, media_type, post_type, privacy_level, hashtags, likes_count, comments_count, shares_count, is_pinned, created_at, updated_at
+         FROM $table_name
+         WHERE id = %d",
+        $post_id
+    ), ARRAY_A);
+
+    if (!$updated_post) {
+        wp_send_json_error('Post updated but failed to load updated data');
+    }
+
+    $updated_post['id'] = (int) $updated_post['id'];
+    $updated_post['user_id'] = (int) $updated_post['user_id'];
+    $updated_post['likes_count'] = (int) $updated_post['likes_count'];
+    $updated_post['comments_count'] = (int) $updated_post['comments_count'];
+    $updated_post['shares_count'] = (int) $updated_post['shares_count'];
+    $updated_post['is_pinned'] = (int) $updated_post['is_pinned'];
+    $updated_post['formatted_date'] = human_time_diff(strtotime($updated_post['created_at']), current_time('timestamp')) . ' ago';
+    $updated_post['display_name'] = wp_get_current_user()->display_name;
+    $updated_post['user_avatar'] = get_avatar_url($current_user_id);
+
     wp_send_json_success([
         'message' => 'Post updated successfully',
-        'post' => [
-            'id' => $post_id,
-            'title' => $title,
-            'content' => $content
-        ]
+        'post' => $updated_post,
     ]);
 }
 add_action('wp_ajax_myavana_ci_edit_post', 'myavana_ci_edit_post_handler');
@@ -335,7 +491,7 @@ function myavana_ci_reply_to_comment_handler() {
     }
 
     $post_id = absint($_POST['post_id'] ?? 0);
-    $parent_comment_id = absint($_POST['parent_comment_id'] ?? 0);
+    $parent_comment_id = absint($_POST['parent_comment_id'] ?? ($_POST['parent_id'] ?? 0));
     $content = sanitize_textarea_field($_POST['content'] ?? '');
 
     if (!$post_id || !$parent_comment_id || !$content) {
@@ -598,10 +754,12 @@ function myavana_ci_manage_collection_handler() {
         wp_send_json_error('You must be logged in');
     }
 
-    $action_type = sanitize_text_field($_POST['action_type'] ?? '');
+    $action_type = sanitize_text_field($_POST['action_type'] ?? ($_POST['operation'] ?? ''));
     $collection_id = absint($_POST['collection_id'] ?? 0);
-    $collection_name = sanitize_text_field($_POST['collection_name'] ?? '');
+    $collection_name = sanitize_text_field($_POST['collection_name'] ?? ($_POST['name'] ?? ''));
     $post_id = absint($_POST['post_id'] ?? 0);
+    $collection_ids_raw = sanitize_text_field($_POST['collection_ids'] ?? '');
+    $has_collection_ids_param = array_key_exists('collection_ids', $_POST);
 
     global $wpdb;
     $collections_table = $wpdb->prefix . 'myavana_ci_bookmark_collections';
@@ -650,6 +808,56 @@ function myavana_ci_manage_collection_handler() {
             break;
 
         case 'add_post':
+            if (!$post_id) {
+                wp_send_json_error('Invalid post ID');
+            }
+
+            // Multi-collection sync (preferred path from frontend)
+            $selected_collection_ids = array_values(array_filter(array_map('absint', explode(',', $collection_ids_raw))));
+            if ($has_collection_ids_param) {
+                $user_collection_ids = $wpdb->get_col($wpdb->prepare(
+                    "SELECT id FROM $collections_table WHERE user_id = %d",
+                    $current_user_id
+                ));
+                $user_collection_ids = array_map('intval', $user_collection_ids);
+
+                if (!empty($selected_collection_ids)) {
+                    $invalid_ids = array_diff($selected_collection_ids, $user_collection_ids);
+                    if (!empty($invalid_ids)) {
+                        wp_send_json_error('Permission denied for one or more collections');
+                    }
+                }
+
+                // Remove this post from all of the current user's collections first
+                if (!empty($user_collection_ids)) {
+                    $placeholders = implode(',', array_fill(0, count($user_collection_ids), '%d'));
+                    $query = $wpdb->prepare(
+                        "DELETE FROM $collection_items_table
+                         WHERE post_id = %d AND collection_id IN ($placeholders)",
+                        array_merge([$post_id], $user_collection_ids)
+                    );
+                    $wpdb->query($query);
+                }
+
+                // Re-add to selected collections
+                foreach ($selected_collection_ids as $selected_collection_id) {
+                    $wpdb->insert(
+                        $collection_items_table,
+                        [
+                            'collection_id' => $selected_collection_id,
+                            'post_id' => $post_id,
+                            'added_at' => current_time('mysql')
+                        ],
+                        ['%d', '%d', '%s']
+                    );
+                }
+
+                wp_send_json_success([
+                    'message' => !empty($selected_collection_ids) ? 'Post saved to selected collections' : 'Post removed from all collections'
+                ]);
+            }
+
+            // Backward-compatible single-collection path
             $owner = $wpdb->get_var($wpdb->prepare(
                 "SELECT user_id FROM $collections_table WHERE id = %d",
                 $collection_id
@@ -694,15 +902,30 @@ function myavana_ci_manage_collection_handler() {
             break;
 
         case 'list':
-            $collections = $wpdb->get_results($wpdb->prepare(
-                "SELECT c.*, COUNT(ci.id) as post_count
-                 FROM $collections_table c
-                 LEFT JOIN $collection_items_table ci ON c.id = ci.collection_id
-                 WHERE c.user_id = %d
-                 GROUP BY c.id
-                 ORDER BY c.created_at DESC",
-                $current_user_id
-            ), ARRAY_A);
+            if ($post_id) {
+                $collections = $wpdb->get_results($wpdb->prepare(
+                    "SELECT c.*,
+                            COUNT(ci.id) as post_count,
+                            MAX(CASE WHEN ci.post_id = %d THEN 1 ELSE 0 END) as has_post
+                     FROM $collections_table c
+                     LEFT JOIN $collection_items_table ci ON c.id = ci.collection_id
+                     WHERE c.user_id = %d
+                     GROUP BY c.id
+                     ORDER BY c.created_at DESC",
+                    $post_id,
+                    $current_user_id
+                ), ARRAY_A);
+            } else {
+                $collections = $wpdb->get_results($wpdb->prepare(
+                    "SELECT c.*, COUNT(ci.id) as post_count, 0 as has_post
+                     FROM $collections_table c
+                     LEFT JOIN $collection_items_table ci ON c.id = ci.collection_id
+                     WHERE c.user_id = %d
+                     GROUP BY c.id
+                     ORDER BY c.created_at DESC",
+                    $current_user_id
+                ), ARRAY_A);
+            }
 
             wp_send_json_success(['collections' => $collections]);
             break;
@@ -726,7 +949,7 @@ function myavana_ci_get_post_analytics_handler() {
     }
 
     $post_id = absint($_POST['post_id'] ?? 0);
-    $analytics_type = sanitize_text_field($_POST['analytics_type'] ?? '');
+    $analytics_type = sanitize_text_field($_POST['analytics_type'] ?? 'reactions');
 
     if (!$post_id) {
         wp_send_json_error('Invalid post ID');
@@ -786,7 +1009,7 @@ function myavana_ci_manage_draft_handler() {
         wp_send_json_error('You must be logged in');
     }
 
-    $action_type = sanitize_text_field($_POST['action_type'] ?? '');
+    $action_type = sanitize_text_field($_POST['action_type'] ?? ($_POST['operation'] ?? ''));
     $draft_id = absint($_POST['draft_id'] ?? 0);
 
     global $wpdb;
@@ -897,6 +1120,298 @@ function myavana_ci_manage_draft_handler() {
     }
 }
 add_action('wp_ajax_myavana_ci_manage_draft', 'myavana_ci_manage_draft_handler');
+
+/**
+ * Normalize hashtag input into an array of clean tags.
+ */
+function myavana_ci_normalize_hashtags($hashtags, $limit = 10) {
+    $candidates = [];
+
+    if (is_array($hashtags)) {
+        $candidates = $hashtags;
+    } elseif (is_string($hashtags)) {
+        $candidates = preg_split('/[\s,]+/', $hashtags);
+    }
+
+    $normalized = [];
+    foreach ($candidates as $tag) {
+        $tag = strtolower(trim((string) $tag));
+        $tag = preg_replace('/^#+/', '', $tag);
+        $tag = preg_replace('/[^a-z0-9_]/', '', $tag);
+        if (strlen($tag) > 1) {
+            $normalized[] = $tag;
+        }
+    }
+
+    return array_slice(array_values(array_unique($normalized)), 0, $limit);
+}
+
+/**
+ * Build a deterministic fallback AI response for community post assistance.
+ */
+function myavana_ci_build_post_ai_fallback($assist_type, $title, $content, $post_type) {
+    $post_type_label_map = [
+        'progress' => 'progress update',
+        'transformation' => 'transformation update',
+        'routine' => 'routine update',
+        'products' => 'product review',
+        'tips' => 'tips post',
+        'general' => 'community update'
+    ];
+
+    $post_type_label = $post_type_label_map[$post_type] ?? 'community update';
+    $raw_text = trim($title . ' ' . $content);
+    preg_match_all('/#?([a-zA-Z0-9_]{3,24})/', $raw_text, $matches);
+    $keyword_tags = isset($matches[1]) ? $matches[1] : [];
+    $fallback_tags = myavana_ci_normalize_hashtags(array_merge($keyword_tags, ['hairjourney', 'myavana', $post_type]));
+
+    if ($assist_type === 'hashtags') {
+        return [
+            'title' => $title,
+            'content' => $content,
+            'hashtags' => !empty($fallback_tags) ? $fallback_tags : ['hairjourney', 'myavana'],
+            'source' => 'fallback',
+            'message' => 'Hashtags are ready.'
+        ];
+    }
+
+    if ($assist_type === 'improve') {
+        $improved_content = $content;
+        if ($improved_content === '') {
+            $improved_content = 'Sharing a quick update from my hair journey.';
+        }
+        if (substr($improved_content, -1) !== '.') {
+            $improved_content .= '.';
+        }
+
+        return [
+            'title' => $title,
+            'content' => $improved_content . ' Staying consistent and learning what works best for my hair.',
+            'hashtags' => !empty($fallback_tags) ? $fallback_tags : ['hairjourney', 'myavana'],
+            'source' => 'fallback',
+            'message' => 'Draft polished and ready to post.'
+        ];
+    }
+
+    $generated_title = $title !== '' ? $title : 'My ' . ucwords($post_type_label);
+    $generated_content = $content !== ''
+        ? $content
+        : 'Sharing today\'s ' . $post_type_label . '. What has helped your hair thrive this week?';
+
+    return [
+        'title' => $generated_title,
+        'content' => $generated_content,
+        'hashtags' => !empty($fallback_tags) ? $fallback_tags : ['hairjourney', 'myavana'],
+        'source' => 'fallback',
+        'message' => 'Caption generated. You can edit before posting.'
+    ];
+}
+
+/**
+ * Call Gemini text model for community AI assist.
+ */
+function myavana_ci_call_gemini_text($prompt) {
+    $api_key = trim((string) get_option('myavana_gemini_api_key'));
+    if ($api_key === '') {
+        return new WP_Error('missing_key', 'Gemini API key not configured');
+    }
+
+    $url = sprintf(
+        'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s',
+        'gemini-2.0-flash',
+        rawurlencode($api_key)
+    );
+
+    $response = wp_remote_post($url, [
+        'headers' => ['Content-Type' => 'application/json'],
+        'timeout' => 30,
+        'body' => wp_json_encode([
+            'contents' => [
+                ['parts' => [['text' => $prompt]]]
+            ],
+            'generationConfig' => [
+                'temperature' => 0.6,
+                'maxOutputTokens' => 600,
+                'responseMimeType' => 'application/json'
+            ]
+        ])
+    ]);
+
+    if (is_wp_error($response)) {
+        return $response;
+    }
+
+    $status = wp_remote_retrieve_response_code($response);
+    $body = json_decode(wp_remote_retrieve_body($response), true);
+
+    if ($status !== 200) {
+        return new WP_Error('gemini_status', $body['error']['message'] ?? 'Gemini request failed');
+    }
+
+    $text = $body['candidates'][0]['content']['parts'][0]['text'] ?? '';
+    if ($text === '') {
+        return new WP_Error('empty_response', 'No AI response generated');
+    }
+
+    return $text;
+}
+
+/**
+ * Strip markdown code fences from AI JSON output.
+ */
+function myavana_ci_strip_json_fences($text) {
+    $text = trim((string) $text);
+    if (preg_match('/^```(?:json)?\s*(.*?)\s*```$/is', $text, $matches)) {
+        return trim($matches[1]);
+    }
+    return $text;
+}
+
+/**
+ * AJAX Handler: AI post assistance for community composer.
+ * Action: myavana_ci_ai_post_assist
+ */
+function myavana_ci_ai_post_assist_handler() {
+    check_ajax_referer('myavana_nonce', 'nonce');
+
+    $current_user_id = get_current_user_id();
+    if (!$current_user_id) {
+        wp_send_json_error('You must be logged in');
+    }
+
+    $assist_type = sanitize_text_field($_POST['assist_type'] ?? '');
+    $title = sanitize_text_field($_POST['title'] ?? '');
+    $content = sanitize_textarea_field($_POST['content'] ?? '');
+    $post_type = sanitize_text_field($_POST['post_type'] ?? 'general');
+
+    if (!in_array($assist_type, ['caption', 'improve', 'hashtags'], true)) {
+        wp_send_json_error('Invalid AI assist type');
+    }
+
+    $prompt = '';
+    if ($assist_type === 'caption') {
+        $prompt = "Create engaging copy for a hair-care community post.\n"
+            . "Post type: {$post_type}\nCurrent title: {$title}\nCurrent content: {$content}\n"
+            . "Return strict JSON with keys: title, content, hashtags (array of plain words, no #), message.";
+    } elseif ($assist_type === 'improve') {
+        $prompt = "Improve this hair-care community post draft for clarity, warmth, and authenticity.\n"
+            . "Post type: {$post_type}\nTitle: {$title}\nContent: {$content}\n"
+            . "Return strict JSON with keys: title, content, hashtags (array of plain words, no #), message.";
+    } else {
+        $prompt = "Generate relevant social hashtags for this hair-care community post.\n"
+            . "Post type: {$post_type}\nTitle: {$title}\nContent: {$content}\n"
+            . "Return strict JSON with keys: hashtags (array of plain words, no #), message.";
+    }
+
+    $fallback_payload = myavana_ci_build_post_ai_fallback($assist_type, $title, $content, $post_type);
+    $ai_result = myavana_ci_call_gemini_text($prompt);
+
+    if (is_wp_error($ai_result)) {
+        wp_send_json_success($fallback_payload);
+    }
+
+    $decoded = json_decode(myavana_ci_strip_json_fences($ai_result), true);
+    if (!is_array($decoded)) {
+        wp_send_json_success($fallback_payload);
+    }
+
+    $final_title = sanitize_text_field($decoded['title'] ?? $fallback_payload['title']);
+    $final_content = sanitize_textarea_field($decoded['content'] ?? $fallback_payload['content']);
+    $final_message = sanitize_text_field($decoded['message'] ?? $fallback_payload['message']);
+    $final_hashtags = myavana_ci_normalize_hashtags($decoded['hashtags'] ?? $fallback_payload['hashtags']);
+
+    if (empty($final_hashtags)) {
+        $final_hashtags = $fallback_payload['hashtags'];
+    }
+
+    wp_send_json_success([
+        'title' => $final_title,
+        'content' => $final_content,
+        'hashtags' => $final_hashtags,
+        'source' => 'gemini',
+        'message' => $final_message
+    ]);
+}
+add_action('wp_ajax_myavana_ci_ai_post_assist', 'myavana_ci_ai_post_assist_handler');
+
+/**
+ * AJAX Handler: Get saved community posts for current user.
+ * Action: myavana_ci_get_saved_posts
+ */
+function myavana_ci_get_saved_posts_handler() {
+    check_ajax_referer('myavana_nonce', 'nonce');
+
+    $current_user_id = get_current_user_id();
+    if (!$current_user_id) {
+        wp_send_json_error('You must be logged in');
+    }
+
+    global $wpdb;
+    $bookmarks_table = $wpdb->prefix . 'myavana_post_bookmarks';
+    $posts_table = $wpdb->prefix . 'myavana_community_posts';
+    $collections_table = $wpdb->prefix . 'myavana_ci_bookmark_collections';
+    $collection_items_table = $wpdb->prefix . 'myavana_ci_collection_items';
+
+    $has_collections_table = (bool) $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $collections_table));
+    $has_collection_items_table = (bool) $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $collection_items_table));
+
+    if ($has_collections_table && $has_collection_items_table) {
+        // Saved posts can originate from:
+        // 1) quick bookmark table (myavana_post_bookmarks)
+        // 2) collection saves (myavana_ci_collection_items + myavana_ci_bookmark_collections)
+        $posts = $wpdb->get_results($wpdb->prepare(
+            "SELECT saved.post_id AS id,
+                    p.user_id,
+                    p.title,
+                    p.content,
+                    p.image_url,
+                    p.video_url,
+                    p.post_type,
+                    p.created_at,
+                    u.display_name,
+                    MAX(saved.saved_at) AS saved_at
+             FROM (
+                SELECT b.post_id, b.bookmarked_at AS saved_at
+                FROM {$bookmarks_table} b
+                WHERE b.user_id = %d
+
+                UNION ALL
+
+                SELECT ci.post_id, ci.added_at AS saved_at
+                FROM {$collections_table} c
+                INNER JOIN {$collection_items_table} ci ON ci.collection_id = c.id
+                WHERE c.user_id = %d
+             ) saved
+             INNER JOIN {$posts_table} p ON p.id = saved.post_id
+             LEFT JOIN {$wpdb->users} u ON p.user_id = u.ID
+             GROUP BY saved.post_id, p.user_id, p.title, p.content, p.image_url, p.video_url, p.post_type, p.created_at, u.display_name
+             ORDER BY saved_at DESC
+             LIMIT 100",
+            $current_user_id,
+            $current_user_id
+        ), ARRAY_A);
+    } else {
+        $posts = $wpdb->get_results($wpdb->prepare(
+            "SELECT p.id, p.user_id, p.title, p.content, p.image_url, p.video_url, p.post_type, p.created_at, u.display_name
+             FROM {$bookmarks_table} b
+             INNER JOIN {$posts_table} p ON b.post_id = p.id
+             LEFT JOIN {$wpdb->users} u ON p.user_id = u.ID
+             WHERE b.user_id = %d
+             ORDER BY b.bookmarked_at DESC
+             LIMIT 100",
+            $current_user_id
+        ), ARRAY_A);
+    }
+
+    foreach ($posts as &$post) {
+        $post['id'] = (int) $post['id'];
+        $post['user_id'] = (int) $post['user_id'];
+        $post['formatted_date'] = human_time_diff(strtotime($post['created_at']), current_time('timestamp')) . ' ago';
+    }
+
+    wp_send_json_success(['posts' => $posts]);
+}
+add_action('wp_ajax_myavana_ci_get_saved_posts', 'myavana_ci_get_saved_posts_handler');
 
 /**
  * AJAX Handler: Check for new activity

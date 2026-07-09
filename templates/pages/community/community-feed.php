@@ -9,7 +9,7 @@
  * - Mobile-first responsive design
  */
 
-function myavana_community_feed_shortcode($atts = []) {
+function myavana_community_feed_shortcode($atts = []) { 
     // Check if user is logged in
     if (!is_user_logged_in()) {
         return '<div class="myavana-community-container">
@@ -60,91 +60,6 @@ function myavana_community_feed_shortcode($atts = []) {
     ?>
 
     <div class="myavana-community-container" data-theme="light">
-         <!-- Luxury Navigation -->
-        <nav class="myavana-luxury-nav">
-            <div class="myavana-luxury-nav-container">
-                <a href="<?php echo home_url(); ?>" class="myavana-luxury-logo">
-                    <div class="myavana-logo-section">
-                        <img src="<?php echo esc_url(home_url()); ?>/wp-content/plugins/myavana-hair-journey/assets/images/myavana-primary-logo.png"
-                            alt="Myavana Logo" class="myavana-logo" />
-                    </div>
-                </a>
-
-                <?php if (!$is_logged_in): ?>
-                    <!-- GUEST NAV -->
-                    <div class="myavana-luxury-nav-menu">
-                        <a href="#features" class="myavana-luxury-nav-link">Features</a>
-                        <a href="#how-it-works" class="myavana-luxury-nav-link">How It Works</a>
-                        <a href="#" onclick="showMyavanaModal('login'); return false;" class="myavana-luxury-nav-link myavana-nav-signin-mobile">
-                            Sign In
-                        </a>
-                    </div>
-
-                    <div class="myavana-luxury-nav-actions">
-                        <button class="myavana-luxury-btn-secondary" onclick="showMyavanaModal('login')">Sign In</button>
-                        <button class="myavana-luxury-btn-primary" onclick="showMyavanaModal('register')">Start Your Journey</button>
-                    </div>
-
-                <?php else: ?>
-                    <!-- LOGGED-IN NAV -->
-                    <div class="myavana-luxury-nav-menu" id="mainNavMenu">
-                        <a href="/hair-journey/" class="myavana-luxury-nav-link">My Hair Journey</a>
-                        <a href="/community/" class="myavana-luxury-nav-link">Community</a>
-                        <a href="/profile" class="myavana-luxury-nav-link">Profile</a>
-                        <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createGoal()">+ Goal</a>
-                            <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createRoutine()">+ Routine</a>
-                            <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="openAIAnalysisModal()">Smart Entry</a>
-                            <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createEntry()">+ Entry</a>
-                        <!-- Action Buttons - Desktop -->
-                        <!-- <div class="myavana-luxury-nav-action-buttons desktop-only">
-                           
-                        </div> -->
-
-                        <!-- Logout always visible on desktop -->
-                        <a href="<?php echo wp_logout_url(home_url()); ?>" class="myavana-luxury-nav-link myavana-nav-logout-desktop">
-                            Logout
-                        </a>
-                    </div>
-
-                    
-
-                    <!-- Mobile Menu Toggle -->
-                    <!-- CORRECT — only jQuery handles it -->
-                    <button class="myavana-luxury-mobile-toggle" aria-label="Toggle menu">
-                        <span></span><span></span><span></span>
-                    </button>
-                <?php endif; ?>
-
-                <!-- MOBILE SLIDE-OUT MENU (only for logged-in users) -->
-                <?php if ($is_logged_in): ?>
-                <div class="myavana-mobile-menu-overlay" id="mobileMenuOverlay" onclick="toggleMobileMenu()"></div>
-                <div class="myavana-mobile-menu-panel" id="mobileMenuPanel">
-                    <div class="mobile-menu-header">
-                        <div class="mobile-menu-user">
-                            <img src="<?php echo get_avatar_url($current_user->ID, ['size' => 60]); ?>" alt="Avatar" class="mobile-menu-avatar">
-                            <div>
-                                <strong><?php echo esc_html($current_user->display_name); ?></strong>
-                                <small>Welcome back!</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mobile-menu-links">
-                        <a href="/hair-journey/">My Hair Journey</a>
-                        <a href="/community/" >Community</a>
-                        <a href="/profile">Profile</a>
-                        <hr>
-                        <button type="button" class="mobile-menu-action" onclick="createGoal(); toggleMobileMenu()">+ Goal</button>
-                        <button type="button" class="mobile-menu-action" onclick="createRoutine(); toggleMobileMenu()">+ Routine</button>
-                        <button type="button" class="mobile-menu-action smart" onclick="openAIAnalysisModal(); toggleMobileMenu()">Smart Entry</button>
-                        <button type="button" class="mobile-menu-action primary" onclick="createEntry(); toggleMobileMenu()">+ Entry</button>
-                        <hr>
-                        <a href="<?php echo wp_logout_url(home_url()); ?>" class="mobile-menu-logout">Logout</a>
-                    </div>
-                </div>
-                <?php endif; ?>
-            </div>
-        </nav>
         <!-- Community Header -->
         <header class="myavana-community-header">
             <div class="myavana-community-header-content">
@@ -182,6 +97,25 @@ function myavana_community_feed_shortcode($atts = []) {
         $current_user_data = get_userdata($current_user_id);
         $user_avatar = get_avatar_url($current_user_id, 80);
 
+        // Resolve profile page URL (shortcode page if available)
+        $profile_page_url = home_url('/profile/');
+        $profile_page_id = $wpdb->get_var($wpdb->prepare(
+            "SELECT ID
+             FROM {$wpdb->posts}
+             WHERE post_type = 'page'
+               AND post_status = 'publish'
+               AND post_content LIKE %s
+             ORDER BY ID ASC
+             LIMIT 1",
+            '%[myavana_unified_profile%'
+        ));
+        if ($profile_page_id) {
+            $resolved_profile_url = get_permalink((int) $profile_page_id);
+            if (!empty($resolved_profile_url)) {
+                $profile_page_url = $resolved_profile_url;
+            }
+        }
+
         // Get user stats
         global $wpdb;
         $posts_table = $wpdb->prefix . 'myavana_community_posts';
@@ -218,7 +152,7 @@ function myavana_community_feed_shortcode($atts = []) {
                         <p class="myavana-profile-widget-username">@<?php echo esc_html($current_user_data->user_login); ?></p>
                     </div>
                 </div>
-                <a href="/profile" class="myavana-profile-widget-edit">
+                <a class="myavana-profile-widget-edit" onclick="myavanaCommunityOpenProfileEdit()">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -257,6 +191,60 @@ function myavana_community_feed_shortcode($atts = []) {
             </div>
         </div>
 
+        <section class="myavana-community-discovery" aria-label="Community discovery tools">
+            <div class="myavana-community-mode-row" role="group" aria-label="Feed mode">
+                <button type="button" class="myavana-community-mode-btn active" data-mode="discover">Discover</button>
+                <button type="button" class="myavana-community-mode-btn" data-mode="following">Following</button>
+            </div>
+
+            <div class="myavana-circle-filter-row" role="group" aria-label="Community circles">
+                <button type="button" class="myavana-circle-filter-btn active" data-circle="">All Circles</button>
+                <button type="button" class="myavana-circle-filter-btn" data-circle="type-4c">Type 4C Circle</button>
+                <button type="button" class="myavana-circle-filter-btn" data-circle="transitioning">Transitioning</button>
+                <button type="button" class="myavana-circle-filter-btn" data-circle="length-retention">Length Retention</button>
+                <button type="button" class="myavana-circle-filter-btn" data-circle="protective-style">Protective Style</button>
+            </div>
+
+            <div class="myavana-discovery-search-row">
+                <label class="screen-reader-text" for="myavana-community-search-input">Search community posts</label>
+                <input
+                    type="search"
+                    id="myavana-community-search-input"
+                    class="myavana-community-search-input"
+                    placeholder="Search posts, topics, and creators">
+                <button type="button" class="myavana-btn-secondary" id="myavana-community-search-btn">Search</button>
+                <button type="button" class="myavana-btn-secondary" id="myavana-community-search-clear-btn">Clear</button>
+            </div>
+
+            <div class="myavana-media-filter-row">
+                <button type="button" class="myavana-media-filter-btn active" data-media-filter="">All Media</button>
+                <button type="button" class="myavana-media-filter-btn" data-media-filter="image">Images</button>
+                <button type="button" class="myavana-media-filter-btn" data-media-filter="video">Videos</button>
+                <button type="button" class="myavana-media-filter-btn" data-media-filter="text">Text</button>
+            </div>
+
+            <div class="myavana-discovery-grid">
+                <article class="myavana-discovery-card">
+                    <h3>Trending Hashtags</h3>
+                    <div class="myavana-discovery-chip-list" id="myavana-discovery-hashtags">
+                        <span class="myavana-discovery-empty">Loading hashtags...</span>
+                    </div>
+                </article>
+                <article class="myavana-discovery-card">
+                    <h3>Suggested Creators</h3>
+                    <div class="myavana-discovery-creators" id="myavana-discovery-creators">
+                        <span class="myavana-discovery-empty">Loading creators...</span>
+                    </div>
+                </article>
+                <article class="myavana-discovery-card">
+                    <h3>Active Challenges</h3>
+                    <div class="myavana-discovery-challenges" id="myavana-discovery-challenges">
+                        <span class="myavana-discovery-empty">Loading challenges...</span>
+                    </div>
+                </article>
+            </div>
+        </section>
+
         <!-- Filter Tabs -->
         <?php if ($atts['show_filters'] === 'true') : ?>
         <div class="myavana-feed-filters">
@@ -291,6 +279,9 @@ function myavana_community_feed_shortcode($atts = []) {
                 </svg>
                 Featured
             </button>
+            <button class="myavana-filter-btn" data-filter="media_image">Images</button>
+            <button class="myavana-filter-btn" data-filter="media_video">Videos</button>
+            <button class="myavana-filter-btn" data-filter="media_text">Text</button>
         </div>
         <?php endif; ?>
 
@@ -347,22 +338,51 @@ function myavana_community_feed_shortcode($atts = []) {
             </div>
             <div class="myavana-modal-body">
                 <form id="myavana-create-post-form">
+                    <div class="myavana-quick-post-toolbar" role="group" aria-label="Quick post mode">
+                        <button type="button" class="myavana-quick-post-btn active" data-mode="text">Text</button>
+                        <button type="button" class="myavana-quick-post-btn" data-mode="photo">Photo</button>
+                        <button type="button" class="myavana-quick-post-btn" data-mode="video">Video</button>
+                        <button type="button" class="myavana-quick-post-btn" id="myavana-open-entry-selector-inline">From Journey</button>
+                    </div>
+
+                    <p class="myavana-quick-post-hint">Post in seconds. Title and details are optional.</p>
+
                     <div class="myavana-form-group">
-                        <label class="myavana-form-label">Title</label>
+                        <label class="myavana-form-label">Title (Optional)</label>
                         <input type="text"
+                               id="myavana-post-title"
                                name="title"
                                class="myavana-form-input"
-                               placeholder="e.g., 6 months of growth! 🌱"
-                               required>
+                               placeholder="e.g., Wash day wins">
                     </div>
 
                     <div class="myavana-form-group">
-                        <label class="myavana-form-label">Share Your Story</label>
-                        <textarea name="content"
+                        <label class="myavana-form-label">Caption (Optional)</label>
+                        <textarea id="myavana-post-content"
+                                  name="content"
                                   class="myavana-form-textarea"
                                   rows="4"
-                                  placeholder="Tell the community about your journey, products you love, tips you've learned..."
-                                  required></textarea>
+                                  placeholder="Share your update, tip, or result..."></textarea>
+                    </div>
+
+                    <div class="myavana-form-group myavana-ai-composer">
+                        <label class="myavana-form-label">AI Community Assistant</label>
+                        <div class="myavana-ai-actions">
+                            <button type="button" class="myavana-btn-secondary myavana-ai-assist-btn" data-ai-action="caption">
+                                Generate Caption
+                            </button>
+                            <button type="button" class="myavana-btn-secondary myavana-ai-assist-btn" data-ai-action="improve">
+                                Improve Draft
+                            </button>
+                            <button type="button" class="myavana-btn-secondary myavana-ai-assist-btn" data-ai-action="hashtags">
+                                Suggest Hashtags
+                            </button>
+                        </div>
+                        <p class="myavana-ai-helper-text">Use AI to draft copy, polish tone, and create relevant hashtags before posting.</p>
+                        <div class="myavana-ai-response" id="myavana-ai-response" aria-live="polite"></div>
+                        <div class="myavana-ai-hashtags" id="myavana-ai-hashtags"></div>
+                        <input type="hidden" id="myavana-post-hashtags" name="hashtags" value="">
+                        <input type="hidden" id="myavana-post-ai-metadata" name="ai_metadata" value="">
                     </div>
 
                     <div class="myavana-form-group">
@@ -372,6 +392,7 @@ function myavana_community_feed_shortcode($atts = []) {
                                    id="myavana-post-image"
                                    name="post_image"
                                    accept="image/*"
+                                   capture="environment"
                                    style="display: none;">
                             <div class="myavana-upload-prompt">
                                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--myavana-coral)" stroke-width="2">
@@ -379,45 +400,76 @@ function myavana_community_feed_shortcode($atts = []) {
                                     <circle cx="8.5" cy="8.5" r="1.5"></circle>
                                     <polyline points="21 15 16 10 5 21"></polyline>
                                 </svg>
-                                <p class="myavana-body">Click to upload or drag and drop</p>
+                                <p class="myavana-body">Upload a photo or use camera</p>
                             </div>
                             <div class="myavana-upload-preview" id="myavana-upload-preview" style="display: none;"></div>
                         </div>
                     </div>
 
                     <div class="myavana-form-group">
-                        <label class="myavana-form-label">Post Type</label>
-                        <select name="post_type" class="myavana-form-select">
-                            <option value="progress">Progress Update</option>
-                            <option value="transformation">Before & After</option>
-                            <option value="routine">Routine Share</option>
-                            <option value="products">Product Review</option>
-                            <option value="tips">Tips & Advice</option>
-                            <option value="general">General</option>
-                        </select>
-                    </div>
-
-                    <div class="myavana-form-group">
-                        <label class="myavana-form-label">Privacy</label>
-                        <div class="myavana-radio-group">
-                            <label class="myavana-radio-label">
-                                <input type="radio" name="privacy_level" value="public" checked>
-                                <span class="myavana-radio-custom"></span>
-                                <span class="myavana-body">Public - Everyone can see</span>
-                            </label>
-                            <label class="myavana-radio-label">
-                                <input type="radio" name="privacy_level" value="followers">
-                                <span class="myavana-radio-custom"></span>
-                                <span class="myavana-body">Followers Only</span>
-                            </label>
+                        <label class="myavana-form-label">Video (Optional)</label>
+                        <input type="url"
+                               id="myavana-post-video-url"
+                               name="video_url"
+                               class="myavana-form-input"
+                               placeholder="Paste a video URL (mp4/webm or hosted link)">
+                        <div class="myavana-upload-area myavana-upload-area-video" id="myavana-video-upload-area">
+                            <input type="file"
+                                   id="myavana-post-video"
+                                   name="post_video"
+                                   accept="video/*"
+                                   capture="environment"
+                                   style="display: none;">
+                            <div class="myavana-upload-prompt">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--myavana-coral)" stroke-width="2">
+                                    <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                                </svg>
+                                <p class="myavana-body">Upload or record a short video</p>
+                            </div>
+                            <div class="myavana-upload-preview" id="myavana-video-upload-preview" style="display: none;"></div>
                         </div>
                     </div>
+
+                    <details class="myavana-composer-advanced">
+                        <summary>Advanced Details</summary>
+                        <div class="myavana-composer-advanced-body">
+                            <div class="myavana-form-group">
+                                <label class="myavana-form-label">Post Type</label>
+                                <select id="myavana-post-type" name="post_type" class="myavana-form-select">
+                                    <option value="progress">Progress Update</option>
+                                    <option value="transformation">Before & After</option>
+                                    <option value="routine">Routine Share</option>
+                                    <option value="products">Product Review</option>
+                                    <option value="tips">Tips & Advice</option>
+                                    <option value="video">Video Update</option>
+                                    <option value="general">General</option>
+                                </select>
+                            </div>
+
+                            <div class="myavana-form-group">
+                                <label class="myavana-form-label">Privacy</label>
+                                <div class="myavana-radio-group">
+                                    <label class="myavana-radio-label">
+                                        <input type="radio" name="privacy_level" value="public" checked>
+                                        <span class="myavana-radio-custom"></span>
+                                        <span class="myavana-body">Public - Everyone can see</span>
+                                    </label>
+                                    <label class="myavana-radio-label">
+                                        <input type="radio" name="privacy_level" value="followers">
+                                        <span class="myavana-radio-custom"></span>
+                                        <span class="myavana-body">Followers Only</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
 
                     <div class="myavana-modal-footer">
                         <button type="button" class="myavana-btn-secondary" id="myavana-cancel-post">
                             Cancel
                         </button>
-                        <div style="display: flex; gap: 12px;">
+                        <div class="myavana-modal-footer-actions">
                             <button type="button" class="myavana-btn-secondary" id="myavana-ci-save-draft-btn">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
@@ -656,7 +708,13 @@ function myavana_community_feed_shortcode($atts = []) {
             ajaxUrl: '<?php echo admin_url('admin-ajax.php'); ?>',
             nonce: '<?php echo wp_create_nonce('myavana_nonce'); ?>',
             userId: <?php echo get_current_user_id(); ?>,
+            profileUrl: '<?php echo esc_url($profile_page_url); ?>',
             currentFilter: '<?php echo esc_js($atts['filter']); ?>',
+            initialSearch: '',
+            initialHashtag: '',
+            initialMediaFilter: '',
+            initialMode: 'discover',
+            initialCircle: '',
             perPage: <?php echo intval($atts['per_page']); ?>,
             currentPage: 1
         };

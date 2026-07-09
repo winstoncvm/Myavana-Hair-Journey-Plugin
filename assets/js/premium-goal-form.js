@@ -284,6 +284,11 @@
     };
 
     // Global shortcut
-    window.createGoal = () => MyavanaPremiumGoalForm.open();
+    window.createGoal = (prefillData) => {
+        if (typeof window.myavanaOpenCollectionComposer === 'function') {
+            return window.myavanaOpenCollectionComposer('goal', prefillData || {});
+        }
+        return MyavanaPremiumGoalForm.open(prefillData);
+    };
 
 })(jQuery);

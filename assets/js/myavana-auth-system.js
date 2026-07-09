@@ -18,12 +18,16 @@
 
         // Initialize the authentication system
         init: function() {
+            const incomingSettings = window.myavanaAuth || {};
             this.settings = {
                 ...this.settings,
-                ...(window.myavanaAuth || {})
+                ...incomingSettings,
+                showOnce: typeof incomingSettings.show_once !== 'undefined' ? !!incomingSettings.show_once : this.settings.showOnce,
+                delay: typeof incomingSettings.delay !== 'undefined' ? incomingSettings.delay : this.settings.delay
             };
 
             this.bindEvents();
+            this.initGoogleAuth();
             this.autoShowModal();
             this.setupAccessibility();
         },
@@ -35,6 +39,7 @@
             $(document).on('click', '#myavanaSignupTab', () => this.switchForm('signup'));
             $(document).on('click', '#myavanaForgotLink', this.showForgotForm.bind(this));
             $(document).on('click', '#myavanaBackToSignin', () => this.switchForm('signin'));
+            $(document).on('click', '.myavana-password-toggle', this.handlePasswordToggle.bind(this));
 
             // Form submissions
             $(document).on('submit', '#myavanaSigninForm', this.handleSignIn.bind(this));
@@ -51,6 +56,93 @@
             $(document).on('input', '.myavana-form-group input', this.validateInput.bind(this));
         },
 
+        handlePasswordToggle: function(e) {
+            e.preventDefault();
+
+            const $button = $(e.currentTarget);
+            const targetId = $button.data('target');
+            if (!targetId) {
+                return;
+            }
+
+            const $input = $('#' + targetId);
+            if ($input.length === 0) {
+                return;
+            }
+
+            const isPassword = $input.attr('type') === 'password';
+            $input.attr('type', isPassword ? 'text' : 'password');
+            $button.attr('aria-label', isPassword ? 'Hide password' : 'Show password');
+            $button.find('.eye-open').toggle(!isPassword);
+            $button.find('.eye-closed').toggle(isPassword);
+
+            // Preserve cursor position and keep the field active after toggling.
+            const inputEl = $input.get(0);
+            if (inputEl) {
+                const valueLength = $input.val() ? String($input.val()).length : 0;
+                inputEl.focus();
+                try {
+                    inputEl.setSelectionRange(valueLength, valueLength);
+                } catch (err) {
+                    // Ignore browsers that do not support selection on this input state.
+                }
+            }
+        },
+
+        initGoogleAuth: function() {
+            if (!this.settings.google_auth_enabled || !this.settings.google_client_id) {
+                $('[data-google-auth-helper]').show();
+                return;
+            }
+
+            const tryRender = () => {
+                if (!(window.google && window.google.accounts && window.google.accounts.id)) {
+                    return false;
+                }
+
+                window.google.accounts.id.initialize({
+                    client_id: this.settings.google_client_id,
+                    callback: this.handleGoogleCredential.bind(this),
+                    auto_select: false,
+                    cancel_on_tap_outside: true
+                });
+
+                ['myavanaGoogleSignin', 'myavanaGoogleSignup'].forEach((id) => {
+                    const slot = document.getElementById(id);
+                    if (!slot) {
+                        return;
+                    }
+
+                    slot.innerHTML = '';
+                    window.google.accounts.id.renderButton(slot, {
+                        theme: 'outline',
+                        size: 'large',
+                        shape: 'pill',
+                        text: id === 'myavanaGoogleSignup' ? 'signup_with' : 'signin_with',
+                        width: 320
+                    });
+                });
+
+                $('[data-google-auth-helper]').hide();
+                return true;
+            };
+
+            if (tryRender()) {
+                return;
+            }
+
+            let attempts = 0;
+            const interval = window.setInterval(() => {
+                attempts += 1;
+                if (tryRender() || attempts >= 20) {
+                    window.clearInterval(interval);
+                    if (attempts >= 20 && !(window.google && window.google.accounts && window.google.accounts.id)) {
+                        $('[data-google-auth-helper]').show();
+                    }
+                }
+            }, 400);
+        },
+
         // Auto-show modal based on settings
         autoShowModal: function() {
             if (!this.shouldShowModal()) {
@@ -59,18 +151,23 @@
 
             setTimeout(() => {
                 this.showModal();
-            }, this.settings.delay || 2000);
+            }, this.shouldForceAuthPrompt() ? 150 : (this.settings.delay || 2000));
         },
 
         // Check if modal should be shown
         shouldShowModal: function() {
+            // Explicit auth prompt from protected-page redirect flow.
+            if (this.shouldForceAuthPrompt()) {
+                return true;
+            }
+
             // Don't show if user is logged in
             if (this.settings.is_logged_in) {
                 return false;
             }
 
             // Check session storage only if show_once is enabled
-            if (this.settings.show_once && sessionStorage.getItem('myavana_modal_shown')) {
+            if (this.settings.showOnce && sessionStorage.getItem('myavana_modal_shown')) {
                 return false;
             }
 
@@ -87,6 +184,47 @@
             return true;
         },
 
+        shouldForceAuthPrompt: function() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                return params.get('auth') === '1';
+            } catch (e) {
+                return false;
+            }
+        },
+
+        getPostLoginRedirectUrl: function() {
+            let rawTarget = '';
+
+            try {
+                const params = new URLSearchParams(window.location.search);
+                rawTarget = params.get('redirect_to') || '';
+            } catch (e) {
+                return '';
+            }
+
+            if (!rawTarget) {
+                return '';
+            }
+
+            let decodedTarget = rawTarget;
+            try {
+                decodedTarget = decodeURIComponent(rawTarget);
+            } catch (e) {
+                decodedTarget = rawTarget;
+            }
+
+            try {
+                const targetUrl = new URL(decodedTarget, window.location.origin);
+                if (targetUrl.origin !== window.location.origin) {
+                    return '';
+                }
+                return targetUrl.toString();
+            } catch (e) {
+                return '';
+            }
+        },
+
         // Show the authentication modal
         showModal: function(formType = 'signin') {
             const $modal = $('#myavanaAuthModal');
@@ -100,6 +238,7 @@
             const normalizedFormType = this.normalizeFormType(formType);
 
             $modal.addClass('show');
+            $('body').addClass('myavana-auth-open');
             this.switchForm(normalizedFormType);
             this.isModalShown = true;
 
@@ -133,6 +272,7 @@
         closeModal: function() {
             const $modal = $('#myavanaAuthModal');
             $modal.removeClass('show');
+            $('body').removeClass('myavana-auth-open');
             this.isModalShown = false;
 
             // Clear form data and errors
@@ -295,17 +435,97 @@
             this.submitForm(form, 'forgot', formData);
         },
 
+        handleGoogleCredential: function(googleResponse) {
+            const credential = googleResponse && googleResponse.credential ? googleResponse.credential : '';
+            const $errorDiv = $(`#myavana${this.currentForm === 'signup' ? 'Signup' : 'Signin'}Form`).find('.myavana-error-message');
+            const $successDiv = $(`#myavana${this.currentForm === 'signup' ? 'Signup' : 'Signin'}Form`).find('.myavana-success-message');
+
+            if (!credential) {
+                $errorDiv.html('Google sign-in did not return a valid credential.').fadeIn();
+                return;
+            }
+
+            $errorDiv.fadeOut();
+            $successDiv.fadeOut();
+
+            this.refreshAuthNonces().done(() => {
+                $.ajax({
+                    url: this.settings.ajax_url,
+                    type: 'POST',
+                    data: {
+                        action: 'myavana_google_auth',
+                        nonce: this.settings.google_nonce,
+                        credential: credential
+                    },
+                    timeout: 15000,
+                    success: (response) => {
+                        if (!response || !response.success) {
+                            $errorDiv.html((response && response.data && response.data.message) ? response.data.message : 'Google sign-in failed.').fadeIn();
+                            return;
+                        }
+
+                        $successDiv.html(response.data.message || 'Signed in successfully.').fadeIn();
+                        this.trackEvent('google_auth_success', {
+                            user_id: response.data.user_id || null
+                        });
+
+                        setTimeout(() => {
+                            if (response.data.trigger_onboarding) {
+                                this.closeModal();
+                                this.triggerOnboarding();
+                                return;
+                            }
+
+                            const redirectUrl = this.getPostLoginRedirectUrl();
+                            if (redirectUrl) {
+                                window.location.href = redirectUrl;
+                            } else {
+                                window.location.reload();
+                            }
+                        }, 1200);
+                    },
+                    error: () => {
+                        $errorDiv.html('Unable to sign in with Google right now. Please try again.').fadeIn();
+                    }
+                });
+            }).fail(() => {
+                $errorDiv.html('Unable to verify the sign-in session right now. Please refresh and try again.').fadeIn();
+            });
+        },
+
+        refreshAuthNonces: function() {
+            if (!this.settings.ajax_url) {
+                return $.Deferred().reject().promise();
+            }
+
+            return $.ajax({
+                url: this.settings.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'myavana_refresh_auth_nonce'
+                },
+                timeout: 10000
+            }).then((response) => {
+                if (response && response.success && response.data) {
+                    if (response.data.nonce) {
+                        this.settings.nonce = response.data.nonce;
+                    }
+                    if (response.data.google_nonce) {
+                        this.settings.google_nonce = response.data.google_nonce;
+                    }
+                    return response.data;
+                }
+
+                return $.Deferred().reject(response).promise();
+            });
+        },
+
         // Generic form submission handler
         submitForm: function(form, action, formData) {
             const $form = $(form);
             const $submitBtn = $form.find('.myavana-submit-btn');
             const $errorDiv = $form.find('.myavana-error-message');
             const $successDiv = $form.find('.myavana-success-message');
-
-            // Prepare form data
-            formData.append('action', 'myavana_auth_submit');
-            formData.append('auth_action', action);
-            formData.append('nonce', this.settings.nonce);
 
             // UI updates
             $submitBtn.prop('disabled', true).addClass('loading');
@@ -318,19 +538,34 @@
                 timestamp: Date.now()
             });
 
-            // Submit via AJAX
-            $.ajax({
-                url: this.settings.ajax_url,
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                timeout: 15000, // 15 second timeout
-                success: this.handleSubmissionSuccess.bind(this, action, $successDiv, $errorDiv),
-                error: this.handleSubmissionError.bind(this, action, $errorDiv),
-                complete: () => {
-                    $submitBtn.prop('disabled', false).removeClass('loading');
+            this.refreshAuthNonces().done(() => {
+                if (typeof formData.set === 'function') {
+                    formData.set('action', 'myavana_auth_submit');
+                    formData.set('auth_action', action);
+                    formData.set('nonce', this.settings.nonce);
+                } else {
+                    formData.append('action', 'myavana_auth_submit');
+                    formData.append('auth_action', action);
+                    formData.append('nonce', this.settings.nonce);
                 }
+
+                // Submit via AJAX
+                $.ajax({
+                    url: this.settings.ajax_url,
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    timeout: 15000, // 15 second timeout
+                    success: this.handleSubmissionSuccess.bind(this, action, $successDiv, $errorDiv),
+                    error: this.handleSubmissionError.bind(this, action, $errorDiv),
+                    complete: () => {
+                        $submitBtn.prop('disabled', false).removeClass('loading');
+                    }
+                });
+            }).fail(() => {
+                $submitBtn.prop('disabled', false).removeClass('loading');
+                $errorDiv.html('Unable to refresh the security session. Please refresh and try again.').fadeIn();
             });
         },
 
@@ -340,7 +575,7 @@
                 let message = response.data.message;
 
                 // Add onboarding hint for new users
-                if (action === 'signup' && this.settings.onboarding_enabled) {
+                if (action === 'signup' && response.data.trigger_onboarding) {
                     message += '<br><small>🎉 Get ready for your personalized setup!</small>';
                 }
 
@@ -356,11 +591,16 @@
                 if (action === 'signin' || action === 'signup') {
                     setTimeout(() => {
                         // Check if onboarding should be triggered
-                        if (response.data.trigger_onboarding && this.settings.onboarding_enabled) {
+                        if (response.data.trigger_onboarding) {
                             this.closeModal();
                             this.triggerOnboarding();
                         } else {
-                            window.location.reload();
+                            const redirectUrl = this.getPostLoginRedirectUrl();
+                            if (redirectUrl) {
+                                window.location.href = redirectUrl;
+                            } else {
+                                window.location.reload();
+                            }
                         }
                     }, 2000);
                 } else if (action === 'forgot') {
@@ -552,13 +792,13 @@
                 success: (response) => {
                     console.log('MYAVANA: Onboarding trigger response:', response);
 
-                    // Try to show onboarding overlay if available
-                    if (typeof window.testMyavanaOnboarding === 'function') {
+                    // The onboarding overlay only exists on logged-in renders.
+                    // If it is already present, open it immediately; otherwise reload.
+                    if (typeof window.showMyavanaOnboarding === 'function') {
                         setTimeout(() => {
-                            window.testMyavanaOnboarding();
+                            window.showMyavanaOnboarding();
                         }, 500);
                     } else {
-                        // Fallback to page reload
                         setTimeout(() => {
                             window.location.reload();
                         }, 1000);

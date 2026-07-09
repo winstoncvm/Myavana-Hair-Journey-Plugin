@@ -1,0 +1,277 @@
+/* Hidden by default (desktop/tablet landscape and above) */
+#myavanaGlobalMobileTabs.myavana-premium-nav {
+    display: none !important;
+}
+
+@media (max-width: 991px) {
+    :root {
+        --nav-bg: rgba(255, 255, 255, 0.85);
+        --nav-active-accent: #E7A690; /* Your brand color */
+        --nav-text-muted: #8E8E93;
+        --nav-text-active: #222323;
+        --spring-easing: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    #myavanaGlobalMobileTabs.myavana-premium-nav {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: 20px; /* Floating slightly off the bottom */
+        width: auto;
+        max-width: 460px;
+        margin: 0 auto;
+        z-index: 10040;
+        display: flex !important;
+        justify-content: center;
+        padding: 0;
+        pointer-events: none;
+        animation: navSlideUp 0.6s var(--spring-easing);
+        transition: bottom 0.2s ease, transform 0.2s ease;
+    }
+
+    #myavanaGlobalMobileTabs .myavana-mobile-tabs-toggle {
+        pointer-events: auto;
+        position: absolute;
+        top: -14px;
+        right: 8px;
+        width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(34, 35, 35, 0.08);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.95);
+        color: var(--nav-text-active);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        transition: transform 0.24s ease, opacity 0.24s ease;
+        z-index: 2;
+    }
+
+    #myavanaGlobalMobileTabs .myavana-mobile-tabs-toggle .myavana-toggle-glyph {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-right: 2px solid currentColor;
+        border-bottom: 2px solid currentColor;
+        transform: rotate(45deg) translateY(-1px);
+        transition: transform 0.24s ease;
+    }
+
+    #myavanaGlobalMobileTabs .myavana-premium-nav-container {
+        pointer-events: auto;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        position: relative;
+        overflow: visible;
+        width: 100%;
+        max-width: 450px;
+        background: var(--nav-bg);
+        backdrop-filter: blur(12px) saturate(180%);
+        -webkit-backdrop-filter: blur(12px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 24px;
+        padding: 8px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 
+                    0 4px 8px rgba(0, 0, 0, 0.04);
+        transition: opacity 0.24s ease, transform 0.24s ease;
+    }
+
+    #myavanaGlobalMobileTabs .myavana-global-mobile-tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        text-decoration: none;
+        gap: 4px;
+        padding: 4px 0;
+        color: var(--nav-text-muted);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    #myavanaGlobalMobileTabs button.myavana-global-mobile-tab {
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        margin: 0;
+        -webkit-appearance: none;
+        appearance: none;
+    }
+
+    #myavanaGlobalMobileTabs .icon-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        transition: transform 0.3s var(--spring-easing);
+    }
+
+    #myavanaGlobalMobileTabs .myavana-global-mobile-tab svg {
+        width: 22px;
+        height: 22px;
+        fill: currentColor;
+        transition: all 0.3s ease;
+    }
+
+    #myavanaGlobalMobileTabs .nav-label {
+        font-family: 'Archivo', sans-serif;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: -0.2px;
+        transition: all 0.3s ease;
+    }
+
+    /* Active State Styling */
+    #myavanaGlobalMobileTabs .myavana-global-mobile-tab.is-active {
+        color: var(--nav-text-active);
+    }
+
+    #myavanaGlobalMobileTabs .myavana-global-mobile-tab.is-active .icon-wrapper {
+        transform: translateY(-2px);
+        color: var(--nav-active-accent);
+    }
+
+    /* Active Indicator Dot */
+    #myavanaGlobalMobileTabs .myavana-global-mobile-tab.is-active::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        width: 4px;
+        height: 4px;
+        background: var(--nav-active-accent);
+        border-radius: 50%;
+        animation: dotPop 0.4s var(--spring-easing);
+    }
+
+    /* Micro-interactions */
+    #myavanaGlobalMobileTabs .myavana-global-mobile-tab:active {
+        transform: scale(0.92);
+    }
+
+    #myavanaGlobalMobileTabs .myavana-global-mobile-more-menu {
+        position: absolute;
+        right: 10px;
+        bottom: calc(100% + 10px);
+        min-width: 150px;
+        background: rgba(255, 255, 255, 0.98);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 14px;
+        padding: 6px;
+        box-shadow: 0 16px 28px rgba(0, 0, 0, 0.14);
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+        transform-origin: bottom right;
+        pointer-events: none;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    #myavanaGlobalMobileTabs .myavana-global-mobile-more-menu.is-open {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+    }
+
+    #myavanaGlobalMobileTabs .myavana-global-mobile-more-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 10px;
+        padding: 10px 12px;
+        color: var(--nav-text-active);
+        font-family: 'Archivo', sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        letter-spacing: -0.1px;
+    }
+
+    #myavanaGlobalMobileTabs .myavana-global-mobile-more-link:hover,
+    #myavanaGlobalMobileTabs .myavana-global-mobile-more-link:focus {
+        background: rgba(231, 166, 144, 0.14);
+        outline: none;
+    }
+
+    #myavanaGlobalMobileTabs .myavana-global-mobile-more-icon {
+        width: 18px;
+        height: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--nav-active-accent);
+        flex-shrink: 0;
+    }
+
+    #myavanaGlobalMobileTabs .myavana-global-mobile-more-icon svg {
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
+    }
+
+    /* Entrance Animation */
+    @keyframes navSlideUp {
+        from { transform: translateY(100px) scale(0.9); opacity: 0; }
+        to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    @keyframes dotPop {
+        from { transform: scale(0); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Body Padding Adjustment */
+    body.myavana-global-tabs-visible {
+        padding-bottom: 100px;
+    }
+
+    body.myavana-global-tabs-visible.myavana-mobile-tabs-collapsed {
+        padding-bottom: 56px;
+    }
+
+    /* Kommunicate launcher overlap guard */
+    body.myavana-chatbot-present #myavanaGlobalMobileTabs.myavana-premium-nav {
+        bottom: 94px;
+    }
+
+    body.myavana-chatbot-present #myavanaGlobalMobileTabs .myavana-premium-nav-container {
+        max-width: 420px;
+    }
+
+    body.myavana-global-tabs-visible.myavana-chatbot-present {
+        padding-bottom: 170px;
+    }
+
+    body.myavana-mobile-tabs-collapsed #myavanaGlobalMobileTabs.myavana-premium-nav {
+        width: 64px;
+        max-width: 64px;
+    }
+
+    body.myavana-mobile-tabs-collapsed #myavanaGlobalMobileTabs .myavana-premium-nav-container {
+        opacity: 0;
+        transform: translateY(120%) scale(0.92);
+        pointer-events: none;
+    }
+
+    body.myavana-mobile-tabs-collapsed #myavanaGlobalMobileTabs .myavana-mobile-tabs-toggle {
+        right: 0;
+    }
+
+    body.myavana-mobile-tabs-collapsed #myavanaGlobalMobileTabs .myavana-mobile-tabs-toggle .myavana-toggle-glyph {
+        transform: rotate(-135deg) translate(-1px, 1px);
+    }
+
+    body.myavana-offcanvas-open #myavanaGlobalMobileTabs.myavana-premium-nav {
+        opacity: 0;
+        transform: translateY(140%);
+        pointer-events: none;
+    }
+
+    html body #footer {
+        display: none !important;
+    }
+}

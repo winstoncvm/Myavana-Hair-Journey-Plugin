@@ -37,91 +37,258 @@ $hair_length = $shared_data['hair_length'];
 global $wpdb;
 $table_name = $wpdb->prefix . 'myavana_profiles';
 $profile = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE user_id = %d", $user_id));
+
+$journey_total_entries = isset($analytics_data['total_entries']) ? intval($analytics_data['total_entries']) : 0;
+$journey_total_goals = is_array($hair_goals) ? count($hair_goals) : 0;
+$journey_total_routines = is_array($current_routine) ? count($current_routine) : 0;
+$journey_gamification = $shared_data['gamification'] ?? [];
+$journey_streak_days = isset($journey_gamification['current_streak']) ? intval($journey_gamification['current_streak']) : intval($user_stats['streak'] ?? 0);
+$journey_points_total = isset($journey_gamification['total_points']) ? intval($journey_gamification['total_points']) : intval($user_stats['total_points'] ?? 0);
+$journey_level = isset($journey_gamification['level']) ? intval($journey_gamification['level']) : 1;
+$journey_badges = isset($journey_gamification['badges_earned']) ? intval($journey_gamification['badges_earned']) : 0;
+$journey_xp_pct = isset($journey_gamification['xp_progress_percent']) ? intval($journey_gamification['xp_progress_percent']) : 0;
+$journey_points_to_next = isset($journey_gamification['points_to_next_level']) ? intval($journey_gamification['points_to_next_level']) : 100;
+$journey_checked_in = !empty($journey_gamification['checked_in_today']);
+$journey_next_badge = $journey_gamification['next_badge'] ?? null;
+$journey_recent_badges = !empty($journey_gamification['recent_badges']) && is_array($journey_gamification['recent_badges'])
+    ? array_slice($journey_gamification['recent_badges'], 0, 3)
+    : [];
+$journey_daily_quests = !empty($journey_gamification['daily_quests']) && is_array($journey_gamification['daily_quests'])
+    ? $journey_gamification['daily_quests']
+    : [];
+$journey_weekly_quests = !empty($journey_gamification['weekly_quests']) && is_array($journey_gamification['weekly_quests'])
+    ? $journey_gamification['weekly_quests']
+    : [];
+$journey_recent_rewards = !empty($journey_gamification['recent_rewards']) && is_array($journey_gamification['recent_rewards'])
+    ? $journey_gamification['recent_rewards']
+    : [];
+$journey_active_challenges = !empty($journey_gamification['active_challenges']) && is_array($journey_gamification['active_challenges'])
+    ? $journey_gamification['active_challenges']
+    : [];
+$journey_daily_completed = count(array_filter($journey_daily_quests, static function ($quest) {
+    return !empty($quest['current']) && intval($quest['current']) >= intval($quest['target'] ?? 1);
+}));
+$journey_weekly_completed = count(array_filter($journey_weekly_quests, static function ($quest) {
+    return !empty($quest['current']) && intval($quest['current']) >= intval($quest['target'] ?? 1);
+}));
+$journey_hour = (int) current_time('G');
+$journey_greeting = $journey_hour < 12 ? 'Good Morning' : ($journey_hour < 18 ? 'Good Afternoon' : 'Good Evening');
+
+$journey_routine_completion_map = get_user_meta($user_id, 'myavana_routine_completions', true);
+if (!is_array($journey_routine_completion_map)) {
+    $journey_routine_completion_map = [];
+}
+$journey_today_date = current_time('Y-m-d');
+$journey_completed_today_routines = isset($journey_routine_completion_map[$journey_today_date]) && is_array($journey_routine_completion_map[$journey_today_date])
+    ? array_values(array_map('intval', $journey_routine_completion_map[$journey_today_date]))
+    : [];
+
+$journey_active_goal_index = null;
+$journey_active_goal = null;
+if (is_array($hair_goals)) {
+    foreach ($hair_goals as $goal_index => $goal_item) {
+        $goal_progress = intval($goal_item['progress'] ?? ($goal_item['progress_percent'] ?? 0));
+        $goal_status = strtolower((string)($goal_item['status'] ?? 'active'));
+        if ($goal_status !== 'completed' && $goal_progress < 100) {
+            $journey_active_goal_index = intval($goal_index);
+            $journey_active_goal = $goal_item;
+            break;
+        }
+    }
+    if ($journey_active_goal === null && !empty($hair_goals)) {
+        $journey_active_goal_index = 0;
+        $journey_active_goal = $hair_goals[0];
+    }
+}
+
+$resolve_journey_page_url = static function ($shortcode, $fallback_path) use ($wpdb) {
+    $shortcode_candidates = [$shortcode];
+    if (strpos($shortcode, '-') !== false) {
+        $shortcode_candidates[] = str_replace('-', '_', $shortcode);
+    }
+
+    foreach ($shortcode_candidates as $candidate) {
+        $page_id = $wpdb->get_var($wpdb->prepare(
+            "SELECT ID
+             FROM {$wpdb->posts}
+             WHERE post_type = 'page'
+               AND post_status = 'publish'
+               AND post_content LIKE %s
+             ORDER BY ID ASC
+             LIMIT 1",
+            '%[' . $wpdb->esc_like($candidate) . '%'
+        ));
+
+        if ($page_id) {
+            $permalink = get_permalink(intval($page_id));
+            if ($permalink) {
+                return $permalink;
+            }
+        }
+    }
+
+    return home_url($fallback_path);
+};
+
+$journey_goals_page_url = $resolve_journey_page_url('myavana_goals_page', '/goals/');
+$journey_routines_page_url = $resolve_journey_page_url('myavana_routines_page', '/routines/');
+
+$journey_routine_icon_svgs = [
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19c8 0 12-8 12-14C10 5 6 11 6 19z"/><path d="M6 19c-1.2-3.6.5-6.6 4-8.5"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v6"/><path d="M12 15v6"/><path d="M3 12h6"/><path d="M15 12h6"/><circle cx="12" cy="12" r="3.5"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20"/><path d="M5 8h14"/><path d="M7 16h10"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>',
+];
+$journey_today_routines = array_slice(is_array($current_routine) ? $current_routine : [], 0, 4, true);
+$journey_today_total = count($journey_today_routines);
+$journey_today_done = 0;
+foreach ($journey_today_routines as $routine_index => $routine_item) {
+    if (in_array(intval($routine_index), $journey_completed_today_routines, true)) {
+        $journey_today_done++;
+    }
+}
+$journey_today_pct = $journey_today_total > 0 ? round(($journey_today_done / $journey_today_total) * 100) : 0;
+$journey_analysis_remaining = max(0, intval($analysis_limit_info['remaining'] ?? 0));
+$journey_active_goal_title = $journey_active_goal['title'] ?? $journey_active_goal['goal'] ?? 'Set your first goal';
+$journey_active_goal_progress = intval($journey_active_goal['progress'] ?? ($journey_active_goal['progress_percent'] ?? 0));
 ?>
 <div>
-    <!-- Dashboard Header -->
-    <header class="dashboard-header">
-        <div class="header-content">
-            <div class="welcome-section">
-                <div class="welcome-message">
-                    <h1 class="welcome-title">
-                        Good Morning,  <?php echo esc_html( isset($current_user->display_name) ? $current_user->display_name : 'Friend' ); ?>!  ✨
-                    </h1>
-                    <p class="welcome-subtitle">You're making amazing progress on your hair journey</p>
-                </div>
-                
-                <div class="dashboard-controls">
-                    <div class="view-controls">
-                        <button type="button" class="view-btn active" data-view="calendar" onclick="switchView('calendar')" title="Calendar View">
-                            <svg viewBox="0 0 24 24"><path d="M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z"/></svg>
-                            <span class="view-label">Calendar</span>
-                        </button>
-                        <button type="button" class="view-btn" data-view="timeline" onclick="switchView('timeline')" title="Hair Journey Timeline">
-                            <svg viewBox="0 0 24 24"><path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12Z"/></svg>
-                            <span class="view-label">Timeline</span>
-                        </button>
-                        
-                        <button type="button" class="view-btn" data-view="slider" onclick="switchView('slider')" title="Slider View">
-                            <svg viewBox="0 0 24 24"><path d="M22,16V4A2,2 0 0,0 20,2H8A2,2 0 0,0 6,4V16A2,2 0 0,0 8,18H20A2,2 0 0,0 22,16M11,12L13.03,14.71L16,11L20,16H8M2,6V20A2,2 0 0,0 4,22H18V20H4V6"/></svg>
-                            <span class="view-label">Slider</span>
-                        </button>
-                        <button type="button" class="view-btn" data-view="list" onclick="switchView('list')" title="List View">
-                            <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
-                            <span class="view-label">List</span>
-                        </button>
-                    </div>
-                    
-                    <div class="action-buttons">
-                        <button type="button" class="action-btn action-btn-secondary" onclick="createGoal()">
-                            + Goal
-                        </button>
-                        <button type="button" class="action-btn action-btn-secondary" onclick="createRoutine()">
-                            + Routine
-                        </button>
-                        <button type="button" class="action-btn action-btn-smart" onclick="openAIAnalysisModal()" title="AI-powered entry with camera">
-                            ✨ Smart Entry
-                        </button>
-                        <button type="button" class="action-btn action-btn-primary" onclick="createEntry()">
-                            + Entry
-                        </button>
-                    </div>
-
-                    <!-- <button type="button" class="theme-toggle" id="themeToggle" title="Toggle dark mode">
-                        <svg class="sun-icon" viewBox="0 0 24 24">
-                            <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
-                        </svg>
-                        <svg class="moon-icon" viewBox="0 0 24 24" style="display: none;">
-                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
-                        </svg>
-                    </button> -->
-                </div>
+    <section class="journey-header-shell-hjn" style="margin-bottom:0.5rem;">
+        <header class="dashboard-header dashboard-header-compact-hjn" style="display:flex; justify-content:space-between; align-items:center; padding-bottom:1rem;">
+            <div class="journey-command-copy-hjn">
+                <h1 class="welcome-title" style="margin-bottom:0;">Timeline Feed</h1>
+                <p class="welcome-subtitle" style="margin-top:0.25rem;">Your comprehensive hair history</p>
             </div>
             
-            <div class="streak-section">
-                <div class="streak-card">
-                    <div class="streak-flame">🔥</div>
-                    <div class="streak-content">
-                        <div class="streak-number"><?php echo esc_html( intval( $user_stats['days_active'] ) ); ?></div>
-                        <div class="streak-label">Days Active</div>
+            <div class="action-buttons">
+                <button type="button" class="journey-rewards-toggle-hjn" id="journeyRewardsToggle" style="margin:0;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.3L12 17l-6.2 4.2 2.4-7.3L2 9.4h7.6z"/></svg>
+                    Quests &amp; Rewards
+                    <span class="toggle-arrow">▼</span>
+                </button>
+            </div>
+        </header>
+
+    <!-- Rewards / Progress Drawer (collapsed by default) -->
+    <div class="journey-rewards-drawer-hjn" id="journeyRewardsDrawer">
+    <section class="journey-rewards-grid-hjn">
+        <article class="journey-reward-panel-hjn">
+            <div class="journey-reward-panel-head-hjn">
+                <div>
+                    <span class="journey-reward-panel-kicker-hjn">Today</span>
+                    <h3>Daily Quests</h3>
+                </div>
+                <span class="journey-reward-panel-meta-hjn" data-gamification-quest-meta="daily"><?php echo esc_html($journey_daily_completed); ?>/<?php echo esc_html(count($journey_daily_quests)); ?></span>
+            </div>
+            <div class="journey-quest-list-hjn" data-gamification-quest-group="daily">
+                <?php foreach ($journey_daily_quests as $quest): ?>
+                <?php
+                $quest_current = intval($quest['current'] ?? 0);
+                $quest_target = max(1, intval($quest['target'] ?? 1));
+                $quest_done = $quest_current >= $quest_target;
+                $quest_pct = min(100, intval(round(($quest_current / $quest_target) * 100)));
+                ?>
+                <div class="journey-quest-item-hjn<?php echo $quest_done ? ' is-complete' : ''; ?>">
+                    <div class="journey-quest-copy-hjn">
+                        <strong><?php echo esc_html($quest['label'] ?? 'Quest'); ?></strong>
+                        <span><?php echo esc_html($quest['description'] ?? ''); ?></span>
+                    </div>
+                    <div class="journey-quest-progress-hjn">
+                        <span class="journey-quest-count-hjn"><?php echo esc_html($quest_current); ?>/<?php echo esc_html($quest_target); ?></span>
+                        <div class="journey-quest-bar-hjn"><span style="width:<?php echo esc_attr($quest_pct); ?>%"></span></div>
+                        <small><?php echo esc_html($quest['reward_label'] ?? ''); ?></small>
                     </div>
                 </div>
+                <?php endforeach; ?>
             </div>
-            <!-- Mobile Sidebar Header (Collapsible) -->
-        <div class="sidebar-mobile-header">
-            <div class="sidebar-mobile-title">
-                <svg viewBox="0 0 24 24" width="20" height="20">
-                    <path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z"/>
-                </svg>
-                <span>My Hair Journey Dashboard</span>
+        </article>
+
+        <article class="journey-reward-panel-hjn">
+            <div class="journey-reward-panel-head-hjn">
+                <div>
+                    <span class="journey-reward-panel-kicker-hjn">This Week</span>
+                    <h3>Momentum Goals</h3>
+                </div>
+                <span class="journey-reward-panel-meta-hjn" data-gamification-quest-meta="weekly"><?php echo esc_html($journey_weekly_completed); ?>/<?php echo esc_html(count($journey_weekly_quests)); ?></span>
             </div>
-            <div class="sidebar-mobile-toggle-icon" id="mobileSidebarIcon">
-                <svg viewBox="0 0 24 24" width="24" height="24">
-                    <path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
-                </svg>
+            <div class="journey-quest-list-hjn" data-gamification-quest-group="weekly">
+                <?php foreach ($journey_weekly_quests as $quest): ?>
+                <?php
+                $quest_current = intval($quest['current'] ?? 0);
+                $quest_target = max(1, intval($quest['target'] ?? 1));
+                $quest_done = $quest_current >= $quest_target;
+                $quest_pct = min(100, intval(round(($quest_current / $quest_target) * 100)));
+                ?>
+                <div class="journey-quest-item-hjn<?php echo $quest_done ? ' is-complete' : ''; ?>">
+                    <div class="journey-quest-copy-hjn">
+                        <strong><?php echo esc_html($quest['label'] ?? 'Quest'); ?></strong>
+                        <span><?php echo esc_html($quest['description'] ?? ''); ?></span>
+                    </div>
+                    <div class="journey-quest-progress-hjn">
+                        <span class="journey-quest-count-hjn"><?php echo esc_html($quest_current); ?>/<?php echo esc_html($quest_target); ?></span>
+                        <div class="journey-quest-bar-hjn"><span style="width:<?php echo esc_attr($quest_pct); ?>%"></span></div>
+                        <small><?php echo esc_html($quest['reward_label'] ?? ''); ?></small>
+                    </div>
+                </div>
+                <?php endforeach; ?>
             </div>
-        </div>
-        </div>
-    </header>
+        </article>
+
+        <article class="journey-reward-panel-hjn">
+            <div class="journey-reward-panel-head-hjn">
+                <div>
+                    <span class="journey-reward-panel-kicker-hjn">Live</span>
+                    <h3>Challenges</h3>
+                </div>
+            </div>
+            <div class="journey-quest-list-hjn" data-gamification-active-challenges>
+                <?php if (!empty($journey_active_challenges)): ?>
+                    <?php foreach (array_slice($journey_active_challenges, 0, 3) as $challenge): ?>
+                    <div class="journey-quest-item-hjn<?php echo !empty($challenge['completed']) ? ' is-complete' : ''; ?>">
+                        <div class="journey-quest-copy-hjn">
+                            <strong><?php echo esc_html($challenge['title'] ?? 'Challenge'); ?></strong>
+                            <span><?php echo esc_html($challenge['description'] ?? ''); ?><?php echo !empty($challenge['window_label']) ? ' · ' . esc_html($challenge['window_label']) : ''; ?></span>
+                        </div>
+                        <div class="journey-quest-progress-hjn">
+                            <span class="journey-quest-count-hjn"><?php echo esc_html(intval($challenge['current'] ?? 0)); ?>/<?php echo esc_html(intval($challenge['target'] ?? 1)); ?></span>
+                            <div class="journey-quest-bar-hjn"><span style="width:<?php echo esc_attr(intval($challenge['progress_percent'] ?? 0)); ?>%"></span></div>
+                            <small>+<?php echo esc_html(intval($challenge['reward_points'] ?? 0)); ?> pts</small>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="journey-reward-empty-hjn">No active challenges configured yet.</div>
+                <?php endif; ?>
+            </div>
+        </article>
+
+        <article class="journey-reward-panel-hjn">
+            <div class="journey-reward-panel-head-hjn">
+                <div>
+                    <span class="journey-reward-panel-kicker-hjn">Rewards</span>
+                    <h3>Recent Wins</h3>
+                </div>
+            </div>
+            <div class="journey-reward-feed-hjn" data-gamification-recent-rewards>
+                <?php if (!empty($journey_recent_rewards)): ?>
+                    <?php foreach ($journey_recent_rewards as $reward): ?>
+                    <div class="journey-reward-feed-item-hjn">
+                        <div>
+                            <strong><?php echo esc_html($reward['reason'] ?? 'Reward earned'); ?></strong>
+                            <span><?php echo esc_html($reward['relative_time'] ?? ''); ?></span>
+                        </div>
+                        <em>+<?php echo esc_html(intval($reward['points_change'] ?? 0)); ?></em>
+                    </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="journey-reward-empty-hjn">Complete actions to unlock your first rewards.</div>
+                <?php endif; ?>
+            </div>
+        </article>
+    </section>
+    </div><!-- /.journey-rewards-drawer-hjn -->
+
+    </section>
 
     <div class="main-content">
        
@@ -162,7 +329,7 @@ $profile = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE user_i
         </div>
 
         <!-- Profile Edit Offcanvas -->
-        <div class="offcanvas-overlay-hjn"></div>
+        <div class="offcanvas-overlay-hjn profile-edit-overlay"></div>
         <div class="offcanvas-hjn profile-edit">
             <div class="offcanvas-header-hjn">
                 <h3 class="offcanvas-title-hjn">Edit Profile</h3>
@@ -355,6 +522,113 @@ $profile = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE user_i
                 </button>
             </div>
         </div>
+
+        <!-- Entry Form Modal -->
+        <div class="myavana-modal-overlay" id="entryModal" style="display: none;">
+                <div class="mya-modal">
+                    <div class="mya-modal-header">
+                        <h2 class="mya-modal-title" id="modalTitle">Add Hair Journey Entry</h2>
+                        <button class="myavana-close-btn" id="closeModalBtn">×</button>
+                    </div>
+                    <div class="mya-modal-body">
+                        <form id="entryForm" class="myavana-entry-form">
+                            <input type="hidden" id="entryId" name="entry_id" value="">
+                            <input type="hidden" id="entryDate" name="entry_date" value="">
+
+                            <div class="myavana-form-group">
+                                <label class="myavana-form-label" for="entryTitle">Entry Title *</label>
+                                <input type="text" id="entryTitle" name="title" class="myavana-form-input"
+                                    placeholder="e.g., Wash day with new products" required>
+                            </div>
+
+                            <div class="myavana-form-group">
+                                <label class="myavana-form-label" for="entryType">Entry Type *</label>
+                                <select id="entryType" name="entry_type" class="myavana-form-select" required>
+                                    <option value="">Select entry type</option>
+                                    <option value="wash">Wash Day</option>
+                                    <option value="treatment">Treatment</option>
+                                    <option value="styling">Styling</option>
+                                    <option value="progress">Progress Photo</option>
+                                    <option value="general">General</option>
+                                </select>
+                            </div>
+
+                            <div class="myavana-form-group">
+                                <label class="myavana-form-label" for="entryDescription">Description</label>
+                                <textarea id="entryDescription" name="description" class="myavana-form-textarea"
+                                        rows="4" placeholder="Describe your hair journey moment..."></textarea>
+                            </div>
+
+                            <div class="myavana-form-row">
+                                <div class="myavana-form-group">
+                                    <label class="myavana-form-label" for="healthRating">Hair Health (1-10)</label>
+                                    <div class="myavana-rating-input">
+                                        <input type="range" id="healthRating" name="health_rating"
+                                            min="1" max="10" value="5" class="myavana-range-input">
+                                        <div class="myavana-rating-display">
+                                            <span id="ratingValue">5</span>/10
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="myavana-form-group">
+                                    <label class="myavana-form-label" for="moodRating">How You Feel</label>
+                                    <select id="moodRating" name="mood" class="myavana-form-select">
+                                        <option value="excited">😊 Excited</option>
+                                        <option value="happy">😄 Happy</option>
+                                        <option value="content">😌 Content</option>
+                                        <option value="neutral">😐 Neutral</option>
+                                        <option value="concerned">😟 Concerned</option>
+                                        <option value="frustrated">😤 Frustrated</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="myavana-form-group">
+                                <label class="myavana-form-label" for="productsUsed">Products Used</label>
+                                <input type="text" id="productsUsed" name="products" class="myavana-form-input"
+                                    placeholder="e.g., Moisturizing shampoo, leave-in conditioner">
+                            </div>
+
+                            <div class="myavana-form-group">
+                                <label class="myavana-form-label" for="entryNotes">Notes & Observations</label>
+                                <textarea id="entryNotes" name="notes" class="myavana-form-textarea"
+                                        rows="3" placeholder="Any additional notes or observations..."></textarea>
+                            </div>
+
+                            <div class="myavana-form-group">
+                                <label class="myavana-form-label" for="entryPhoto">Upload Photo</label>
+                                <div class="myavana-file-upload">
+                                    <input type="file" id="entryPhoto" name="photo" accept="image/*" class="myavana-file-input">
+                                    <label for="entryPhoto" class="myavana-file-label">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                                            <polyline points="21,15 16,10 5,21"/>
+                                        </svg>
+                                        <span>Choose photo or drag & drop</span>
+                                    </label>
+                                    <div class="myavana-file-preview" id="photoPreview" style="display: none;"></div>
+                                </div>
+                            </div>
+
+                            <div class="myavana-form-actions">
+                                <button type="button" class="myavana-btn-secondary" id="cancelBtn">Cancel</button>
+                                <button type="submit" class="myavana-btn-primary" id="saveBtn">
+                                    <span class="myavana-btn-text">Save Entry</span>
+                                    <span class="myavana-btn-loading" style="display: none;">
+                                        <svg class="myavana-spinner" width="16" height="16" viewBox="0 0 24 24">
+                                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
+                                            <path d="M12,2 A10,10 0 0,1 22,12" stroke="currentColor" stroke-width="4" fill="none"/>
+                                        </svg>
+                                        Saving...
+                                    </span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
 
     
 
@@ -640,5 +914,49 @@ $profile = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE user_i
         window.toggleMobileSidebar = MyavanaTimeline.UI.toggleMobileSidebar;
         window.editProfile = MyavanaTimeline.UI.editProfile;
         window.resetSidebar = MyavanaTimeline.UI.resetSidebar;
+
+        function updateJourneyHubRoutineProgress() {
+            var routineList = document.getElementById('journeyHubRoutineList');
+            var progressLabel = document.getElementById('journeyHubRoutineProgressLabel');
+            var progressBar = document.getElementById('journeyHubRoutineProgressBar');
+            if (!routineList || !progressLabel || !progressBar) {
+                return;
+            }
+
+            var totalButtons = routineList.querySelectorAll('[data-routine-complete-toggle]').length;
+            if (!totalButtons) {
+                return;
+            }
+            var doneButtons = routineList.querySelectorAll('[data-routine-complete-toggle].is-complete').length;
+            var pct = Math.round((doneButtons / totalButtons) * 100);
+
+            progressLabel.textContent = doneButtons + ' of ' + totalButtons + ' done';
+            progressBar.style.width = pct + '%';
+        }
+
+        document.addEventListener('DOMContentLoaded', updateJourneyHubRoutineProgress);
+        document.addEventListener('click', function(event) {
+            var toggleBtn = event.target.closest('[data-routine-complete-toggle]');
+            if (!toggleBtn) {
+                return;
+            }
+            setTimeout(updateJourneyHubRoutineProgress, 120);
+        });
+
+        // === Compact Redesign: Hub Drawer & Rewards Toggle ===
+        (function () {
+            // Hub Side Drawer removed in sidebar redesign
+
+            // Rewards / Progress Drawer Toggle
+            var rewardsToggle = document.getElementById('journeyRewardsToggle');
+            var rewardsDrawer = document.getElementById('journeyRewardsDrawer');
+
+            if (rewardsToggle && rewardsDrawer) {
+                rewardsToggle.addEventListener('click', function () {
+                    var isOpen = rewardsDrawer.classList.toggle('is-open');
+                    rewardsToggle.classList.toggle('is-open', isOpen);
+                });
+            }
+        })();
 
     </script>

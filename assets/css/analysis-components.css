@@ -188,10 +188,28 @@
     border-radius: 8px;
 }
 
+.analysis-meta-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 0.9rem;
+}
+
+.analysis-meta-tag {
+    font-size: 0.72rem;
+    font-family: 'Archivo', sans-serif;
+    font-weight: 600;
+    color: var(--myavana-blueberry);
+    background: rgba(74, 77, 104, 0.08);
+    border-radius: 999px;
+    padding: 4px 8px;
+}
+
 /* Actions */
 .analysis-actions {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 .analysis-action-btn {

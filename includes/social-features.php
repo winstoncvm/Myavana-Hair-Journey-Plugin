@@ -39,9 +39,19 @@ class Myavana_Social_Features {
         add_action('wp_ajax_track_post_share', array($this, 'track_post_share'));
         add_action('wp_ajax_get_user_profile', array($this, 'get_user_profile'));
         add_action('wp_ajax_nopriv_get_user_profile', array($this, 'get_user_profile'));
+        add_action('wp_ajax_myavana_ci_discovery', array($this, 'get_discovery_data'));
+        add_action('wp_ajax_nopriv_myavana_ci_discovery', array($this, 'get_discovery_data'));
         
         // Database setup
         add_action('init', array($this, 'create_social_tables'));
+    }
+
+    /**
+     * Always resolve current user ID at request time (avoids stale constructor state).
+     */
+    private function sync_user_id() {
+        $this->user_id = get_current_user_id();
+        return (int) $this->user_id;
     }
     
     /**
@@ -60,11 +70,15 @@ class Myavana_Social_Features {
             title varchar(255) NOT NULL,
             content longtext NOT NULL,
             image_url varchar(500),
+            video_url varchar(500) DEFAULT NULL,
+            media_type varchar(30) DEFAULT 'text',
             post_type varchar(50) DEFAULT 'general',
             privacy_level varchar(20) DEFAULT 'public',
             likes_count int(11) DEFAULT 0,
             comments_count int(11) DEFAULT 0,
             shares_count int(11) DEFAULT 0,
+            views_count int(11) DEFAULT 0,
+            is_pinned tinyint(1) DEFAULT 0,
             is_featured tinyint(1) DEFAULT 0,
             source_entry_id bigint(20) DEFAULT NULL,
             ai_metadata longtext DEFAULT NULL,
@@ -75,7 +89,9 @@ class Myavana_Social_Features {
             KEY user_id (user_id),
             KEY post_type (post_type),
             KEY created_at (created_at),
-            KEY source_entry_id (source_entry_id)
+            KEY source_entry_id (source_entry_id),
+            KEY media_type (media_type),
+            KEY is_pinned (is_pinned)
         ) $charset_collate;";
         
         // Post likes table
@@ -262,6 +278,7 @@ class Myavana_Social_Features {
      * Get community feed for the user
      */
     public function get_community_feed() {
+        $this->sync_user_id();
         error_log('=== GET COMMUNITY FEED CALLED ===');
 
         if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
@@ -269,11 +286,19 @@ class Myavana_Social_Features {
             wp_die('Security check failed');
         }
 
-        $page = intval($_POST['page'] ?? 1);
-        $per_page = intval($_POST['per_page'] ?? 10);
+        $page = max(1, intval($_POST['page'] ?? 1));
+        $per_page = min(20, max(1, intval($_POST['per_page'] ?? 10)));
         $filter = sanitize_text_field($_POST['filter'] ?? 'all');
+        $search = sanitize_text_field(wp_unslash($_POST['search'] ?? ''));
+        $hashtag = sanitize_text_field(wp_unslash($_POST['hashtag'] ?? ''));
+        $media_filter = sanitize_text_field(wp_unslash($_POST['media_filter'] ?? ''));
+        $mode = sanitize_text_field(wp_unslash($_POST['mode'] ?? 'discover'));
+        $circle = sanitize_text_field(wp_unslash($_POST['circle'] ?? ''));
+        $hashtag = ltrim(strtolower($hashtag), '#');
+        $mode = in_array($mode, ['discover', 'following'], true) ? $mode : 'discover';
+        $circle = strtolower(trim($circle));
 
-        error_log('Feed params - Page: ' . $page . ', Per page: ' . $per_page . ', Filter: ' . $filter . ', User ID: ' . $this->user_id);
+        error_log('Feed params - Page: ' . $page . ', Per page: ' . $per_page . ', Filter: ' . $filter . ', Mode: ' . $mode . ', Circle: ' . $circle . ', User ID: ' . $this->user_id . ', Search: ' . $search . ', Hashtag: ' . $hashtag . ', Media: ' . $media_filter);
 
         global $wpdb;
         
@@ -283,45 +308,160 @@ class Myavana_Social_Features {
         
         $offset = ($page - 1) * $per_page;
 
-        // Build query based on filter
         // Show: (1) public posts, (2) user's own posts, (3) followers-only posts from people user follows
         $privacy_clause = "(p.privacy_level = 'public' OR p.user_id = {$this->user_id} OR (p.privacy_level = 'followers' AND p.user_id IN (SELECT following_id FROM $followers_table WHERE follower_id = {$this->user_id})))";
 
+        $where_conditions = [$privacy_clause];
+        $query_args = [];
+
         switch ($filter) {
             case 'following':
-                $where_clause = "WHERE $privacy_clause AND p.user_id IN (
-                    SELECT following_id FROM $followers_table WHERE follower_id = %d
-                )";
+                $where_conditions[] = "p.user_id IN (SELECT following_id FROM $followers_table WHERE follower_id = %d)";
+                $query_args[] = $this->user_id;
                 break;
             case 'trending':
-                $where_clause = "WHERE $privacy_clause AND p.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+                $where_conditions[] = "p.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
                 break;
             case 'featured':
-                $where_clause = "WHERE $privacy_clause AND p.is_featured = 1";
+                $where_conditions[] = "p.is_featured = 1";
+                break;
+            case 'media_image':
+                $where_conditions[] = "(p.image_url IS NOT NULL AND p.image_url <> '')";
+                break;
+            case 'media_video':
+                $where_conditions[] = "((p.video_url IS NOT NULL AND p.video_url <> '') OR p.post_type = 'video' OR p.media_type = 'video')";
+                break;
+            case 'media_text':
+                $where_conditions[] = "(COALESCE(p.image_url, '') = '' AND COALESCE(p.video_url, '') = '')";
                 break;
             default:
-                $where_clause = "WHERE $privacy_clause";
                 break;
         }
-        
+
+        if ($mode === 'following' && $filter !== 'following') {
+            $where_conditions[] = "p.user_id IN (SELECT following_id FROM $followers_table WHERE follower_id = %d)";
+            $query_args[] = $this->user_id;
+        }
+
+        if ($media_filter === 'image') {
+            $where_conditions[] = "(p.image_url IS NOT NULL AND p.image_url <> '')";
+        } elseif ($media_filter === 'video') {
+            $where_conditions[] = "((p.video_url IS NOT NULL AND p.video_url <> '') OR p.post_type = 'video' OR p.media_type = 'video')";
+        } elseif ($media_filter === 'text') {
+            $where_conditions[] = "(COALESCE(p.image_url, '') = '' AND COALESCE(p.video_url, '') = '')";
+        }
+
+        if (!empty($search)) {
+            $search_like = '%' . $wpdb->esc_like($search) . '%';
+            $where_conditions[] = "(p.title LIKE %s OR p.content LIKE %s OR p.hashtags LIKE %s)";
+            $query_args[] = $search_like;
+            $query_args[] = $search_like;
+            $query_args[] = $search_like;
+        }
+
+        if (!empty($hashtag)) {
+            $hashtag_like = '%' . $wpdb->esc_like($hashtag) . '%';
+            $where_conditions[] = "(FIND_IN_SET(%s, REPLACE(COALESCE(p.hashtags, ''), ' ', '')) > 0 OR p.content LIKE %s)";
+            $query_args[] = $hashtag;
+            $query_args[] = '%#' . $wpdb->esc_like($hashtag) . '%';
+            // Backup catch-all if content style varies
+            $where_conditions[] = "(p.hashtags LIKE %s)";
+            $query_args[] = $hashtag_like;
+        }
+
+        if (!empty($circle)) {
+            $circle_keyword_map = [
+                'type-4c' => ['4c', 'type 4c', 'type4c'],
+                'transitioning' => ['transition', 'transitioning', 'big chop'],
+                'length-retention' => ['length', 'retention', 'growth'],
+                'protective-style' => ['protective style', 'braids', 'twists', 'wig'],
+            ];
+
+            if (isset($circle_keyword_map[$circle])) {
+                $circle_clauses = [];
+                foreach ($circle_keyword_map[$circle] as $keyword) {
+                    $like = '%' . $wpdb->esc_like($keyword) . '%';
+                    $circle_clauses[] = "(p.title LIKE %s OR p.content LIKE %s OR p.hashtags LIKE %s)";
+                    $query_args[] = $like;
+                    $query_args[] = $like;
+                    $query_args[] = $like;
+                }
+
+                if (!empty($circle_clauses)) {
+                    $where_conditions[] = '(' . implode(' OR ', $circle_clauses) . ')';
+                }
+            }
+        }
+
+        $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
+
+        $relevance_expression = '0';
+        if ($mode === 'discover' && $this->user_id > 0) {
+            $relevance_parts = [];
+
+            $profiles_table = $wpdb->prefix . 'myavana_profiles';
+            $current_hair_type = $wpdb->get_var($wpdb->prepare(
+                "SELECT hair_type FROM {$profiles_table} WHERE user_id = %d ORDER BY id DESC LIMIT 1",
+                $this->user_id
+            ));
+            if (empty($current_hair_type)) {
+                $current_hair_type = get_user_meta($this->user_id, 'hair_type', true);
+            }
+
+            if (!empty($current_hair_type)) {
+                $hair_like = esc_sql('%' . $wpdb->esc_like(strtolower((string) $current_hair_type)) . '%');
+                $relevance_parts[] = "(CASE WHEN LOWER(p.content) LIKE '{$hair_like}' OR LOWER(COALESCE(p.hashtags, '')) LIKE '{$hair_like}' THEN 18 ELSE 0 END)";
+            }
+
+            $user_goals = get_user_meta($this->user_id, 'myavana_hair_goals_structured', true);
+            if (is_array($user_goals) && !empty($user_goals)) {
+                $goal_keywords = [];
+                foreach ($user_goals as $goal_item) {
+                    if (!is_array($goal_item)) {
+                        continue;
+                    }
+                    $goal_title = strtolower(trim((string) ($goal_item['title'] ?? '')));
+                    if ($goal_title !== '') {
+                        $goal_keywords = array_merge($goal_keywords, preg_split('/\s+/', $goal_title));
+                    }
+                }
+                $goal_keywords = array_values(array_unique(array_filter($goal_keywords, function($word) {
+                    return strlen($word) > 3;
+                })));
+
+                foreach (array_slice($goal_keywords, 0, 3) as $keyword) {
+                    $goal_like = esc_sql('%' . $wpdb->esc_like($keyword) . '%');
+                    $relevance_parts[] = "(CASE WHEN LOWER(p.title) LIKE '{$goal_like}' OR LOWER(p.content) LIKE '{$goal_like}' OR LOWER(COALESCE(p.hashtags, '')) LIKE '{$goal_like}' THEN 7 ELSE 0 END)";
+                }
+            }
+
+            if (!empty($relevance_parts)) {
+                $relevance_expression = implode(' + ', $relevance_parts);
+            }
+        }
+
+        $order_by_clause = 'p.is_pinned DESC, p.created_at DESC';
+        if ($mode === 'discover') {
+            $order_by_clause = 'p.is_pinned DESC, relevance_score DESC, (COALESCE(p.likes_count, 0) + COALESCE(p.comments_count, 0) + COALESCE(p.shares_count, 0)) DESC, p.created_at DESC';
+        }
+
         $sql = "
             SELECT p.*, u.display_name, u.user_email,
+                   ({$relevance_expression}) as relevance_score,
                    (SELECT COUNT(*) FROM {$wpdb->prefix}myavana_post_likes WHERE post_id = p.id) as likes_count,
                    (SELECT COUNT(*) FROM {$wpdb->prefix}myavana_post_comments WHERE post_id = p.id) as comments_count
             FROM $posts_table p
             LEFT JOIN $users_table u ON p.user_id = u.ID
             $where_clause
-            ORDER BY p.is_pinned DESC, p.created_at DESC
+            ORDER BY {$order_by_clause}
             LIMIT %d OFFSET %d
         ";
-        
+
         error_log('Executing feed query with WHERE: ' . $where_clause);
 
-        if ($filter === 'following') {
-            $posts = $wpdb->get_results($wpdb->prepare($sql, $this->user_id, $per_page, $offset));
-        } else {
-            $posts = $wpdb->get_results($wpdb->prepare($sql, $per_page, $offset));
-        }
+        $query_args[] = $per_page;
+        $query_args[] = $offset;
+        $posts = $wpdb->get_results($wpdb->prepare($sql, ...$query_args));
 
         if ($wpdb->last_error) {
             error_log('ERROR: Feed query failed - ' . $wpdb->last_error);
@@ -334,6 +474,7 @@ class Myavana_Social_Features {
         }
 
         // Enhance posts with additional data
+        $entry_count_cache = [];
         foreach ($posts as &$post) {
             $post->user_avatar = get_avatar_url($post->user_id);
             $post->user_profile_url = '#'; // Could be customized
@@ -346,6 +487,21 @@ class Myavana_Social_Features {
             $reactions_data = $this->get_post_reactions($post->id, $this->user_id);
             $post->reactions = $reactions_data['reactions'];
             $post->user_reaction = $reactions_data['user_reaction'];
+            $post->media_type = !empty($post->video_url) ? 'video' : (!empty($post->image_url) ? 'image' : 'text');
+            $post->engagement_score = intval($post->likes_count) + intval($post->comments_count) + intval($post->shares_count);
+
+            $post_user_id = (int) $post->user_id;
+            if (!isset($entry_count_cache[$post_user_id])) {
+                $entry_count_cache[$post_user_id] = (int) $wpdb->get_var($wpdb->prepare(
+                    "SELECT COUNT(ID)
+                     FROM {$wpdb->posts}
+                     WHERE post_type = 'hair_journey_entry'
+                       AND post_status = 'publish'
+                       AND post_author = %d",
+                    $post_user_id
+                ));
+            }
+            $post->is_verified_journey = $entry_count_cache[$post_user_id] >= 30;
         }
 
         wp_send_json_success($posts);
@@ -355,14 +511,54 @@ class Myavana_Social_Features {
      * Create a new community post
      */
     public function create_community_post() {
+        $this->sync_user_id();
         if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
             wp_die('Security check failed');
         }
+
+        if (!$this->user_id) {
+            wp_send_json_error('You must be logged in to create a post');
+        }
         
-        $title = sanitize_text_field($_POST['title']);
-        $content = sanitize_textarea_field($_POST['content']);
+        $title_raw = (string) wp_unslash($_POST['title'] ?? '');
+        $content_raw = (string) wp_unslash($_POST['content'] ?? '');
+
+        // Normalize escaped HTML entities (e.g. \&#039;) and decode to plain text.
+        $title_raw = preg_replace('/\\\\+&#0*39;|\\\\+&#x0*27;|\\\\+&apos;/i', "'", $title_raw);
+        $content_raw = preg_replace('/\\\\+&#0*39;|\\\\+&#x0*27;|\\\\+&apos;/i', "'", $content_raw);
+        $title_raw = html_entity_decode($title_raw, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $content_raw = html_entity_decode($content_raw, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        $title = sanitize_text_field($title_raw);
+        $content = sanitize_textarea_field($content_raw);
         $post_type = sanitize_text_field($_POST['post_type'] ?? 'general');
         $privacy_level = sanitize_text_field($_POST['privacy_level'] ?? 'public');
+        $source_entry_id = absint($_POST['source_entry_id'] ?? 0);
+        $video_url = esc_url_raw(wp_unslash($_POST['video_url'] ?? ''));
+        $media_type = 'text';
+        $raw_hashtags = sanitize_text_field($_POST['hashtags'] ?? '');
+        $hashtags = '';
+        if ($raw_hashtags !== '') {
+            $hashtag_parts = preg_split('/[\s,]+/', strtolower($raw_hashtags));
+            $clean_hashtags = [];
+            foreach ($hashtag_parts as $tag) {
+                $tag = preg_replace('/^#+/', '', trim((string) $tag));
+                $tag = preg_replace('/[^a-z0-9_]/', '', $tag);
+                if (strlen($tag) > 1) {
+                    $clean_hashtags[] = $tag;
+                }
+            }
+            $hashtags = implode(',', array_slice(array_values(array_unique($clean_hashtags)), 0, 12));
+        }
+
+        $ai_metadata = '';
+        if (!empty($_POST['ai_metadata'])) {
+            $ai_metadata_raw = wp_unslash($_POST['ai_metadata']);
+            $ai_metadata_decoded = json_decode($ai_metadata_raw, true);
+            if (is_array($ai_metadata_decoded)) {
+                $ai_metadata = wp_json_encode($ai_metadata_decoded);
+            }
+        }
         
         // Handle image upload
         $image_url = '';
@@ -370,7 +566,78 @@ class Myavana_Social_Features {
             $upload_result = $this->handle_image_upload($_FILES['image']);
             if ($upload_result['success']) {
                 $image_url = $upload_result['url'];
+                $media_type = 'image';
             }
+        }
+
+        // Handle optional video upload
+        if (!empty($_FILES['video'])) {
+            $video_upload_result = $this->handle_video_upload($_FILES['video']);
+            if ($video_upload_result['success']) {
+                $video_url = $video_upload_result['url'];
+                $media_type = 'video';
+            }
+        }
+
+        // If linked to an existing journey entry, hydrate defaults from that entry
+        if ($source_entry_id > 0) {
+            $entry_post = get_post($source_entry_id);
+            if (!$entry_post || $entry_post->post_type !== 'hair_journey_entry' || (int) $entry_post->post_author !== (int) $this->user_id) {
+                $source_entry_id = 0;
+            } else {
+                if ($title === '') {
+                    $title = sanitize_text_field(get_the_title($source_entry_id));
+                }
+                if ($content === '') {
+                    $content = sanitize_textarea_field(wp_strip_all_tags((string) $entry_post->post_content));
+                }
+                if ($image_url === '') {
+                    $thumbnail = get_the_post_thumbnail_url($source_entry_id, 'large');
+                    if (!empty($thumbnail)) {
+                        $image_url = esc_url_raw($thumbnail);
+                    }
+                }
+                if ($image_url === '') {
+                    $gallery_images = get_post_meta($source_entry_id, '_entry_gallery', true);
+                    if (is_array($gallery_images) && !empty($gallery_images)) {
+                        $first_attachment = (int) reset($gallery_images);
+                        if ($first_attachment > 0) {
+                            $gallery_image_url = wp_get_attachment_image_url($first_attachment, 'large');
+                            if (!empty($gallery_image_url)) {
+                                $image_url = esc_url_raw($gallery_image_url);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!empty($video_url)) {
+            $media_type = 'video';
+        } elseif (!empty($image_url)) {
+            $media_type = 'image';
+        }
+
+        if ($title === '' && $content === '' && empty($image_url) && empty($video_url)) {
+            wp_send_json_error('Add text, photo, or video before posting.');
+            return;
+        }
+
+        if ($title === '') {
+            if (!empty($video_url) || $post_type === 'video') {
+                $title = 'Video Hair Update';
+            } elseif (!empty($image_url)) {
+                $title = 'Hair Journey Photo Update';
+            } elseif ($content !== '') {
+                $title = wp_trim_words($content, 8, '...');
+            } else {
+                $title = 'Hair Journey Update';
+            }
+        }
+
+        if ($post_type === 'video' && empty($video_url)) {
+            wp_send_json_error('Video post selected but no video was provided.');
+            return;
         }
         
         global $wpdb;
@@ -384,11 +651,16 @@ class Myavana_Social_Features {
                 'title' => $title,
                 'content' => $content,
                 'image_url' => $image_url,
+                'video_url' => $video_url,
+                'media_type' => $media_type,
                 'post_type' => $post_type,
                 'privacy_level' => $privacy_level,
+                'source_entry_id' => $source_entry_id > 0 ? $source_entry_id : null,
+                'ai_metadata' => $ai_metadata,
+                'hashtags' => $hashtags,
                 'created_at' => current_time('mysql')
             ),
-            array('%d', '%s', '%s', '%s', '%s', '%s', '%s')
+            array('%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s')
         );
         
         if ($result) {
@@ -418,8 +690,14 @@ class Myavana_Social_Features {
      * Like/unlike a post
      */
     public function like_post() {
+        $this->sync_user_id();
         if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
             wp_die('Security check failed');
+        }
+
+        if (!$this->user_id) {
+            wp_send_json_error('You must be logged in');
+            return;
         }
         
         $post_id = intval($_POST['post_id']);
@@ -513,8 +791,14 @@ class Myavana_Social_Features {
      * Comment on a post
      */
     public function comment_on_post() {
+        $this->sync_user_id();
         if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
             wp_die('Security check failed');
+        }
+
+        if (!$this->user_id) {
+            wp_send_json_error('You must be logged in');
+            return;
         }
         
         $post_id = intval($_POST['post_id']);
@@ -600,8 +884,14 @@ class Myavana_Social_Features {
      * Follow/unfollow a user
      */
     public function follow_user() {
+        $this->sync_user_id();
         if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
             wp_die('Security check failed');
+        }
+
+        if (!$this->user_id) {
+            wp_send_json_error('You must be logged in');
+            return;
         }
         
         $user_to_follow = intval($_POST['user_id']);
@@ -667,8 +957,14 @@ class Myavana_Social_Features {
      * Join a community challenge
      */
     public function join_challenge() {
+        $this->sync_user_id();
         if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
             wp_die('Security check failed');
+        }
+
+        if (!$this->user_id) {
+            wp_send_json_error('You must be logged in');
+            return;
         }
         
         $challenge_id = intval($_POST['challenge_id']);
@@ -707,6 +1003,16 @@ class Myavana_Social_Features {
                 "UPDATE $challenges_table SET participants_count = participants_count + 1 WHERE id = %d",
                 $challenge_id
             ));
+
+            // Scaffold challenge into user's journey goals (community -> journey loop)
+            $challenge = $wpdb->get_row($wpdb->prepare(
+                "SELECT id, title, description, end_date
+                 FROM $challenges_table
+                 WHERE id = %d
+                 LIMIT 1",
+                $challenge_id
+            ));
+            $this->create_challenge_goal_scaffold($challenge);
             
             wp_send_json_success('Successfully joined the challenge!');
         } else {
@@ -718,6 +1024,7 @@ class Myavana_Social_Features {
      * Get comments for a post
      */
     public function get_post_comments() {
+        $this->sync_user_id();
         if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
             wp_die('Security check failed');
         }
@@ -768,11 +1075,58 @@ class Myavana_Social_Features {
     }
 
     /**
+     * Create a lightweight goal scaffold when a user joins a challenge.
+     */
+    private function create_challenge_goal_scaffold($challenge) {
+        if (!$challenge || empty($challenge->id) || empty($challenge->title) || !$this->user_id) {
+            return;
+        }
+
+        $goals = get_user_meta($this->user_id, 'myavana_hair_goals_structured', true);
+        if (!is_array($goals)) {
+            $goals = [];
+        }
+
+        foreach ($goals as $goal_item) {
+            if (is_array($goal_item) && !empty($goal_item['source_challenge_id']) && (int) $goal_item['source_challenge_id'] === (int) $challenge->id) {
+                return;
+            }
+        }
+
+        $end_date = '';
+        if (!empty($challenge->end_date)) {
+            $end_ts = strtotime((string) $challenge->end_date);
+            if ($end_ts) {
+                $end_date = gmdate('Y-m-d', $end_ts);
+            }
+        }
+
+        $goals[] = [
+            'id' => 'challenge-' . (int) $challenge->id . '-' . time(),
+            'title' => sanitize_text_field($challenge->title),
+            'description' => sanitize_textarea_field((string) ($challenge->description ?? '')),
+            'progress' => 0,
+            'start_date' => current_time('Y-m-d'),
+            'end_date' => $end_date,
+            'source' => 'community_challenge',
+            'source_challenge_id' => (int) $challenge->id,
+        ];
+
+        update_user_meta($this->user_id, 'myavana_hair_goals_structured', $goals);
+    }
+
+    /**
      * Bookmark/unbookmark a post
      */
     public function bookmark_post() {
+        $this->sync_user_id();
         if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
             wp_die('Security check failed');
+        }
+
+        if (!$this->user_id) {
+            wp_send_json_error('You must be logged in');
+            return;
         }
 
         $post_id = intval($_POST['post_id']);
@@ -828,6 +1182,7 @@ class Myavana_Social_Features {
      * Track post share
      */
     public function track_post_share() {
+        $this->sync_user_id();
         if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
             wp_die('Security check failed');
         }
@@ -852,6 +1207,7 @@ class Myavana_Social_Features {
      * Get user profile data
      */
     public function get_user_profile() {
+        $this->sync_user_id();
         if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
             wp_die('Security check failed');
         }
@@ -890,18 +1246,115 @@ class Myavana_Social_Features {
             ));
         }
 
-        // Get hair journey stats
-        $entries_table = $wpdb->prefix . 'myavana_hair_journal_entries';
+        // Get hair journey stats from the active journey system
+        $posts_table_wp = $wpdb->posts;
+        $postmeta_table_wp = $wpdb->postmeta;
+
+        $total_entries = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(ID)
+             FROM {$posts_table_wp}
+             WHERE post_type = 'hair_journey_entry'
+               AND post_status = 'publish'
+               AND post_author = %d",
+            $user_id
+        ));
+
+        $journey_start_raw = $wpdb->get_var($wpdb->prepare(
+            "SELECT MIN(post_date)
+             FROM {$posts_table_wp}
+             WHERE post_type = 'hair_journey_entry'
+               AND post_status = 'publish'
+               AND post_author = %d",
+            $user_id
+        ));
+
+        $entries_last_30_days = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(ID)
+             FROM {$posts_table_wp}
+             WHERE post_type = 'hair_journey_entry'
+               AND post_status = 'publish'
+               AND post_author = %d
+               AND post_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)",
+            $user_id
+        ));
+
+        $avg_health_rating_raw = $wpdb->get_var($wpdb->prepare(
+            "SELECT AVG(CAST(pm.meta_value AS DECIMAL(10,2)))
+             FROM {$posts_table_wp} p
+             INNER JOIN {$postmeta_table_wp} pm
+                     ON pm.post_id = p.ID
+                    AND pm.meta_key = 'health_rating'
+             WHERE p.post_type = 'hair_journey_entry'
+               AND p.post_status = 'publish'
+               AND p.post_author = %d
+               AND pm.meta_value REGEXP '^[0-9]+(\\\\.[0-9]+)?$'",
+            $user_id
+        ));
+
+        $structured_goals = get_user_meta($user_id, 'myavana_hair_goals_structured', true);
+        if (!is_array($structured_goals)) {
+            $structured_goals = [];
+        }
+
+        $current_routine = get_user_meta($user_id, 'current_routine', true);
+        if (!is_array($current_routine)) {
+            $current_routine = [];
+        }
+
         $journey_stats = array(
-            'total_entries' => $wpdb->get_var($wpdb->prepare(
-                "SELECT COUNT(*) FROM $entries_table WHERE user_id = %d",
-                $user_id
-            )),
-            'journey_start' => $wpdb->get_var($wpdb->prepare(
-                "SELECT DATE_FORMAT(MIN(created_at), '%%M %%Y') FROM $entries_table WHERE user_id = %d",
-                $user_id
-            ))
+            'total_entries' => $total_entries,
+            'journey_start' => $journey_start_raw ? mysql2date('F Y', $journey_start_raw) : 'Recently',
+            'entries_last_30_days' => $entries_last_30_days,
+            'avg_health_rating' => $avg_health_rating_raw !== null ? round((float) $avg_health_rating_raw, 1) : null,
+            'goals_count' => count($structured_goals),
+            'routine_steps_count' => count($current_routine),
         );
+
+        // Journey preview for profile offcanvas tab
+        $recent_entry_ids = get_posts([
+            'post_type' => 'hair_journey_entry',
+            'author' => $user_id,
+            'post_status' => 'publish',
+            'posts_per_page' => 4,
+            'orderby' => 'post_date',
+            'order' => 'DESC',
+            'fields' => 'ids',
+        ]);
+
+        $entry_preview = [];
+        foreach ($recent_entry_ids as $entry_id) {
+            $entry_preview[] = [
+                'id' => (int) $entry_id,
+                'title' => get_the_title($entry_id),
+                'date' => get_the_date('M j, Y', $entry_id),
+                'health_rating' => get_post_meta($entry_id, 'health_rating', true),
+                'mood' => get_post_meta($entry_id, 'mood_demeanor', true),
+            ];
+        }
+
+        $goals_preview = [];
+        foreach (array_slice($structured_goals, 0, 3) as $goal) {
+            $goals_preview[] = [
+                'title' => sanitize_text_field($goal['title'] ?? 'Hair Goal'),
+                'progress' => isset($goal['progress']) ? (int) $goal['progress'] : 0,
+                'target_date' => sanitize_text_field($goal['end_date'] ?? ($goal['target_date'] ?? '')),
+            ];
+        }
+
+        $routine_preview = [];
+        foreach (array_slice($current_routine, 0, 4) as $step) {
+            if (is_array($step)) {
+                $routine_preview[] = [
+                    'name' => sanitize_text_field($step['name'] ?? 'Routine Step'),
+                    'frequency' => sanitize_text_field($step['frequency'] ?? 'daily'),
+                ];
+            } else {
+                $routine_preview[] = [
+                    'name' => sanitize_text_field((string) $step),
+                    'frequency' => 'daily',
+                ];
+            }
+        }
 
         $profile = array(
             'user_id' => $user_id,
@@ -911,7 +1364,12 @@ class Myavana_Social_Features {
             'stats' => $stats,
             'recent_posts' => $recent_posts,
             'is_following' => $is_following,
-            'hair_journey_stats' => $journey_stats
+            'hair_journey_stats' => $journey_stats,
+            'hair_journey_preview' => [
+                'entries' => $entry_preview,
+                'goals' => $goals_preview,
+                'routine' => $routine_preview,
+            ],
         );
 
         wp_send_json_success($profile);
@@ -921,6 +1379,7 @@ class Myavana_Social_Features {
      * Get trending posts
      */
     public function get_trending_posts() {
+        $this->sync_user_id();
         if (!wp_verify_nonce($_POST['nonce'], 'myavana_nonce')) {
             wp_die('Security check failed');
         }
@@ -950,6 +1409,166 @@ class Myavana_Social_Features {
         
         wp_send_json_success($trending_posts);
     }
+
+    /**
+     * Discovery payload for community explore panel.
+     */
+    public function get_discovery_data() {
+        $this->sync_user_id();
+        $nonce = sanitize_text_field(wp_unslash($_POST['nonce'] ?? ''));
+        if (!wp_verify_nonce($nonce, 'myavana_nonce')) {
+            wp_send_json_error('Security check failed');
+            return;
+        }
+
+        $current_user_id = get_current_user_id();
+        $trending_hashtags = $this->get_trending_hashtags(14);
+        $suggested_creators = $this->get_suggested_creators($current_user_id, 8);
+        $active_challenges = $this->get_active_challenges();
+
+        $challenge_items = [];
+        if (!empty($active_challenges)) {
+            foreach (array_slice($active_challenges, 0, 6) as $challenge) {
+                $challenge_items[] = [
+                    'id' => (int) $challenge->id,
+                    'title' => sanitize_text_field($challenge->title),
+                    'hashtag' => sanitize_text_field($challenge->hashtag ?? ''),
+                    'participants_count' => (int) $challenge->participants_count,
+                    'end_date' => sanitize_text_field($challenge->end_date),
+                ];
+            }
+        }
+
+        wp_send_json_success([
+            'trending_hashtags' => $trending_hashtags,
+            'suggested_creators' => $suggested_creators,
+            'active_challenges' => $challenge_items,
+        ]);
+    }
+
+    /**
+     * Return top hashtags used recently.
+     */
+    private function get_trending_hashtags($limit = 12) {
+        global $wpdb;
+
+        $posts_table = $wpdb->prefix . 'myavana_community_posts';
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT hashtags, content
+             FROM {$posts_table}
+             WHERE privacy_level = 'public'
+               AND created_at >= DATE_SUB(NOW(), INTERVAL 45 DAY)
+             ORDER BY created_at DESC
+             LIMIT %d",
+            max(20, $limit * 25)
+        ));
+
+        $counts = [];
+        foreach ($rows as $row) {
+            if (!empty($row->hashtags)) {
+                $tags = explode(',', strtolower((string) $row->hashtags));
+                foreach ($tags as $tag) {
+                    $clean = preg_replace('/[^a-z0-9_]/', '', trim((string) $tag));
+                    if (strlen($clean) > 1) {
+                        $counts[$clean] = ($counts[$clean] ?? 0) + 1;
+                    }
+                }
+            }
+
+            if (!empty($row->content)) {
+                preg_match_all('/#([a-z0-9_]+)/i', (string) $row->content, $matches);
+                if (!empty($matches[1])) {
+                    foreach ($matches[1] as $tag) {
+                        $clean = preg_replace('/[^a-z0-9_]/', '', strtolower((string) $tag));
+                        if (strlen($clean) > 1) {
+                            $counts[$clean] = ($counts[$clean] ?? 0) + 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (empty($counts)) {
+            return [];
+        }
+
+        arsort($counts);
+        $items = [];
+        foreach (array_slice($counts, 0, $limit, true) as $tag => $total) {
+            $items[] = [
+                'tag' => $tag,
+                'count' => (int) $total,
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * Return suggested creators ranked by recent engagement.
+     */
+    private function get_suggested_creators($current_user_id = 0, $limit = 8) {
+        global $wpdb;
+
+        $posts_table = $wpdb->prefix . 'myavana_community_posts';
+        $followers_table = $wpdb->prefix . 'myavana_user_followers';
+        $users_table = $wpdb->users;
+
+        $current_user_id = (int) $current_user_id;
+        $limit = max(1, min(24, (int) $limit));
+        $query_args = [];
+
+        $sql = "SELECT
+                    u.ID AS user_id,
+                    u.display_name,
+                    COUNT(cp.id) AS posts_count,
+                    COALESCE(SUM(cp.likes_count + cp.comments_count + cp.shares_count), 0) AS engagement_score,
+                    (
+                        SELECT COUNT(*)
+                        FROM {$followers_table} f2
+                        WHERE f2.following_id = u.ID
+                    ) AS followers_count
+                FROM {$users_table} u
+                INNER JOIN {$posts_table} cp
+                        ON cp.user_id = u.ID
+                       AND cp.privacy_level = 'public'
+                       AND cp.created_at >= DATE_SUB(NOW(), INTERVAL 60 DAY)
+                WHERE 1=1";
+
+        if ($current_user_id > 0) {
+            $sql .= " AND u.ID <> %d
+                      AND u.ID NOT IN (
+                          SELECT following_id
+                          FROM {$followers_table}
+                          WHERE follower_id = %d
+                      )";
+            $query_args[] = $current_user_id;
+            $query_args[] = $current_user_id;
+        }
+
+        $sql .= " GROUP BY u.ID
+                  ORDER BY engagement_score DESC, followers_count DESC, posts_count DESC
+                  LIMIT %d";
+        $query_args[] = $limit;
+
+        $rows = $wpdb->get_results($wpdb->prepare($sql, ...$query_args));
+        $items = [];
+
+        if (!empty($rows)) {
+            foreach ($rows as $row) {
+                $items[] = [
+                    'user_id' => (int) $row->user_id,
+                    'display_name' => sanitize_text_field($row->display_name ?: 'Community Member'),
+                    'avatar' => get_avatar_url((int) $row->user_id, ['size' => 72]),
+                    'posts_count' => (int) $row->posts_count,
+                    'followers_count' => (int) $row->followers_count,
+                    'engagement_score' => (int) $row->engagement_score,
+                ];
+            }
+        }
+
+        return $items;
+    }
     
     /**
      * Get active community challenges
@@ -975,7 +1594,7 @@ class Myavana_Social_Features {
      */
     public function get_user_social_stats($user_id = null) {
         if (!$user_id) {
-            $user_id = $this->user_id;
+            $user_id = $this->sync_user_id();
         }
         
         global $wpdb;
@@ -1037,10 +1656,28 @@ class Myavana_Social_Features {
         global $wpdb;
 
         $bookmarks_table = $wpdb->prefix . 'myavana_post_bookmarks';
+        $collections_table = $wpdb->prefix . 'myavana_ci_bookmark_collections';
+        $collection_items_table = $wpdb->prefix . 'myavana_ci_collection_items';
 
-        return (bool) $wpdb->get_var($wpdb->prepare(
+        $is_quick_saved = (bool) $wpdb->get_var($wpdb->prepare(
             "SELECT id FROM $bookmarks_table WHERE post_id = %d AND user_id = %d",
             $post_id, $user_id
+        ));
+
+        if ($is_quick_saved) {
+            return true;
+        }
+
+        // Also treat collection saves as bookmarked/saved
+        return (bool) $wpdb->get_var($wpdb->prepare(
+            "SELECT ci.id
+             FROM $collection_items_table ci
+             INNER JOIN $collections_table c ON c.id = ci.collection_id
+             WHERE ci.post_id = %d
+               AND c.user_id = %d
+             LIMIT 1",
+            $post_id,
+            $user_id
         ));
     }
     
@@ -1123,6 +1760,40 @@ class Myavana_Social_Features {
             'url' => $uploaded_file['url'],
             'path' => $uploaded_file['file']
         );
+    }
+
+    private function handle_video_upload($file) {
+        if (!function_exists('wp_handle_upload')) {
+            require_once(ABSPATH . 'wp-admin/includes/file.php');
+        }
+
+        $max_size_bytes = 40 * 1024 * 1024; // 40MB
+        $file_size = isset($file['size']) ? (int) $file['size'] : 0;
+        if ($file_size > $max_size_bytes) {
+            return ['success' => false, 'error' => 'Video file is too large. Maximum size is 40MB.'];
+        }
+
+        $upload_overrides = [
+            'test_form' => false,
+            'mimes' => [
+                'mp4' => 'video/mp4',
+                'm4v' => 'video/mp4',
+                'mov' => 'video/quicktime',
+                'webm' => 'video/webm',
+                'ogv' => 'video/ogg',
+            ],
+        ];
+
+        $uploaded_file = wp_handle_upload($file, $upload_overrides);
+        if (isset($uploaded_file['error'])) {
+            return ['success' => false, 'error' => $uploaded_file['error']];
+        }
+
+        return [
+            'success' => true,
+            'url' => $uploaded_file['url'],
+            'path' => $uploaded_file['file'],
+        ];
     }
 }
 

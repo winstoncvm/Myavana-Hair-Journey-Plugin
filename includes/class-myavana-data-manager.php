@@ -52,6 +52,9 @@ if (!class_exists('Myavana_Data_Manager')) {
                 'entries' => self::get_user_entries($user_id),
                 'stats' => self::get_user_stats($user_id),
                 'analytics' => self::get_analytics_data($user_id),
+                'gamification' => function_exists('myavana_get_gamification_summary')
+                    ? myavana_get_gamification_summary($user_id)
+                    : self::get_empty_gamification(),
                 'analysis_limit_info' => self::get_analysis_limit_info($user_id),
             ];
 
@@ -103,6 +106,10 @@ if (!class_exists('Myavana_Data_Manager')) {
         public static function get_user_stats($user_id) {
             global $wpdb;
 
+            $gamification = function_exists('myavana_get_gamification_summary')
+                ? myavana_get_gamification_summary($user_id)
+                : self::get_empty_gamification();
+
             $entries_count = $wpdb->get_var($wpdb->prepare(
                 "SELECT COUNT(*) FROM {$wpdb->prefix}posts
                 WHERE post_author = %d
@@ -124,7 +131,11 @@ if (!class_exists('Myavana_Data_Manager')) {
             return [
                 'entries' => $entries_count ?: 0,
                 'days_active' => $days_active ?: 0,
-                'streak' => $streak,
+                'streak' => $gamification['current_streak'] ?: $streak,
+                'total_points' => $gamification['total_points'] ?? 0,
+                'level' => $gamification['level'] ?? 1,
+                'badges_earned' => $gamification['badges_earned'] ?? 0,
+                'checked_in_today' => $gamification['checked_in_today'] ?? false,
                 'is_new_user' => $entries_count == 0,
                 'show_onboarding' => $entries_count == 0,
             ];
@@ -178,10 +189,15 @@ if (!class_exists('Myavana_Data_Manager')) {
          * Get analytics data
          */
         public static function get_analytics_data($user_id) {
+            $gamification = function_exists('myavana_get_gamification_summary')
+                ? myavana_get_gamification_summary($user_id)
+                : self::get_empty_gamification();
             $entries = self::get_user_entries($user_id);
 
             if (empty($entries)) {
-                return self::get_empty_analytics();
+                $empty = self::get_empty_analytics();
+                $empty['current_streak'] = $gamification['current_streak'] ?? 0;
+                return $empty;
             }
 
             $ratings = [];
@@ -231,7 +247,7 @@ if (!class_exists('Myavana_Data_Manager')) {
 
             return [
                 'total_entries' => count($entries),
-                'current_streak' => self::calculate_streak($user_id),
+                'current_streak' => $gamification['current_streak'] ?: self::calculate_streak($user_id),
                 'avg_health_score' => $avg_health_score,
                 'total_photos' => $total_photos,
                 'most_active_day' => $most_active_day,
@@ -318,10 +334,15 @@ if (!class_exists('Myavana_Data_Manager')) {
                     'entries' => 0,
                     'days_active' => 0,
                     'streak' => 0,
+                    'total_points' => 0,
+                    'level' => 1,
+                    'badges_earned' => 0,
+                    'checked_in_today' => false,
                     'is_new_user' => true,
                     'show_onboarding' => true,
                 ],
                 'analytics' => self::get_empty_analytics(),
+                'gamification' => self::get_empty_gamification(),
                 'analysis_limit_info' => [
                     'limit' => 30,
                     'count' => 0,
@@ -344,6 +365,26 @@ if (!class_exists('Myavana_Data_Manager')) {
                 'favorite_mood' => 'N/A',
                 'best_health_month' => 'N/A',
                 'progress_score' => 0,
+            ];
+        }
+
+        private static function get_empty_gamification() {
+            return [
+                'total_points' => 0,
+                'current_streak' => 0,
+                'longest_streak' => 0,
+                'level' => 1,
+                'current_level_points' => 0,
+                'next_level_points' => 100,
+                'progress_to_next_level' => 0,
+                'points_to_next_level' => 100,
+                'xp_progress_percent' => 0,
+                'badges_earned' => 0,
+                'recent_badges' => [],
+                'next_badge' => null,
+                'checked_in_today' => false,
+                'total_entries' => 0,
+                'total_ai_analyses' => 0,
             ];
         }
     }

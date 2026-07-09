@@ -328,31 +328,8 @@
         },
 
         loadChatbotModal() {
-            if (window.Myavana && Myavana.UI) {
-                Myavana.UI.showLoading('.quick-actions');
-
-                Myavana.API.call('load_chatbot_embed', { component: 'chatbot_embed' }).then(response => {
-                    if (response.success) {
-                        const modal = Myavana.UI.createModal({
-                            title: 'AI Hair Analysis',
-                            content: response.data.html,
-                            width: '800px',
-                            maxWidth: '95vw',
-                            onShow: () => {
-                                if (typeof initializeChatbot === 'function') {
-                                    initializeChatbot();
-                                }
-                            }
-                        });
-                    } else {
-                        this.notify('Failed to load AI chatbot', 'error');
-                    }
-                }).catch(() => {
-                    this.notify('Failed to load AI chatbot', 'error');
-                }).finally(() => {
-                    Myavana.UI.hideLoading('.quick-actions');
-                });
-            }
+            const aiToolUrl = window.myavanaAiToolUrl || 'https://www.myavana.com/pages/consumer';
+            window.location.href = aiToolUrl;
         },
 
         showProductsModal() {

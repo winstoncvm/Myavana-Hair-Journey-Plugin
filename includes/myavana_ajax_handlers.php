@@ -261,8 +261,42 @@ function myavana_load_timeline_embed() {
 }
 add_action('wp_ajax_myavana_load_timeline_embed', 'myavana_load_timeline_embed');
 
+function myavana_verify_chatbot_request_nonce() {
+    $nonce = '';
+
+    if (isset($_POST['nonce'])) {
+        $nonce = sanitize_text_field(wp_unslash($_POST['nonce']));
+    } elseif (isset($_POST['security'])) {
+        $nonce = sanitize_text_field(wp_unslash($_POST['security']));
+    }
+
+    if ($nonce === '') {
+        return false;
+    }
+
+    return wp_verify_nonce($nonce, 'myavana_chatbot_nonce') || wp_verify_nonce($nonce, 'myavana_chatbot');
+}
+
+function myavana_normalize_conversation_message_type($message_type) {
+    $message_type = sanitize_text_field($message_type);
+
+    if (in_array($message_type, ['user', 'agent', 'system', 'error'], true)) {
+        return $message_type;
+    }
+
+    if (in_array($message_type, ['assistant', 'ai', 'interim-result'], true)) {
+        return 'agent';
+    }
+
+    return false;
+}
+
 function myavana_save_conversation() {
-    check_ajax_referer('myavana_chatbot', 'nonce');
+    if (!myavana_verify_chatbot_request_nonce()) {
+        wp_send_json_error('Invalid security token');
+        return;
+    }
+
     global $wpdb;
     $user_id = get_current_user_id();
     if (!$user_id) {
@@ -276,13 +310,13 @@ function myavana_save_conversation() {
         return;
     }
 
-    $message = sanitize_textarea_field($_POST['message']);
-    $message_type = sanitize_text_field($_POST['message_type']);
-    $session_id = sanitize_text_field($_POST['session_id']);
+    $message = sanitize_textarea_field(wp_unslash($_POST['message']));
+    $message_type = myavana_normalize_conversation_message_type($_POST['message_type']);
+    $session_id = sanitize_text_field(wp_unslash($_POST['session_id']));
     $timestamp = current_time('mysql');
 
     // Validate message type
-    if (!in_array($message_type, ['user', 'agent', 'system', 'error'], true)) {
+    if ($message_type === false) {
         wp_send_json_error('Invalid message type');
         return;
     }
@@ -299,7 +333,7 @@ function myavana_save_conversation() {
             'user_id' => $user_id,
             'session_id' => $session_id,
             'message_text' => $message,
-            'message_type' => in_array($message_type, ['user', 'agent', 'system', 'error']) ? $message_type : 'system',
+            'message_type' => $message_type,
             'timestamp' => $timestamp
         ],
         ['%d', '%s', '%s', '%s', '%s']
@@ -315,7 +349,11 @@ function myavana_save_conversation() {
 add_action('wp_ajax_myavana_save_conversation', 'myavana_save_conversation');
 
 function myavana_create_auto_entry() {
-    check_ajax_referer('myavana_chatbot', 'nonce');
+    if (!myavana_verify_chatbot_request_nonce()) {
+        wp_send_json_error('Invalid security token');
+        return;
+    }
+
     global $wpdb;
     $user_id = get_current_user_id();
     if (!$user_id) {
@@ -323,9 +361,9 @@ function myavana_create_auto_entry() {
         return;
     }
 
-    $analysis = json_decode(stripslashes($_POST['analysis']), true);
-    $image_data = $_POST['image_data'];
-    $session_id = sanitize_text_field($_POST['session_id']);
+    $analysis = json_decode(wp_unslash($_POST['analysis'] ?? ''), true);
+    $image_data = isset($_POST['image_data']) ? wp_unslash($_POST['image_data']) : '';
+    $session_id = sanitize_text_field(wp_unslash($_POST['session_id'] ?? ''));
     $timestamp = current_time('mysql');
 
     // Generate AI tags
@@ -866,6 +904,12 @@ function myavana_load_onboarding_overlay() {
 
 // Skip onboarding
 function myavana_skip_onboarding() {
+    $nonce = sanitize_text_field(wp_unslash($_POST['nonce'] ?? ''));
+    if (!wp_verify_nonce($nonce, 'myavana_onboarding') && !wp_verify_nonce($nonce, 'myavana_nonce')) {
+        wp_send_json_error('Invalid nonce');
+        return;
+    }
+
     if (!is_user_logged_in()) {
         wp_send_json_error('Authentication required');
         return;
@@ -1032,6 +1076,12 @@ function myavana_onboarding_step() {
 
 // Complete onboarding
 function myavana_complete_onboarding() {
+    $nonce = sanitize_text_field(wp_unslash($_POST['nonce'] ?? ''));
+    if (!wp_verify_nonce($nonce, 'myavana_onboarding') && !wp_verify_nonce($nonce, 'myavana_nonce')) {
+        wp_send_json_error('Invalid nonce');
+        return;
+    }
+
     if (!is_user_logged_in()) {
         wp_send_json_error('Authentication required');
         return;
@@ -1042,6 +1092,8 @@ function myavana_complete_onboarding() {
     // Mark onboarding as completed
     update_user_meta($user_id, 'myavana_onboarding_completed', 'completed');
     update_user_meta($user_id, 'myavana_onboarding_completed_date', current_time('mysql'));
+    update_user_meta($user_id, 'myavana_onboarding_status', 'completed');
+    delete_user_meta($user_id, 'myavana_show_onboarding');
 
     // Set initial profile data if not exists
     $existing_profile = get_user_meta($user_id, 'myavana_profile', true);
@@ -1224,8 +1276,7 @@ function myavana_save_profile() {
 add_action('wp_ajax_myavana_load_entry_form', 'myavana_load_entry_form');
 add_action('wp_ajax_myavana_save_simple_entry', 'myavana_save_simple_entry');
 add_action('wp_ajax_myavana_load_onboarding_overlay', 'myavana_load_onboarding_overlay');
-add_action('wp_ajax_myavana_onboarding_step', 'myavana_onboarding_step');
-add_action('wp_ajax_myavana_skip_onboarding', 'myavana_skip_onboarding');
+// Onboarding step/skip are handled centrally by Myavana_Auth_System.
 add_action('wp_ajax_myavana_complete_onboarding', 'myavana_complete_onboarding');
 add_action('wp_ajax_myavana_save_profile', 'myavana_save_profile');
 ?>

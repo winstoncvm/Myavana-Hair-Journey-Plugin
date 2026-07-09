@@ -1,7 +1,7 @@
 <?php
 function myavana_register_shortcode() {
     if (is_user_logged_in()) {
-        return '<p>You are already registered. <a href="' . wp_logout_url() . '">Log out</a></p>';
+        return '<p>You are already registered. <a href="' . wp_logout_url(home_url('/')) . '">Log out</a></p>';
     }
     ob_start();
     ?>

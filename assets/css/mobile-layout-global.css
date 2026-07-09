@@ -1,0 +1,90 @@
+@media (max-width: 991px) {
+    :root {
+        --myavana-mobile-modal-gap: 8px;
+    }
+
+    html,
+    body {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    html body > footer,
+    html body #page > footer,
+    html body .site > footer,
+    html body .site-wrapper > footer,
+    html body footer#colophon,
+    html body [role="contentinfo"],
+    html body #colophon,
+    html body .site-footer,
+    html body .footer-container,
+    html body .footer-bottom,
+    html body .elementor-location-footer,
+    html body .elementor.elementor-location-footer {
+        display: none !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        max-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+
+    body {
+        padding-bottom: 50px;
+        padding-bottom: calc(50px + env(safe-area-inset-bottom));
+    }
+
+    body.myavana-global-tabs-visible {
+        padding-bottom: 100px;
+        padding-bottom: calc(100px + env(safe-area-inset-bottom));
+    }
+
+    body.myavana-offcanvas-open .myavana-luxury-nav,
+    body.myavana-offcanvas-open #myavanaGlobalNavbar {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        transform: translateY(-120%) !important;
+    }
+
+    html body .myavana-modal .myavana-modal-content,
+    html body .myavana-modal-content,
+    html body .myavana-share-modal-content,
+    html body .myavana-ci-collections-modal-content,
+    html body .myavana-ci-report-modal-content,
+    html body .myavana-ci-analytics-modal-content,
+    html body .myavana-saved-posts-modal-content,
+    html body .myavana-upm-content,
+    html body .myavana-modal-container,
+    html body .myavana-entry-modal-content,
+    html body .mya-modal,
+    html body .modal-content {
+        max-height: calc(100dvh - (var(--myavana-mobile-modal-gap) * 2));
+        margin-top: var(--myavana-mobile-modal-gap) !important;
+        margin-bottom: calc(var(--myavana-mobile-modal-gap) + env(safe-area-inset-bottom, 0px)) !important;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    html body .myavana-modal-footer,
+    html body .myavana-modal-actions,
+    html body .myavana-modal-buttons,
+    html body .modal-footer {
+        padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    html body .myavana-modal-close,
+    html body .myavana-share-close,
+    html body .close-modal,
+    html body .modal-close,
+    html body .myavana-close-btn {
+        min-width: 40px;
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+}

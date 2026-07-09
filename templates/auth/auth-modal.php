@@ -7,8 +7,6 @@
 
 if (!defined('ABSPATH')) exit;
 
-$bg_url = MYAVANA_URL . 'assets/images/auth-bg.jpg';
-
 // Debug output
 if (defined('WP_DEBUG') && WP_DEBUG) {
     echo '<!-- MYAVANA: Auth modal template loaded -->';
@@ -77,10 +75,16 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
         justify-content: center;
         animation: myavanaFadeIn 0.4s ease-out;
         font-family: 'Archivo', sans-serif;
+        padding: 20px;
+        overflow-y: auto;
     }
 
     .myavana-auth-modal.show {
         display: flex;
+    }
+
+    body.myavana-auth-open {
+        overflow: hidden;
     }
 
     @keyframes myavanaFadeIn {
@@ -140,11 +144,7 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
 
     .myavana-left-section {
         flex: 1;
-        background: linear-gradient(135deg, var(--myavana-coral) 0%, var(--myavana-light-coral) 100%),
-                    url('<?php echo esc_url($bg_url); ?>');
-        background-size: cover;
-        background-position: center;
-        background-blend-mode: soft-light;
+        background: var(--myavana-light-coral);
         position: relative;
         overflow: hidden;
         display: flex;
@@ -155,17 +155,7 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
     }
 
     .myavana-left-section::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(45deg,
-            rgba(231, 166, 144, 0.1) 0%,
-            rgba(252, 229, 215, 0.05) 50%,
-            rgba(74, 77, 104, 0.1) 100%);
-        opacity: 0.8;
+        display: none;
     }
 
     .myavana-floating-elements {
@@ -232,21 +222,12 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
         margin-bottom: 16px;
     }
 
-    .myavana-header-section .text {
-        font-family: 'Archivo Black', sans-serif;
-        font-size: 16px;
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        color: var(--myavana-onyx);
-    }
-
     .myavana-tagline {
         font-family: 'Archivo Black', sans-serif;
-        font-size: 32px;
+        font-size: 28px;
         font-weight: 900;
-        text-transform: uppercase;
-        margin-bottom: 40px;
+        text-transform: none;
+        margin-bottom: 28px;
         line-height: 1.2;
         color: var(--myavana-onyx);
         text-align: center;
@@ -284,6 +265,8 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
         padding: 60px 40px;
         position: relative;
         overflow-y: auto;
+        min-width: 0;
+        -webkit-overflow-scrolling: touch;
     }
 
     .myavana-auth-toggle {
@@ -406,6 +389,7 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
         display: flex;
         align-items: center;
         justify-content: center;
+        z-index: 2;
     }
 
     .myavana-password-toggle:hover {
@@ -655,6 +639,45 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
         to { transform: rotate(360deg); }
     }
 
+    .myavana-auth-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 18px 0;
+        color: rgba(74, 77, 104, 0.9);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .myavana-auth-divider::before,
+    .myavana-auth-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: rgba(74, 77, 104, 0.14);
+    }
+
+    .myavana-google-auth-wrap {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 20px;
+        justify-items: center;
+    }
+
+    .myavana-google-auth-slot {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    .myavana-google-auth-helper {
+        color: var(--myavana-blueberry);
+        font-size: 12px;
+        text-align: center;
+    }
+
     .myavana-forgot-link {
         text-align: center;
         color: var(--myavana-coral);
@@ -705,30 +728,39 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
 
     /* Mobile Responsive Design */
     @media (max-width: 768px) {
+        .myavana-auth-modal {
+            align-items: flex-start;
+            padding: 12px 12px calc(80px + env(safe-area-inset-bottom)) 12px;
+        }
+
         .myavana-modal-container {
-            width: 98%;
-            height: 95vh;
+            width: 100%;
+            max-height: calc(100dvh - 92px - env(safe-area-inset-bottom));
             flex-direction: column;
             border-radius: 12px;
         }
 
         .myavana-left-section {
-            padding: 30px 24px;
-            min-height: 250px;
+            padding: 24px 20px;
+            min-height: 160px;
+        }
+
+        .myavana-floating-elements {
+            display: none;
         }
 
         .myavana-tagline {
-            font-size: 24px;
-            margin-bottom: 30px;
+            font-size: 20px;
+            margin-bottom: 14px;
         }
 
         .myavana-features li {
-            font-size: 14px;
-            margin-bottom: 16px;
+            font-size: 13px;
+            margin-bottom: 10px;
         }
 
         .myavana-right-section {
-            padding: 30px 24px;
+            padding: 18px 16px 20px;
             justify-content: flex-start;
         }
 
@@ -736,19 +768,53 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
             min-height: auto;
         }
 
+        .myavana-auth-form {
+            position: relative;
+            opacity: 1;
+            visibility: visible;
+            transform: none;
+            display: none;
+        }
+
+        .myavana-auth-form.active {
+            display: block;
+        }
+
+        #myavanaForgotForm.active {
+            display: block !important;
+        }
+
+        .myavana-auth-toggle {
+            margin-bottom: 20px;
+        }
+
+        .myavana-auth-toggle button {
+            padding: 12px 10px;
+            font-size: 12px;
+        }
+
+        .myavana-form-group {
+            margin-bottom: 18px;
+        }
+
         .myavana-form-group input {
-            padding: 16px 18px;
+            padding: 14px 14px;
         }
 
         .myavana-submit-btn {
-            padding: 16px 20px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
         }
     }
 
     @media (max-width: 480px) {
+        .myavana-auth-modal {
+            padding: 0 0 calc(80px + env(safe-area-inset-bottom)) 0;
+        }
+
         .myavana-modal-container {
             width: 100%;
-            height: 100vh;
+            max-height: calc(100dvh - 80px - env(safe-area-inset-bottom));
             border-radius: 0;
         }
 
@@ -760,12 +826,16 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
         }
 
         .myavana-left-section {
-            padding: 24px 20px;
-            min-height: 200px;
+            padding: 20px 16px;
+            min-height: 132px;
+        }
+
+        .myavana-features {
+            display: none;
         }
 
         .myavana-right-section {
-            padding: 24px 20px;
+            padding: 16px 12px 20px;
         }
     }
 
@@ -810,7 +880,6 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
                         <img src="<?php echo esc_url(MYAVANA_URL); ?>assets/images/myavana-primary-logo.png"
                              alt="MYAVANA Logo" />
                     </span>
-                    <div class="text">✨ Hair Journey ✨</div>
                 </div>
 
                 <h2 class="myavana-tagline">Your Hair Journey Starts Here</h2>
@@ -868,6 +937,12 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
                     </div>
 
                     <button type="submit" class="myavana-submit-btn">Sign In to MYAVANA</button>
+
+                    <div class="myavana-auth-divider"><span>or continue with</span></div>
+                    <div class="myavana-google-auth-wrap">
+                        <div id="myavanaGoogleSignin" class="myavana-google-auth-slot"></div>
+                        <div class="myavana-google-auth-helper" data-google-auth-helper="signin" style="display:none;">Google sign-in is not available right now.</div>
+                    </div>
 
                     <a href="#" class="myavana-forgot-link" id="myavanaForgotLink">Forgot your password?</a>
                 </form>
@@ -931,10 +1006,16 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
 
                     <div class="myavana-checkbox-group">
                         <input type="checkbox" id="myavana-terms" name="terms" required aria-required="true" value="1">
-                        <label for="myavana-terms">I agree to the <a href="#" target="_blank" style="color: var(--myavana-coral);">Terms of Service</a> and <a href="#" target="_blank" style="color: var(--myavana-coral);">Privacy Policy</a></label>
+                        <label for="myavana-terms">I agree to the <a href="<?php echo esc_url(home_url('/terms/')); ?>" target="_blank" rel="noopener noreferrer" style="color: var(--myavana-coral);">Terms of Service</a> and <a href="<?php echo esc_url(home_url('/privacy/')); ?>" target="_blank" rel="noopener noreferrer" style="color: var(--myavana-coral);">Privacy Policy</a></label>
                     </div>
 
                     <button type="submit" class="myavana-submit-btn">Create My MYAVANA Account</button>
+
+                    <div class="myavana-auth-divider"><span>or continue with</span></div>
+                    <div class="myavana-google-auth-wrap">
+                        <div id="myavanaGoogleSignup" class="myavana-google-auth-slot"></div>
+                        <div class="myavana-google-auth-helper" data-google-auth-helper="signup" style="display:none;">Google sign-up is not available right now.</div>
+                    </div>
                 </form>
 
                 <!-- Forgot Password Form -->

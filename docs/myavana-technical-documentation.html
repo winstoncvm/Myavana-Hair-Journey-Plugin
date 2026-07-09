@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MYAVANA Hair Journey Technical Documentation</title>
+  <style>
+    @font-face {
+      font-family: "Archivo";
+      src: url("../assets/fonts/Archivo-Regular.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+    }
+
+    @font-face {
+      font-family: "Archivo";
+      src: url("../assets/fonts/Archivo-SemiBold.ttf") format("truetype");
+      font-weight: 600;
+      font-style: normal;
+    }
+
+    @font-face {
+      font-family: "Archivo";
+      src: url("../assets/fonts/Archivo-Bold.ttf") format("truetype");
+      font-weight: 700;
+      font-style: normal;
+    }
+
+    @font-face {
+      font-family: "Archivo Expanded";
+      src: url("../assets/fonts/Archivo_Expanded-Black.ttf") format("truetype");
+      font-weight: 900;
+      font-style: normal;
+    }
+
+    :root {
+      --onyx: #222323;
+      --coral: #e7a690;
+      --coral-soft: #fce5d7;
+      --stone: #f5f5f7;
+      --sand: #eeece1;
+      --blueberry: #4a4d68;
+      --blueberry-soft: rgba(74, 77, 104, 0.08);
+      --green: #7eab8a;
+      --white: #ffffff;
+      --border: rgba(34, 35, 35, 0.12);
+      --text-soft: rgba(34, 35, 35, 0.7);
+      --shadow: 0 16px 38px rgba(34, 35, 35, 0.08);
+      --shadow-soft: 0 8px 20px rgba(34, 35, 35, 0.06);
+    }
+
+    @page {
+      size: Letter;
+      margin: 0.65in;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    html {
+      background: var(--stone);
+    }
+
+    body {
+      margin: 0;
+      font-family: "Archivo", sans-serif;
+      color: var(--onyx);
+      background:
+        radial-gradient(circle at top left, rgba(231, 166, 144, 0.18), transparent 24%),
+        radial-gradient(circle at top right, rgba(74, 77, 104, 0.08), transparent 22%),
+        linear-gradient(180deg, #fafafa 0%, var(--stone) 100%);
+      line-height: 1.55;
+      font-size: 10.5pt;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+
+    .cover {
+      min-height: 9.4in;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 28px;
+      background:
+        radial-gradient(circle at 8% 10%, rgba(252, 229, 215, 0.9), transparent 20%),
+        radial-gradient(circle at 88% 18%, rgba(74, 77, 104, 0.14), transparent 24%),
+        linear-gradient(145deg, rgba(255,255,255,0.96) 0%, rgba(245,245,247,0.98) 45%, rgba(238,236,225,0.94) 100%);
+      box-shadow: var(--shadow);
+      padding: 0.7in;
+    }
+
+    .cover::before,
+    .cover::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      transform: rotate(-12deg);
+      pointer-events: none;
+    }
+
+    .cover::before {
+      width: 360px;
+      height: 360px;
+      right: -80px;
+      top: -120px;
+      background: linear-gradient(180deg, rgba(231, 166, 144, 0.22), rgba(231, 166, 144, 0.04));
+    }
+
+    .cover::after {
+      width: 280px;
+      height: 280px;
+      left: -120px;
+      bottom: -90px;
+      background: linear-gradient(180deg, rgba(74, 77, 104, 0.14), rgba(74, 77, 104, 0.02));
+    }
+
+    .cover-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-lockup img {
+      width: 190px;
+      height: auto;
+      display: block;
+      margin-bottom: 14px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(231, 166, 144, 0.18);
+      border: 1px solid rgba(231, 166, 144, 0.45);
+      color: #9f553f;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 8pt;
+      font-weight: 700;
+    }
+
+    .cover-title {
+      margin: 42px 0 16px;
+      font-family: "Archivo Expanded", "Archivo", sans-serif;
+      font-size: 25pt;
+      line-height: 1.08;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      max-width: 6.6in;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cover-subtitle {
+      max-width: 6.2in;
+      font-size: 12pt;
+      color: var(--text-soft);
+      margin: 0 0 26px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cover-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 0.95fr;
+      gap: 22px;
+      position: relative;
+      z-index: 1;
+      margin-top: 18px;
+    }
+
+    .glass-card {
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.6);
+      border-radius: 24px;
+      box-shadow: var(--shadow-soft);
+      padding: 22px;
+    }
+
+    .cover-list {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .cover-list li {
+      margin-bottom: 8px;
+    }
+
+    .meta-stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .meta-item {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(74, 77, 104, 0.06);
+      border: 1px solid rgba(74, 77, 104, 0.12);
+    }
+
+    .meta-label {
+      display: block;
+      font-size: 8pt;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--blueberry);
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    .meta-value {
+      font-size: 11pt;
+      font-weight: 700;
+    }
+
+    .section {
+      margin-top: 22px;
+      padding: 22px 24px;
+      background: rgba(255,255,255,0.84);
+      border: 1px solid rgba(255,255,255,0.9);
+      border-radius: 26px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(34,35,35,0.08);
+    }
+
+    .section-kicker {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 8pt;
+      color: var(--blueberry);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    h2 {
+      margin: 0;
+      font-family: "Archivo Expanded", "Archivo", sans-serif;
+      font-size: 18pt;
+      line-height: 1.1;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    h3 {
+      margin: 0 0 10px;
+      font-size: 11.5pt;
+      line-height: 1.25;
+    }
+
+    p {
+      margin: 0 0 10px;
+    }
+
+    .lede {
+      color: var(--text-soft);
+      max-width: 6.8in;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .three-col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 8pt;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: var(--coral-soft);
+      border: 1px solid rgba(231,166,144,0.4);
+      color: #9f553f;
+    }
+
+    .callout {
+      border-radius: 20px;
+      padding: 16px 18px;
+      margin: 14px 0 0;
+      border: 1px solid rgba(74,77,104,0.12);
+      background: linear-gradient(145deg, rgba(74,77,104,0.05), rgba(255,255,255,0.9));
+    }
+
+    .callout strong {
+      color: var(--blueberry);
+    }
+
+    .surface-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .surface-card {
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(245,245,247,0.82));
+      padding: 16px;
+      min-height: 170px;
+    }
+
+    .surface-card ul,
+    .content-card ul {
+      margin: 8px 0 0;
+      padding-left: 18px;
+    }
+
+    .surface-card li,
+    .content-card li {
+      margin-bottom: 6px;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .flow-step {
+      padding: 14px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(252,229,215,0.72));
+      border: 1px solid rgba(231,166,144,0.35);
+      min-height: 120px;
+      position: relative;
+    }
+
+    .flow-step::after {
+      content: "→";
+      position: absolute;
+      right: -12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--coral);
+      font-size: 16pt;
+      font-weight: 700;
+    }
+
+    .flow-step:last-child::after {
+      display: none;
+    }
+
+    .flow-index {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--blueberry);
+      color: var(--white);
+      font-size: 8.5pt;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 9.1pt;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 10px 10px;
+      vertical-align: top;
+      border-bottom: 1px solid rgba(34,35,35,0.08);
+    }
+
+    th {
+      color: var(--blueberry);
+      font-size: 8.3pt;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: rgba(74,77,104,0.04);
+    }
+
+    code,
+    .mono {
+      font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 8.4pt;
+      background: rgba(74,77,104,0.08);
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+
+    pre {
+      margin: 12px 0 0;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(34,35,35,0.96), rgba(50,52,52,0.96));
+      color: #f6f6f6;
+      font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 8.2pt;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .content-card {
+      border: 1px solid rgba(34,35,35,0.08);
+      border-radius: 18px;
+      padding: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(245,245,247,0.8));
+    }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .stat-band {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .stat-box {
+      padding: 14px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(252,229,215,0.72));
+      border: 1px solid rgba(231,166,144,0.3);
+    }
+
+    .stat-box strong {
+      display: block;
+      font-size: 16pt;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .footnote {
+      margin-top: 12px;
+      color: var(--text-soft);
+      font-size: 8.8pt;
+    }
+
+    .small {
+      font-size: 9pt;
+      color: var(--text-soft);
+    }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <div class="cover-top">
+      <div class="brand-lockup">
+        <img src="../assets/images/myavana-primary-logo.png" alt="MYAVANA logo">
+        <span class="eyebrow">Technical Documentation</span>
+      </div>
+      <div class="glass-card" style="max-width: 2.65in;">
+        <div class="meta-stack">
+          <div class="meta-item">
+            <span class="meta-label">Plugin Version</span>
+            <div class="meta-value">2.6.5</div>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Audit Date</span>
+            <div class="meta-value">March 13, 2026</div>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Document Scope</span>
+            <div class="meta-value">Site + WordPress Plugin</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h1 class="cover-title">MYAVANA Hair Journey Platform and Plugin Architecture</h1>
+    <p class="cover-subtitle">
+      Detailed technical reference for the production-ready MYAVANA Hair Journey experience, including page architecture,
+      shortcode composition, data storage, authentication, AI integrations, community systems, gamification, and deployment behavior.
+    </p>
+
+    <div class="cover-grid">
+      <div class="glass-card">
+        <h3>What This Document Covers</h3>
+        <ul class="cover-list">
+          <li>WordPress bootstrap, hooks, shortcode routing, and asset orchestration</li>
+          <li>Site pages: Home, My Timeline, Profile, Community, Goals, and Routines</li>
+          <li>User authentication, Google Sign-In, onboarding, and protected route behavior</li>
+          <li>Hair journey entry lifecycle, AJAX save flow, media handling, and view composition</li>
+          <li>Custom tables, post/meta storage, social schema, and gamification schema</li>
+          <li>AI analysis, hairstyle preview generation, analytics capture, and admin intelligence</li>
+        </ul>
+      </div>
+      <div class="glass-card">
+        <h3>Source Audit Basis</h3>
+        <p class="small">
+          This documentation is derived from the plugin source itself, centered on
+          <span class="mono">myavana-hair-journey.php</span>,
+          <span class="mono">includes/</span>,
+          <span class="mono">actions/</span>,
+          and the page/partial templates under <span class="mono">templates/</span>.
+        </p>
+        <div class="callout">
+          <strong>Primary architectural style:</strong> shortcode-driven WordPress application with modular PHP templates,
+          AJAX-heavy workflows, user-meta backed journey state, custom social/gamification tables, and branded frontend bundles.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section page-break">
+    <div class="section-header">
+      <div>
+        <div class="section-kicker">System Snapshot</div>
+        <h2>Platform Summary</h2>
+      </div>
+      <span class="pill">Production Ready</span>
+    </div>
+    <p class="lede">
+      The MYAVANA Hair Journey platform is implemented as a feature-rich WordPress plugin that turns a standard WP site into a
+      logged-in hair wellness application. The plugin owns the customer-facing product surface, authentication modal, onboarding,
+      journey logging, goal/routine management, unified profile, AI features, community feed, and internal intelligence dashboards.
+    </p>
+
+    <div class="stat-band">
+      <div class="stat-box">
+        <strong>6</strong>
+        Core primary pages in the user-facing experience: Home, My Timeline, Profile, Community, Goals, Routines.
+      </div>
+      <div class="stat-box">
+        <strong>20+</strong>
+        Shortcodes registered to map feature surfaces into pages and reusable containers.
+      </div>
+      <div class="stat-box">
+        <strong>3</strong>
+        Major storage models: WordPress posts/meta, user meta, and custom Myavana tables.
+      </div>
+      <div class="stat-box">
+        <strong>4</strong>
+        Primary interaction pillars: Journey, AI, Community, Gamification.
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Core architectural decision:</strong> the plugin deliberately mixes modern application behavior with WordPress-native
+      primitives. Journey entries are persisted as a custom post type, long-lived personalized state sits in user meta, and
+      high-volume or relational features such as social activity and gamification are stored in dedicated custom tables.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-kicker">User Surface</div>
+        <h2>Site Pages and User Capabilities</h2>
+      </div>
+    </div>
+
+    <div class="surface-grid">
+      <div class="surface-card">
+        <h3>Home</h3>
+        <p>Marketing and launch surface driven by premium MYAVANA styling and entry points into authentication and analysis.</p>
+        <ul>
+          <li>Guest conversion surface</li>
+          <li>Modal-driven sign in / sign up</li>
+          <li>Launch into onboarding and first-entry experience</li>
+          <li>Supports domain-based production entry and Google auth</li>
+        </ul>
+      </div>
+      <div class="surface-card">
+        <h3>My Timeline / Hair Journey</h3>
+        <p>Primary logged-in workspace for entries, goals, routines, analytics summaries, and AI-informed progress review.</p>
+        <ul>
+          <li>Timeline, calendar, and list views</li>
+          <li>Create/edit offcanvas forms for entries, goals, and routines</li>
+          <li>Media-backed entry logging</li>
+          <li>Quick launch for first entry after onboarding</li>
+        </ul>
+      </div>
+      <div class="surface-card">
+        <h3>Profile</h3>
+        <p>Unified personal dashboard combining identity, community stats, hair profile data, and AI/gamification summaries.</p>
+        <ul>
+          <li>Hair profile and community profile integration</li>
+          <li>Completion score and suggested next actions</li>
+          <li>Snapshot history and insight summaries</li>
+          <li>Owner-aware editing behavior</li>
+        </ul>
+      </div>
+      <div class="surface-card">
+        <h3>Community</h3>
+        <p>Social layer for sharing entries, discovering other users, following creators, reacting to posts, and participating in circles.</p>
+        <ul>
+          <li>Discover and following modes</li>
+          <li>Profile widget and user stats</li>
+          <li>Search, media filtering, and circle filters</li>
+          <li>Entry-to-community publishing</li>
+        </ul>
+      </div>
+      <div class="surface-card">
+        <h3>Goals</h3>
+        <p>Goal management layer backed by structured user meta and milestone-aware reward handling.</p>
+        <ul>
+          <li>Structured goal objects</li>
+          <li>Progress history and milestone tracking</li>
+          <li>Target dates, categories, priorities, and metrics</li>
+          <li>Reward hooks at 25/50/75/100 percent</li>
+        </ul>
+      </div>
+      <div class="surface-card">
+        <h3>Routines</h3>
+        <p>Routine planning and completion tracking with due-today logic, completion history, and performance summaries.</p>
+        <ul>
+          <li>Routine frequency normalization</li>
+          <li>Due-date calculation and completion map</li>
+          <li>Step-based routines</li>
+          <li>Bridge into timeline and community library</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section page-break">
+    <div class="section-header">
+      <div>
+        <div class="section-kicker">Bootstrap</div>
+        <h2>Plugin Entry Architecture</h2>
+      </div>
+    </div>
+
+    <p class="lede">
+      The plugin bootstraps from <span class="mono">myavana-hair-journey.php</span>. This file registers the plugin, loads supporting
+      includes/actions/templates, instantiates the main application class, and coordinates page creation, script loading, navigation,
+      protection rules, and legal page seeding.
+    </p>
+
+    <pre>
+Plugin file
+  ├─ loads includes/ (auth, AI, data, analytics, errors, social, gamification)
+  ├─ loads actions/ (entries, goals/routines, community, insights, dashboard handlers)
+  ├─ loads templates/ page shortcode implementations
+  ├─ instantiates Myavana_Hair_Journey
+  ├─ activates default pages on plugin activation
+  ├─ registers shortcodes on init
+  ├─ enqueues global + page-specific assets
+  ├─ renders navigation, preloader, mobile tabs
+  └─ enforces access and logout behavior
+    </pre>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Bootstrap Concern</th>
+          <th>Implementation</th>
+          <th>Observed Behavior</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Main runtime</td>
+          <td><span class="mono">class Myavana_Hair_Journey</span></td>
+          <td>Central orchestrator for hooks, activation, assets, navigation, and protected route behavior.</td>
+        </tr>
+        <tr>
+          <td>Activation</td>
+          <td><span class="mono">register_activation_hook(..., activate)</span></td>
+          <td>Creates baseline profile table and seeds default pages containing shortcodes.</td>
+        </tr>
+        <tr>
+          <td>Page seeding</td>
+          <td><span class="mono">get_default_pages()</span></td>
+          <td>Creates Login, Register, Profile, Timeline, Goals, Routines, Add Entry, Try-On, Hair Insights, Privacy, and Terms pages.</td>
+        </tr>
+        <tr>
+          <td>Legal page safety</td>
+          <td><span class="mono">maybe_seed_legal_pages()</span></td>
+          <td>Ensures privacy and terms pages exist for active admin sessions even if activation-time creation was missed.</td>
+        </tr>
+        <tr>
+          <td>Protected routes</td>
+          <td><span class="mono">template_redirect</span> enforcement</td>
+          <td>Restricts authenticated app surfaces to signed-in users while preserving a guest-facing homepage/auth path.</td>
+        </tr>
+        <tr>
+          <td>Logout behavior</td>
+          <td><span class="mono">logout_redirect</span> filter</td>
+          <td>Redirects users back to the site homepage instead of a stock WP login endpoint.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-kicker">Routing</div>
+        <h2>Shortcode and Page Composition Model</h2>
+      </div>
+    </div>
+
+    <p class="lede">
+      The product is page-composed through shortcodes registered by <span class="mono">includes/shortcodes.php</span>.
+      This creates a WordPress-native routing layer where editable pages can host complex application modules.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Shortcode</th>
+          <th>Primary Surface</th>
+          <th>Function Target</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="mono">[myavana_luxury_home]</span></td><td>Home</td><td><span class="mono">myavana_luxury_home_shortcode()</span></td></tr>
+        <tr><td><span class="mono">[myavana_hair-journey-page]</span></td><td>My Timeline / Hair Journey</td><td><span class="mono">myavana_hair_journey_page_shortcode()</span></td></tr>
+        <tr><td><span class="mono">[myavana_unified_profile]</span></td><td>Profile</td><td><span class="mono">myavana_unified_profile_shortcode()</span></td></tr>
+        <tr><td><span class="mono">[myavana_community_feed]</span></td><td>Community</td><td><span class="mono">myavana_community_feed_shortcode()</span></td></tr>
+        <tr><td><span class="mono">[myavana_goals_page]</span></td><td>Goals</td><td><span class="mono">myavana_goals_page_shortcode()</span></td></tr>
+        <tr><td><span class="mono">[myavana_routines_page]</span></td><td>Routines</td><td><span class="mono">myavana_routines_page_shortcode()</span></td></tr>
+        <tr><td><span class="mono">[myavana_login]</span></td><td>Legacy login page</td><td><span class="mono">myavana_login_shortcode()</span></td></tr>
+        <tr><td><span class="mono">[myavana_register]</span></td><td>Legacy registration page</td><td><span class="mono">myavana_register_shortcode()</span></td></tr>
+        <tr><td><span class="mono">[myavana_privacy_policy]</span></td><td>Privacy page</td><td><span class="mono">myavana_privacy_policy_shortcode()</span></td></tr>
+        <tr><td><span class="mono">[myavana_terms]</span></td><td>Terms page</td><td><span class="mono">myavana_terms_shortcode()</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>Operational advantage:</strong> this shortcode model gives non-developers page-level control inside WordPress while allowing
+      developers to keep feature implementations modular in PHP templates and JS/CSS bundles.
+    </div>
+  </section>
+
+  <section class="section page-break">
+    <div class="section-header">
+      <div>
+        <div class="section-kicker">Identity</div>
+        <h2>Authentication and Onboarding</h2>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="content-card">
+        <h3>Authentication Runtime</h3>
+        <p><span class="mono">includes/myavana-auth-system.php</span> encapsulates the auth stack.</p>
+        <ul>
+          <li>Admin settings page for modal behavior, onboarding, auto-approval, and Google auth</li>
+          <li>Frontend auth modal injected via <span class="mono">wp_footer</span></li>
+          <li>AJAX handlers for standard auth, Google auth, password reset, onboarding save/step/skip/reset, and onboarding triggers</li>
+          <li>Rewrite-backed password reset route handling</li>
+          <li>Registration hooks and login hooks for onboarding state management</li>
+        </ul>
+      </div>
+      <div class="content-card">
+        <h3>Google Auth Model</h3>
+        <ul>
+          <li>Configured as a web client ID in plugin settings</li>
+          <li>Uses Google Sign-In through frontend JavaScript origin validation, not a redirect URI callback flow</li>
+          <li>Server endpoint: <span class="mono">myavana_google_auth</span></li>
+          <li>Onboarding can trigger after Google registration/sign-in for pending users</li>
+          <li>Designed to keep users in the MYAVANA modal flow instead of WP login screens</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-index">1</div>
+        Guest lands on Home or other enabled surface and the auth modal system is eligible to render.
+      </div>
+      <div class="flow-step">
+        <div class="flow-index">2</div>
+        User signs in via email/password or Google Sign-In from the branded modal.
+      </div>
+      <div class="flow-step">
+        <div class="flow-index">3</div>
+        Server validates user state, creates or locates the account, and returns onboarding trigger state.
+      </div>
+      <div class="flow-step">
+        <div class="flow-index">4</div>
+        Onboarding persists hair profile and preference data through AJAX step handlers.
+      </div>
+      <div class="flow-step">
+        <div class="flow-index">5</div>
+        User is redirected into the app surface with first-entry launch support and homepage-safe logout behavior.
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Default behavior as audited:</strong> onboarding is enabled by default when no explicit option override exists, and Google auth
+      has been integrated into the same onboarding-aware auth lifecycle as native registration.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-kicker">Journey Core</div>
+        <h2>Hair Journey Page Architecture</h2>
+      </div>
+    </div>
+
+    <p class="lede">
+      The My Timeline page is assembled by <span class="mono">templates/pages/hair-journey.php</span>. It is a logged-in-only workspace
+      built from shared data retrieved once through <span class="mono">Myavana_Data_Manager::get_journey_data()</span>, then rendered
+      through smaller partials.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Partial</th>
+          <th>Purpose</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="mono">header-and-sidebar.php</span></td>
+          <td>Navigation, sidebar summaries, global controls</td>
+          <td>Works with shared analytics, profile, and gamification data.</td>
+        </tr>
+        <tr>
+          <td><span class="mono">timeline-area.php</span></td>
+          <td>Main journey content wrapper</td>
+          <td>Hosts timeline, calendar, and list view containers plus actions.</td>
+        </tr>
+        <tr>
+          <td><span class="mono">view-offcanvas.php</span></td>
+          <td>Detail viewer offcanvas</td>
+          <td>Supports entry/goal/routine inspection from timeline interactions.</td>
+        </tr>
+        <tr>
+          <td><span class="mono">create-offcanvas.php</span></td>
+          <td>Create/edit forms</td>
+          <td>Handles entry, goal, and routine form UX with AJAX submission.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="matrix">
+      <div class="content-card">
+        <h3>View Modes</h3>
+        <ul>
+          <li><strong>Timeline:</strong> editorial card-based chronology with entry, goal, and routine blocks</li>
+          <li><strong>Calendar:</strong> date-centric review of activity</li>
+          <li><strong>List:</strong> denser chronological scanning view</li>
+        </ul>
+      </div>
+      <div class="content-card">
+        <h3>Launch Enhancements</h3>
+        <ul>
+          <li>Welcome banner and first-entry auto-open via query flags</li>
+          <li>Preloaded <span class="mono">window.myavanaEntryCache</span> to reduce follow-up fetches</li>
+          <li>Analysis limit awareness via shared data manager payload</li>
+          <li>Journey launch state persisted in user meta for onboarding handoff</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section page-break">
+    <div class="section-header">
+      <div>
+        <div class="section-kicker">Entry Flow</div>
+        <h2>Hair Journey Entry Lifecycle</h2>
+      </div>
+    </div>
+
+    <p class="lede">
+      Entries are the central unit of the platform. They are stored as WordPress posts of type
+      <span class="mono">hair_journey_entry</span> and enriched through post meta plus attachment relationships for images and video.
+    </p>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-index">1</div>
+        User opens the create offcanvas from My Timeline, onboarding handoff, or contextual action buttons.
+      </div>
+      <div class="flow-step">
+        <div class="flow-index">2</div>
+        Client validates only the intended lightweight requirements: title plus at least one image or video.
+      </div>
+      <div class="flow-step">
+        <div class="flow-index">3</div>
+        Form serializes explicit payload keys and sends <span class="mono">action=myavana_entry_action</span> to <span class="mono">admin-ajax.php</span>.
+      </div>
+      <div class="flow-step">
+        <div class="flow-index">4</div>
+        Server dispatches add vs update, creates/updates the post, processes attachments, sets thumbnail/gallery/video meta, and persists extra fields.
+      </div>
+      <div class="flow-step">
+        <div class="flow-index">5</div>
+        Timeline cache/state refreshes, the offcanvas closes, and gamification totals may be updated.
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Layer</th>
+          <th>File(s)</th>
+          <th>Responsibility</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Form UX</td>
+          <td><span class="mono">templates/pages/partials/create-offcanvas.php</span></td>
+          <td>Multi-tab entry form, previews, validation, explicit payload assembly, and submit interception.</td>
+        </tr>
+        <tr>
+          <td>Dispatch</td>
+          <td><span class="mono">actions/hair-entries.php</span></td>
+          <td><span class="mono">myavana_handle_entry_action()</span> routes add vs update by presence of <span class="mono">entry_id</span>.</td>
+        </tr>
+        <tr>
+          <td>Create / update persistence</td>
+          <td><span class="mono">templates/hair-diary-timeline-shortcode.php</span></td>
+          <td>Holds the active <span class="mono">myavana_add_entry()</span> and <span class="mono">myavana_update_entry()</span> implementations used by the dispatcher.</td>
+        </tr>
+        <tr>
+          <td>Modular timeline forms</td>
+          <td><span class="mono">assets/js/timeline/timeline-forms-new.js</span></td>
+          <td>Secondary timeline module that cooperates with HJN-owned forms and avoids duplicate submit binding.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>Current validated create rule:</strong> the front end and server were aligned so that manual entry creation requires a title
+      and at least one uploaded image or video. Rating is optional and no longer blocks creation.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-kicker">Structured Planning</div>
+        <h2>Goals and Routines Subsystems</h2>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="content-card">
+        <h3>Goals</h3>
+        <ul>
+          <li>Stored in user meta key <span class="mono">myavana_hair_goals_structured</span></li>
+          <li>Managed through <span class="mono">actions/goal-routine-handlers.php</span></li>
+          <li>Fields include title, description, category, priority, start/target dates, progress, measurement values, milestones, and notes</li>
+          <li>Progress milestone rewards are issued at 25/50/75/100 percent thresholds</li>
+          <li>Goal pages normalize categories, metrics, and status for a premium management dashboard</li>
+        </ul>
+      </div>
+      <div class="content-card">
+        <h3>Routines</h3>
+        <ul>
+          <li>Stored in user meta key <span class="mono">myavana_current_routine</span></li>
+          <li>Completion history stored in <span class="mono">myavana_routine_completions</span></li>
+          <li>Routines page computes normalized frequency classes such as daily, twice weekly, bi-weekly, monthly, and as needed</li>
+          <li>Supports reminder-day aware due-today logic and rolling completion analysis</li>
+          <li>Timeline and routines page share the same backing state, allowing direct cross-surface consistency</li>
+        </ul>
+      </div>
+    </div>
+
+    <pre>
+User Meta Backing
+  myavana_hair_goals_structured   -> array of structured goal records
+  myavana_current_routine         -> array of routine records
+  myavana_routine_completions     -> map: YYYY-MM-DD => [routine_ids]
+
+Operational Pattern
+  form submit -> AJAX handler -> sanitize / normalize -> update user meta -> optional reward check
+    </pre>
+  </section>
+
+  <section class="section page-break">
+    <div class="section-header">
+      <div>
+        <div class="section-kicker">Social Layer</div>
+        <h2>Community Architecture</h2>
+      </div>
+    </div>
+
+    <p class="lede">
+      Community capabilities are implemented as a relational subsystem in <span class="mono">includes/social-features.php</span>.
+      Unlike goals and routines, this layer is not stored in generic user meta because it requires multi-entity queries, counters,
+      follow relationships, bookmarks, and post-level interactions at scale.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Table</th>
+          <th>Purpose</th>
+          <th>Key Relationships</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="mono">myavana_community_posts</span></td><td>Community feed content</td><td>User-authored posts, source entry linkage, counts, media, privacy</td></tr>
+        <tr><td><span class="mono">myavana_post_likes</span></td><td>Like state</td><td>Unique <span class="mono">(post_id, user_id)</span></td></tr>
+        <tr><td><span class="mono">myavana_post_comments</span></td><td>Comments and replies</td><td>Post, user, optional parent comment</td></tr>
+        <tr><td><span class="mono">myavana_user_followers</span></td><td>Follow graph</td><td>Follower to following user relationship</td></tr>
+        <tr><td><span class="mono">myavana_community_challenges</span></td><td>Challenge catalog</td><td>Date ranges, rules, participation counts</td></tr>
+        <tr><td><span class="mono">myavana_challenge_participants</span></td><td>User challenge state</td><td>Challenge/user uniqueness, progress data</td></tr>
+        <tr><td><span class="mono">myavana_shared_entries</span></td><td>Journey-to-community mapping</td><td>One shared community post per source entry</td></tr>
+        <tr><td><span class="mono">myavana_shared_routines</span></td><td>Routine library</td><td>Shareable routines with metadata and engagement signals</td></tr>
+        <tr><td><span class="mono">myavana_post_bookmarks</span></td><td>Saved posts</td><td>Collection-aware bookmarking</td></tr>
+        <tr><td><span class="mono">myavana_notifications</span></td><td>Notification queue</td><td>User-scoped, read-tracked notification records</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>Community page behavior:</strong> the visible feed couples database-backed social objects with profile context,
+      discovery filters, search, circles, following mode, and direct entry-sharing actions. This gives the product a social graph
+      without forcing the journey model itself into a social-table-first design.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-kicker">Rewards</div>
+        <h2>Gamification and Engagement Engine</h2>
+      </div>
+    </div>
+
+    <p class="lede">
+      <span class="mono">includes/gamification.php</span> provides a dedicated engagement subsystem with its own schema versioning,
+      runtime migration checks, reward lookups, stats synchronization, badges, points history, insights, and AI tip storage.
+    </p>
+
+    <div class="three-col">
+      <div class="content-card">
+        <h3>Progress Tracking</h3>
+        <ul>
+          <li>Daily check-ins</li>
+          <li>Current and longest streak</li>
+          <li>Total entries and AI analyses</li>
+          <li>User level and XP progress</li>
+        </ul>
+      </div>
+      <div class="content-card">
+        <h3>Reward Objects</h3>
+        <ul>
+          <li>Default seeded badges</li>
+          <li>Points history by event key</li>
+          <li>Unlocked insights</li>
+          <li>Recent rewards / recent badges</li>
+        </ul>
+      </div>
+      <div class="content-card">
+        <h3>Operational Hooks</h3>
+        <ul>
+          <li>Goal progress milestone rewards</li>
+          <li>Entry media reward paths</li>
+          <li>Quest/challenge scaffolding</li>
+          <li>User summary retrieval for dashboards</li>
+        </ul>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Gamification Table</th>
+          <th>Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="mono">myavana_daily_checkins</span></td><td>Calendar-based engagement and streak events</td></tr>
+        <tr><td><span class="mono">myavana_user_stats</span></td><td>User aggregate points, streaks, totals, level</td></tr>
+        <tr><td><span class="mono">myavana_badges</span></td><td>Badge catalog definitions</td></tr>
+        <tr><td><span class="mono">myavana_user_badges</span></td><td>User-earned badge state</td></tr>
+        <tr><td><span class="mono">myavana_points_history</span></td><td>Audit log of reward changes by event key</td></tr>
+        <tr><td><span class="mono">myavana_insights</span></td><td>Unlockable insight catalog</td></tr>
+        <tr><td><span class="mono">myavana_user_insights</span></td><td>User insight unlock record</td></tr>
+        <tr><td><span class="mono">myavana_ai_tips</span></td><td>Served AI tips and click tracking</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section page-break">
+    <div class="section-header">
+      <div>
+        <div class="section-kicker">AI Layer</div>
+        <h2>AI, Recommendations, and Generated Media</h2>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="content-card">
+        <h3>Gemini-Based Services</h3>
+        <ul>
+          <li><span class="mono">Myavana_AI</span> is the core AI service wrapper</li>
+          <li>Image preview model: <span class="mono">gemini-2.0-flash-preview-image-generation</span></li>
+          <li>Text/vision analysis model: <span class="mono">gemini-2.0-flash</span></li>
+          <li>API keys are read from WordPress options, not hardcoded constants</li>
+          <li>Daily per-user usage caps are enforced via user meta counters</li>
+        </ul>
+      </div>
+      <div class="content-card">
+        <h3>AI Capabilities in Product</h3>
+        <ul>
+          <li>Hairstyle preview generation from uploaded images</li>
+          <li>Comprehensive hair analysis from photo input</li>
+          <li>Auto-generated journey entries from AI analysis paths</li>
+          <li>Insight summaries in profile and analytics surfaces</li>
+          <li>AI-assisted product/style metadata extraction</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Implementation note:</strong> generated AI results do not live only as transient UI artifacts. The system can persist
+      relevant analysis output back into post meta, user profile snapshots, and journey history, which is critical for longitudinal
+      progress views and recommendation continuity.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-kicker">Storage Model</div>
+        <h2>Data Persistence Strategy</h2>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Storage Type</th>
+          <th>Used For</th>
+          <th>Examples</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Custom post type + post meta</td>
+          <td>Hair journey entries and attached media</td>
+          <td><span class="mono">hair_journey_entry</span>, <span class="mono">health_rating</span>, <span class="mono">mood_demeanor</span>, <span class="mono">_entry_gallery</span>, <span class="mono">_entry_videos</span></td>
+        </tr>
+        <tr>
+          <td>User meta</td>
+          <td>User-scoped personalized state</td>
+          <td>Goals, routines, onboarding progress, typeform data, first-entry prefill, analysis usage, routine completions</td>
+        </tr>
+        <tr>
+          <td>Custom relational tables</td>
+          <td>Analytics, profiles, social features, gamification</td>
+          <td><span class="mono">myavana_profiles</span>, <span class="mono">myavana_site_analytics</span>, community tables, gamification tables</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="matrix">
+      <div class="content-card">
+        <h3>Profile/Analytics Base Tables</h3>
+        <ul>
+          <li><span class="mono">myavana_profiles</span></li>
+          <li><span class="mono">myavana_conversations</span></li>
+          <li><span class="mono">myavana_site_analytics</span></li>
+        </ul>
+      </div>
+      <div class="content-card">
+        <h3>Important User Meta Keys</h3>
+        <ul>
+          <li><span class="mono">myavana_hair_goals_structured</span></li>
+          <li><span class="mono">myavana_current_routine</span></li>
+          <li><span class="mono">myavana_routine_completions</span></li>
+          <li><span class="mono">myavana_hair_analysis_history</span></li>
+          <li><span class="mono">myavana_first_entry_prefill</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <pre>
+Storage Heuristic
+  If the entity is editorial and timeline-visible -> custom post type + post meta
+  If the entity is private, per-user, and array-friendly -> user meta
+  If the entity requires joins, counters, or social graph behavior -> custom table
+    </pre>
+  </section>
+
+  <section class="section page-break">
+    <div class="section-header">
+      <div>
+        <div class="section-kicker">Assets</div>
+        <h2>Frontend Bundle and UI Module Strategy</h2>
+      </div>
+    </div>
+
+    <p class="lede">
+      The frontend is heavily asset-driven. The main plugin class enqueues a shared visual foundation, then conditionally loads page-
+      specific bundles such as the home page, global navbar, timeline modules, Select2, FilePond, Splide, and AI modal assets.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Bundle Group</th>
+          <th>Representative Assets</th>
+          <th>Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Brand foundation</td>
+          <td><span class="mono">assets/css/myavana-styles.css</span>, global fonts</td>
+          <td>Typography, tokens, visual baseline</td>
+        </tr>
+        <tr>
+          <td>Navigation</td>
+          <td><span class="mono">global-navbar.css</span>, <span class="mono">global-navbar.js</span>, mobile tabs</td>
+          <td>Cross-page navigation and mobile app-shell feel</td>
+        </tr>
+        <tr>
+          <td>Auth</td>
+          <td><span class="mono">myavana-auth-system.js</span>, auth modal template</td>
+          <td>Modal auth, Google sign-in, onboarding triggers</td>
+        </tr>
+        <tr>
+          <td>Timeline app</td>
+          <td><span class="mono">assets/js/timeline/*</span>, timeline partial CSS</td>
+          <td>State, offcanvas, navigation, list/timeline view, filters, comparison</td>
+        </tr>
+        <tr>
+          <td>Media UX</td>
+          <td>FilePond, image preview, Select2</td>
+          <td>Uploads, rich form controls, multi-select product behavior</td>
+        </tr>
+        <tr>
+          <td>Discovery/social</td>
+          <td><span class="mono">social-feed.js</span>, <span class="mono">share-to-community.js</span></td>
+          <td>Community feed behaviors and sharing interactions</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>Design implementation pattern:</strong> the plugin keeps page-level visual language intentionally branded and highly custom.
+      Rather than leaning on generic admin-looking forms, it uses editorial cards, glass surfaces, strong typography, and mobile-specific
+      layout overrides to preserve an app-like feel inside WordPress.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-kicker">Analytics and Admin</div>
+        <h2>Operational Intelligence Layer</h2>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="content-card">
+        <h3>Frontend Analytics Capture</h3>
+        <ul>
+          <li>AJAX tracking endpoint for event batches</li>
+          <li>Performance metrics ingestion endpoint</li>
+          <li>Session, path, title, device, viewport, and metadata capture</li>
+          <li>WebSocket auth token endpoint for realtime integrations</li>
+          <li>Component lazy-load endpoint for modular rendering</li>
+        </ul>
+      </div>
+      <div class="content-card">
+        <h3>Admin Intelligence</h3>
+        <ul>
+          <li>Dedicated Myavana admin menu and dashboard redirect</li>
+          <li>Overview, Executive, Growth, Community, Retention, AI Lab, Operations, and Gamification intelligence pages</li>
+          <li>Settings page for xAI, OpenAI, and Gemini credentials</li>
+          <li>Chart.js-backed dashboard visualizations</li>
+          <li>Role-filtered, date-filtered reporting helpers</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section page-break">
+    <div class="section-header">
+      <div>
+        <div class="section-kicker">Security</div>
+        <h2>Security and Reliability Patterns</h2>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Concern</th>
+          <th>Observed Pattern</th>
+          <th>Why It Matters</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>AJAX authorization</td>
+          <td>Nonce verification is used broadly across auth, journey, goals, routines, profile, and admin handlers.</td>
+          <td>Prevents cross-site request forgery on mutation endpoints.</td>
+        </tr>
+        <tr>
+          <td>Input sanitation</td>
+          <td>Use of <span class="mono">sanitize_text_field</span>, <span class="mono">sanitize_textarea_field</span>, integer bounds, and structured normalization.</td>
+          <td>Reduces malformed payloads and unsafe persistence.</td>
+        </tr>
+        <tr>
+          <td>User ownership checks</td>
+          <td>Entry update handlers verify post authorship; goal/routine handlers read from current user meta only.</td>
+          <td>Prevents cross-user modification of personalized data.</td>
+        </tr>
+        <tr>
+          <td>Route protection</td>
+          <td>Logged-in-only app pages return sign-in prompts or are protected during redirect handling.</td>
+          <td>Protects personal journey and community management surfaces.</td>
+        </tr>
+        <tr>
+          <td>Schema safety</td>
+          <td>Custom tables are created through <span class="mono">dbDelta</span>; some systems perform runtime schema checks and repairs.</td>
+          <td>Mitigates production drift across environments and plugin revisions.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>Important engineering note:</strong> the codebase currently contains some legacy overlap, especially around older diary/timeline
+      handlers and newer modular handlers. The active runtime works, but long-term maintenance will benefit from consolidating duplicated
+      entry-related endpoints into a single canonical implementation.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-kicker">Production</div>
+        <h2>Deployment and Configuration Checklist</h2>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Area</th>
+          <th>Required State</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Plugin version</td>
+          <td><span class="mono">2.6.5</span></td>
+          <td>Current audited build state.</td>
+        </tr>
+        <tr>
+          <td>Domain</td>
+          <td>Connected and serving the production WordPress instance</td>
+          <td>App shell and auth rely on correct origin behavior.</td>
+        </tr>
+        <tr>
+          <td>Google auth</td>
+          <td>Enabled with correct Web Client ID and JavaScript origin</td>
+          <td>Redirect URI is not needed for the current implementation.</td>
+        </tr>
+        <tr>
+          <td>API credentials</td>
+          <td>Gemini, OpenAI, and/or xAI keys stored in plugin settings as needed</td>
+          <td>AI features and admin intelligence depend on this configuration.</td>
+        </tr>
+        <tr>
+          <td>Legal pages</td>
+          <td><span class="mono">/privacy</span> and <span class="mono">/terms</span> exist</td>
+          <td>Plugin can seed them automatically for admins.</td>
+        </tr>
+        <tr>
+          <td>Database schema</td>
+          <td>Custom profile, social, gamification, analytics tables available</td>
+          <td>Runtime migrations help, but production should still be validated once.</td>
+        </tr>
+        <tr>
+          <td>Media uploads</td>
+          <td>WP uploads writable and attachment processing functioning</td>
+          <td>Entry creation now requires at least one uploaded image or video.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>Recommended launch smoke test:</strong> guest landing page, email signup, Google signup, onboarding completion, first entry
+      creation with media, goal creation, routine creation, timeline render on mobile, profile render, community share, logout redirect,
+      and AI modal invocation.
+    </div>
+  </section>
+
+  <section class="section page-break">
+    <div class="section-header">
+      <div>
+        <div class="section-kicker">File Map</div>
+        <h2>Core Source Locations</h2>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Path</th>
+          <th>Area</th>
+          <th>Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="mono">myavana-hair-journey.php</span></td><td>Bootstrap</td><td>Main plugin entry, activation, page seeding, asset orchestration</td></tr>
+        <tr><td><span class="mono">includes/shortcodes.php</span></td><td>Routing</td><td>Shortcode registry and dispatch surface</td></tr>
+        <tr><td><span class="mono">includes/myavana-auth-system.php</span></td><td>Identity</td><td>Auth modal, Google auth, onboarding, password reset</td></tr>
+        <tr><td><span class="mono">includes/class-myavana-data-manager.php</span></td><td>Data aggregation</td><td>Shared journey data retrieval and caching</td></tr>
+        <tr><td><span class="mono">includes/myavana_database_setup.php</span></td><td>Schema</td><td>Profiles, conversations, analytics table creation</td></tr>
+        <tr><td><span class="mono">includes/social-features.php</span></td><td>Community</td><td>Social schema and social AJAX features</td></tr>
+        <tr><td><span class="mono">includes/gamification.php</span></td><td>Rewards</td><td>Points, streaks, badges, insights, summary engine</td></tr>
+        <tr><td><span class="mono">includes/ai-integration.php</span></td><td>AI</td><td>Gemini-based hair analysis and preview generation</td></tr>
+        <tr><td><span class="mono">actions/hair-entries.php</span></td><td>Journey dispatch</td><td>Entry action routing and related AJAX handlers</td></tr>
+        <tr><td><span class="mono">actions/goal-routine-handlers.php</span></td><td>Goals/Routines</td><td>CRUD, progress history, rewards integration</td></tr>
+        <tr><td><span class="mono">templates/pages/hair-journey.php</span></td><td>Timeline page</td><td>Main logged-in journey composition layer</td></tr>
+        <tr><td><span class="mono">templates/pages/partials/create-offcanvas.php</span></td><td>Entry UX</td><td>Create/edit forms and HJN client runtime</td></tr>
+        <tr><td><span class="mono">templates/hair-diary-timeline-shortcode.php</span></td><td>Entry persistence</td><td>Active add/update entry implementations and media handling</td></tr>
+        <tr><td><span class="mono">templates/pages/goals.php</span></td><td>Goals page</td><td>Goal dashboard and management rendering</td></tr>
+        <tr><td><span class="mono">templates/pages/routines.php</span></td><td>Routines page</td><td>Routine dashboard and completion analysis</td></tr>
+        <tr><td><span class="mono">templates/pages/community/community-feed.php</span></td><td>Community page</td><td>Social discovery and feed UI</td></tr>
+        <tr><td><span class="mono">templates/pages/unified-profile.php</span></td><td>Profile page</td><td>Hair journey + community + rewards profile surface</td></tr>
+      </tbody>
+    </table>
+
+    <p class="footnote">
+      End of document. Generated from a direct source audit of the MYAVANA Hair Journey plugin and site implementation.
+    </p>
+  </section>
+</body>
+</html>

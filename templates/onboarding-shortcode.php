@@ -28,17 +28,17 @@ if ($completed) {
 <div class="myavana-onboarding-wrapper" id="myavanaOnboarding">
     <!-- Step 1: Hair Profile -->
     <div class="myavana-onboarding-step" id="onboardingStep1" data-step="1" style="display: none;">
-        <?php include MYAVANA_PATH . 'templates/onboarding/step-1-hair-profile.php'; ?>
+        <?php include MYAVANA_DIR . 'templates/onboarding/step-1-hair-profile.php'; ?>
     </div>
 
     <!-- Step 2: Hair Goals -->
     <div class="myavana-onboarding-step" id="onboardingStep2" data-step="2" style="display: none;">
-        <?php include MYAVANA_PATH . 'templates/onboarding/step-2-goals.php'; ?>
+        <?php include MYAVANA_DIR . 'templates/onboarding/step-2-goals.php'; ?>
     </div>
 
     <!-- Step 3: Routine -->
     <div class="myavana-onboarding-step" id="onboardingStep3" data-step="3" style="display: none;">
-        <?php include MYAVANA_PATH . 'templates/onboarding/step-3-routine.php'; ?>
+        <?php include MYAVANA_DIR . 'templates/onboarding/step-3-routine.php'; ?>
     </div>
 
     <!-- Loading State -->

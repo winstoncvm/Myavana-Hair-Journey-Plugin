@@ -43,9 +43,13 @@ MyavanaTimeline.Offcanvas = (function() {
         if (!currentViewOffcanvas) return;
 
         const overlay = document.getElementById('viewOffcanvasOverlay');
-        if (overlay) overlay.classList.remove('active');
+        if (overlay) {
+            overlay.classList.remove('active');
+            overlay.classList.remove('is-open');
+        }
 
         currentViewOffcanvas.classList.remove('active');
+        currentViewOffcanvas.classList.remove('is-open');
         document.body.style.overflow = '';
 
         setTimeout(() => {
@@ -62,12 +66,19 @@ MyavanaTimeline.Offcanvas = (function() {
         if (!currentOffcanvas) return;
 
         const overlay1 = document.getElementById('createOffcanvasOverlay');
-        if (overlay1) overlay1.classList.remove('active');
+        if (overlay1) {
+            overlay1.classList.remove('active');
+            overlay1.classList.remove('is-open');
+        }
 
         const overlay = document.getElementById('offcanvasOverlay') || document.getElementById('createOffcanvasOverlay');
-        if (overlay) overlay.classList.remove('active');
+        if (overlay) {
+            overlay.classList.remove('active');
+            overlay.classList.remove('is-open');
+        }
 
         currentOffcanvas.classList.remove('active');
+        currentOffcanvas.classList.remove('is-open');
         document.body.style.overflow = '';
 
         setTimeout(() => {
@@ -89,7 +100,7 @@ MyavanaTimeline.Offcanvas = (function() {
      * Reset all offcanvas forms to their default state
      */
     function resetOffcanvasForms() {
-        document.querySelectorAll('.offcanvas form').forEach(form => form.reset());
+        document.querySelectorAll('.offcanvas form, .offcanvas-hjn form').forEach(form => form.reset());
 
         State.set('selectedRating', 0);
         State.set('uploadedFiles', []);
@@ -140,6 +151,18 @@ MyavanaTimeline.Offcanvas = (function() {
     function openOffcanvas(type, id = null) {
         console.log('Opening offcanvas:', type, id);
 
+        // Prefer the new create-offcanvas controller when available.
+        if (window.HJN && typeof window.HJN.openOffcanvas === 'function') {
+            if (id && typeof id === 'object') {
+                window.HJN.openOffcanvas(type, id);
+                return;
+            }
+            if (id === null || typeof id === 'undefined') {
+                window.HJN.openOffcanvas(type, {});
+                return;
+            }
+        }
+
         const overlay = document.getElementById('createOffcanvasOverlay');
         let offcanvas;
 
@@ -173,11 +196,15 @@ MyavanaTimeline.Offcanvas = (function() {
                 return;
         }
 
-        if (offcanvas && overlay) {
+        if (offcanvas) {
             // Track the currently open create/edit offcanvas so the unified closer works
             State.set('currentOffcanvas', offcanvas);
-            overlay.classList.add('active');
+            if (overlay) {
+                overlay.classList.add('active');
+                overlay.classList.add('is-open');
+            }
             offcanvas.classList.add('active');
+            offcanvas.classList.add('is-open');
             document.body.style.overflow = 'hidden';
         }
     }
@@ -190,24 +217,47 @@ MyavanaTimeline.Offcanvas = (function() {
         if (!form) return;
 
         form.reset();
-        document.getElementById('entry_id').value = '';
-        document.getElementById('entryOffcanvasTitle').textContent = 'Add Hair Journey Entry';
+        const entryId = document.getElementById('entry_id');
+        if (entryId) entryId.value = '';
+        const titleEl = document.getElementById('entryOffcanvasTitle');
+        if (titleEl) titleEl.textContent = 'New Entry';
+        const subtitleEl = document.getElementById('entryOffcanvasSubtitle');
+        if (subtitleEl) subtitleEl.textContent = 'Log your hair care session';
 
         // Reset date to today
         const today = new Date().toISOString().split('T')[0];
-        document.getElementById('entry_date').value = today;
+        const dateEl = document.getElementById('entry_date');
+        if (dateEl) dateEl.value = today;
 
         // Reset rating stars
-        const stars = document.querySelectorAll('.rating-star-hjn');
-        stars.forEach(star => star.classList.remove('active'));
-        document.getElementById('health_rating').value = '0';
-        document.getElementById('health_rating_value').textContent = 'Not Rated';
+        const stars = document.querySelectorAll('.rating-star-hjn, #health_rating_stars .rating-star-hjn');
+        stars.forEach(star => {
+            star.classList.remove('active');
+            star.classList.remove('is-active');
+        });
+        const ratingEl = document.getElementById('health_rating');
+        if (ratingEl) ratingEl.value = '0';
+        const ratingLabel = document.getElementById('health_rating_label') || document.getElementById('health_rating_value');
+        if (ratingLabel) {
+            ratingLabel.textContent = 'Not yet rated';
+            ratingLabel.classList.remove('is-rated');
+        }
 
         // Clear FilePond
         const entryFilePond = State.get('entryFilePond');
         if (entryFilePond) {
             entryFilePond.removeFiles();
         }
+
+        const newPhotoGrid = document.getElementById('newMediaPreviewGrid');
+        if (newPhotoGrid) newPhotoGrid.innerHTML = '';
+        const newVideoGrid = document.getElementById('newVideoPreviewGrid');
+        if (newVideoGrid) newVideoGrid.innerHTML = '';
+
+        const existingImages = document.getElementById('existingImagesGallery');
+        if (existingImages) existingImages.style.display = 'none';
+        const existingVideos = document.getElementById('existingVideosGallery');
+        if (existingVideos) existingVideos.style.display = 'none';
     }
 
     /**
@@ -218,15 +268,20 @@ MyavanaTimeline.Offcanvas = (function() {
         if (!form) return;
 
         form.reset();
-        document.getElementById('goal_id').value = '';
-        document.getElementById('goalOffcanvasTitle').textContent = 'Create Hair Goal';
+        const goalId = document.getElementById('goal_id');
+        if (goalId) goalId.value = '';
+        const goalTitle = document.getElementById('goalOffcanvasTitle');
+        if (goalTitle) goalTitle.textContent = 'Create a Goal';
 
         // Reset progress
-        document.getElementById('goal_progress').value = '0';
-        document.getElementById('goal_progress_value').textContent = '0%';
+        const goalProgress = document.getElementById('goal_progress');
+        if (goalProgress) goalProgress.value = '0';
+        const goalProgressLabel = document.getElementById('goal_progress_value');
+        if (goalProgressLabel) goalProgressLabel.textContent = '0%';
 
         // Clear milestones
-        document.getElementById('milestones_list').innerHTML = '';
+        const milestones = document.getElementById('milestones_list');
+        if (milestones) milestones.innerHTML = '';
     }
 
     /**
@@ -237,8 +292,10 @@ MyavanaTimeline.Offcanvas = (function() {
         if (!form) return;
 
         form.reset();
-        document.getElementById('routine_id').value = '';
-        document.getElementById('routineOffcanvasTitle').textContent = 'Create Hair Routine';
+        const routineId = document.getElementById('routine_id');
+        if (routineId) routineId.value = '';
+        const routineTitle = document.getElementById('routineOffcanvasTitle');
+        if (routineTitle) routineTitle.textContent = 'Build a Routine';
     }
 
     /**

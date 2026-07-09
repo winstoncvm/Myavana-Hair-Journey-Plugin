@@ -327,7 +327,7 @@ function myavana_profile_shortcode($atts = []) {
             <div class="section-header">
                 <h2 class="section-title">Hair Analysis</h2>
                 <?php if ($is_owner && $can_analyze) : ?>
-                    <div class="section-edit" data-section="analysis">
+                    <div class="section-edit" data-section="analysis" onclick="window.location.href = (window.myavanaAiToolUrl || 'https://www.myavana.com/pages/consumer'); return false;">
                         <i class="fas fa-plus"></i>
                         <span>Add Analysis</span>
                     </div>
@@ -424,7 +424,7 @@ function myavana_profile_shortcode($atts = []) {
                             <p style="margin-bottom: 24px;">No hair analysis data available</p>
                             <?php if ($is_owner && $can_analyze) : ?>
                                 
-                                <button class="myavana-button-two" id="start-first-analysis">
+                                <button class="myavana-button-two" id="start-first-analysis" onclick="window.location.href = (window.myavanaAiToolUrl || 'https://www.myavana.com/pages/consumer'); return false;">
                                 <div class="default-btn">
                                     <span> Create First Analysis</span>
                                 </div>
@@ -503,7 +503,7 @@ function myavana_profile_shortcode($atts = []) {
                         <div class="checkbox-wrapper">
                             <input id="terms-agree" type="checkbox">
                             <label for="terms-agree"><div class="tick_mark"></div></label>
-                            <span class="myavana-checkbox-text">I agree to the <a href="/terms" target="_blank" style="color: var(--myavana-coral); font-weight: 600;">hair analysis terms of use</a> and understand my images are processed securely.</span>
+                            <span class="myavana-checkbox-text">I agree to the <a href="<?php echo esc_url(home_url('/terms/')); ?>" target="_blank" rel="noopener noreferrer" style="color: var(--myavana-coral); font-weight: 600;">hair analysis terms of use</a> and understand my images are processed securely.</span>
                         </div>
                         <p class="myavana-checkbox-desc">
                             <i class="fas fa-info-circle" style="margin-right: 8px; color: var(--myavana-coral);"></i>
@@ -1358,7 +1358,8 @@ function myavana_profile_shortcode($atts = []) {
 
     <?php
     // Enqueue external JavaScript files
-    wp_enqueue_script('myavana-profile-js', plugin_dir_url(dirname(__FILE__)) . 'assets/js/profile-shortcode.js', ['jquery'], '1.0.0', true);
+    $profile_js_version = defined('WP_DEBUG') && WP_DEBUG ? time() : '1.0.2';
+    wp_enqueue_script('myavana-profile-js', plugin_dir_url(dirname(__FILE__)) . 'assets/js/profile-shortcode.js', ['jquery'], $profile_js_version, true);
 
     // Localize scripts with AJAX data
     wp_localize_script('myavana-profile-js', 'myavanaProfileData', [
@@ -1377,14 +1378,14 @@ function myavana_profile_shortcode($atts = []) {
     ]);
 
     // Enqueue inline functionality that was moved to external file
-    wp_enqueue_script('myavana-profile-inline-js', plugin_dir_url(dirname(__FILE__)) . 'assets/js/profile-inline-functionality.js', ['jquery', 'myavana-profile-js'], '1.0.0', true);
+    wp_enqueue_script('myavana-profile-inline-js', plugin_dir_url(dirname(__FILE__)) . 'assets/js/profile-inline-functionality.js', ['jquery', 'myavana-profile-js'], $profile_js_version, true);
     ?>
          <script src="https://cdn.jsdelivr.net/npm/webcamjs@1.0.26/webcam.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/filepond-plugin-file-validate-type@1.2.8/dist/filepond-plugin-file-validate-type.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/filepond-plugin-file-validate-size@2.2.8/dist/filepond-plugin-file-validate-size.min.js"></script>
     <?php
     // Enqueue hair analysis JavaScript
-    wp_enqueue_script('myavana-hair-analysis-js', plugin_dir_url(dirname(__FILE__)) . 'assets/js/profile-hair-analysis.js', ['jquery', 'myavana-profile-js'], '1.0.0', true);
+    wp_enqueue_script('myavana-hair-analysis-js', plugin_dir_url(dirname(__FILE__)) . 'assets/js/profile-hair-analysis.js', ['jquery', 'myavana-profile-js'], $profile_js_version, true);
 
     // Localize script for hair analysis
     wp_localize_script('myavana-hair-analysis-js', 'myavanaAjax', [

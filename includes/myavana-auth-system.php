@@ -37,6 +37,10 @@ class Myavana_Auth_System {
         // AJAX handlers
         add_action('wp_ajax_nopriv_myavana_auth_submit', [$this, 'handle_auth_submit']);
         add_action('wp_ajax_myavana_auth_submit', [$this, 'handle_auth_submit']);
+        add_action('wp_ajax_nopriv_myavana_refresh_auth_nonce', [$this, 'handle_refresh_auth_nonce']);
+        add_action('wp_ajax_myavana_refresh_auth_nonce', [$this, 'handle_refresh_auth_nonce']);
+        add_action('wp_ajax_nopriv_myavana_google_auth', [$this, 'handle_google_auth']);
+        add_action('wp_ajax_myavana_google_auth', [$this, 'handle_google_auth']);
         add_action('wp_ajax_myavana_onboarding_step', [$this, 'handle_onboarding_step']);
         add_action('wp_ajax_myavana_skip_onboarding', [$this, 'handle_skip_onboarding']);
         add_action('wp_ajax_myavana_get_onboarding_progress', [$this, 'get_onboarding_progress']);
@@ -90,15 +94,24 @@ class Myavana_Auth_System {
     //     }
     // }
     private function load_options() {
-        $this->options = get_option('myavana_auth_options', [
+        $defaults = [
             'show_on_homepage' => true,
             'show_site_wide' => true,
             'delay_seconds' => 2,
             'show_once_per_session' => false,
             'auto_user_approval' => true,
-            'enable_onboarding' => false, // Change this to false
-            'onboarding_completion_reward' => 50
-        ]);
+            'enable_onboarding' => true,
+            'onboarding_completion_reward' => 50,
+            'enable_google_auth' => false,
+            'google_client_id' => ''
+        ];
+
+        $saved_options = get_option('myavana_auth_options', []);
+        if (!is_array($saved_options)) {
+            $saved_options = [];
+        }
+
+        $this->options = wp_parse_args($saved_options, $defaults);
     
         // Debug logging
         if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -186,6 +199,18 @@ class Myavana_Auth_System {
         add_settings_field('auto_user_approval', 'Auto-approve New Users',
             [$this, 'checkbox_callback'], 'myavana-auth-system', 'myavana_auth_user_section',
             ['name' => 'auto_user_approval', 'label' => 'Automatically approve new user registrations']);
+
+        add_settings_field('enable_google_auth', 'Enable Google Sign-In',
+            [$this, 'checkbox_callback'], 'myavana-auth-system', 'myavana_auth_user_section',
+            ['name' => 'enable_google_auth', 'label' => 'Allow users to sign in with Google']);
+
+        add_settings_field('google_client_id', 'Google Client ID',
+            [$this, 'text_callback'], 'myavana-auth-system', 'myavana_auth_user_section',
+            [
+                'name' => 'google_client_id',
+                'label' => 'Paste your Google OAuth Web Client ID',
+                'placeholder' => '1234567890-abc123def456.apps.googleusercontent.com'
+            ]);
     }
 
     public function modal_section_callback() {
@@ -197,7 +222,8 @@ class Myavana_Auth_System {
     }
 
     public function user_section_callback() {
-        echo '<p>Control user registration and approval workflow.</p>';
+        echo '<p>Control user registration, approval workflow, and Google sign-in.</p>';
+        echo '<p><strong>Authorized JavaScript origin:</strong> ' . esc_html(home_url()) . '</p>';
     }
 
     public function checkbox_callback($args) {
@@ -212,6 +238,13 @@ class Myavana_Auth_System {
         $max = isset($args['max']) ? $args['max'] : 100;
         echo '<input type="number" id="' . $args['name'] . '" name="myavana_auth_options[' . $args['name'] . ']" value="' . $value . '" min="' . $min . '" max="' . $max . '" />';
         echo '<label for="' . $args['name'] . '">' . $args['label'] . '</label>';
+    }
+
+    public function text_callback($args) {
+        $value = isset($this->options[$args['name']]) ? $this->options[$args['name']] : '';
+        $placeholder = isset($args['placeholder']) ? $args['placeholder'] : '';
+        echo '<input type="text" class="regular-text" id="' . esc_attr($args['name']) . '" name="myavana_auth_options[' . esc_attr($args['name']) . ']" value="' . esc_attr($value) . '" placeholder="' . esc_attr($placeholder) . '" />';
+        echo '<p class="description">' . esc_html($args['label']) . '</p>';
     }
 
     public function admin_page() {
@@ -312,6 +345,56 @@ class Myavana_Auth_System {
         }
     }
 
+    public function handle_google_auth() {
+        $nonce = sanitize_text_field(wp_unslash($_POST['nonce'] ?? ''));
+        if (!wp_verify_nonce($nonce, 'myavana_google_auth')) {
+            wp_send_json_error(['message' => 'Security check failed']);
+        }
+
+        if (empty($this->options['enable_google_auth']) || empty($this->options['google_client_id'])) {
+            wp_send_json_error(['message' => 'Google sign-in is not configured yet.']);
+        }
+
+        $credential = sanitize_text_field(wp_unslash($_POST['credential'] ?? ''));
+        if ($credential === '') {
+            wp_send_json_error(['message' => 'Missing Google credential.']);
+        }
+
+        $google_user = $this->verify_google_id_token($credential);
+        if (is_wp_error($google_user)) {
+            wp_send_json_error(['message' => $google_user->get_error_message()]);
+        }
+
+        $user = $this->find_or_create_google_user($google_user);
+        if (is_wp_error($user)) {
+            wp_send_json_error(['message' => $user->get_error_message()]);
+        }
+
+        wp_set_current_user($user->ID);
+        wp_set_auth_cookie($user->ID, true);
+
+        $onboarding_status = get_user_meta($user->ID, 'myavana_onboarding_status', true);
+        $trigger_onboarding = ($onboarding_status === 'pending' && !empty($this->options['enable_onboarding']));
+
+        if ($trigger_onboarding) {
+            update_user_meta($user->ID, 'myavana_show_onboarding', true);
+        }
+
+        $display_name = $user->display_name ?: $user->user_login;
+        wp_send_json_success([
+            'message' => "Welcome, {$display_name}!",
+            'user_id' => $user->ID,
+            'trigger_onboarding' => $trigger_onboarding
+        ]);
+    }
+
+    public function handle_refresh_auth_nonce() {
+        wp_send_json_success([
+            'nonce' => wp_create_nonce('myavana_auth_nonce'),
+            'google_nonce' => wp_create_nonce('myavana_google_auth'),
+        ]);
+    }
+
     private function handle_signin() {
         $login = sanitize_text_field($_POST['login'] ?? '');
         $password = wp_unslash($_POST['password'] ?? '');
@@ -381,8 +464,17 @@ class Myavana_Auth_System {
         // Track login
         $this->track_user_event($user->ID, 'login');
 
+        $onboarding_status = get_user_meta($user->ID, 'myavana_onboarding_status', true);
+        $trigger_onboarding = ($onboarding_status === 'pending' && !empty($this->options['enable_onboarding']));
+        if ($trigger_onboarding) {
+            update_user_meta($user->ID, 'myavana_show_onboarding', true);
+        }
+
         $display_name = $user->display_name ?: $user->user_login;
-        wp_send_json_success(['message' => "Welcome back, {$display_name}!"]);
+        wp_send_json_success([
+            'message' => "Welcome back, {$display_name}!",
+            'trigger_onboarding' => $trigger_onboarding,
+        ]);
     }
 
     private function handle_signup() {
@@ -446,6 +538,7 @@ class Myavana_Auth_System {
         update_user_meta($user_id, 'display_name', $name);
         update_user_meta($user_id, 'myavana_signup_date', current_time('mysql'));
         update_user_meta($user_id, 'myavana_onboarding_status', 'pending');
+        update_user_meta($user_id, 'myavana_show_onboarding', true);
 
         // Update display name
         wp_update_user(['ID' => $user_id, 'display_name' => $name]);
@@ -472,6 +565,118 @@ class Myavana_Auth_System {
             'user_id' => $user_id,
             'trigger_onboarding' => true
         ]);
+    }
+
+    private function verify_google_id_token($credential) {
+        $response = wp_remote_get(
+            'https://oauth2.googleapis.com/tokeninfo?id_token=' . rawurlencode($credential),
+            ['timeout' => 15]
+        );
+
+        if (is_wp_error($response)) {
+            return new WP_Error('google_verify_failed', 'Unable to verify your Google account right now. Please try again.');
+        }
+
+        $status_code = wp_remote_retrieve_response_code($response);
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+
+        if ($status_code !== 200 || !is_array($body)) {
+            return new WP_Error('google_invalid_response', 'Google sign-in could not be validated.');
+        }
+
+        $audience = (string) ($body['aud'] ?? '');
+        $client_id = (string) ($this->options['google_client_id'] ?? '');
+        if ($audience !== $client_id) {
+            return new WP_Error('google_invalid_audience', 'This Google sign-in token is not for this site.');
+        }
+
+        $email = sanitize_email($body['email'] ?? '');
+        $email_verified = $body['email_verified'] ?? false;
+        $email_verified = ($email_verified === true || $email_verified === 'true' || $email_verified === '1' || $email_verified === 1);
+
+        if (!$email || !$email_verified) {
+            return new WP_Error('google_email_unverified', 'Your Google account email must be verified before signing in.');
+        }
+
+        $subject = sanitize_text_field($body['sub'] ?? '');
+        if ($subject === '') {
+            return new WP_Error('google_missing_subject', 'Google did not return a valid account identifier.');
+        }
+
+        return [
+            'sub' => $subject,
+            'email' => $email,
+            'name' => sanitize_text_field($body['name'] ?? ''),
+            'given_name' => sanitize_text_field($body['given_name'] ?? ''),
+            'picture' => esc_url_raw($body['picture'] ?? '')
+        ];
+    }
+
+    private function find_or_create_google_user($google_user) {
+        $existing_by_sub = $this->get_user_by_google_sub($google_user['sub']);
+        if ($existing_by_sub instanceof WP_User) {
+            $this->sync_google_user_meta($existing_by_sub->ID, $google_user, false);
+            $this->track_user_event($existing_by_sub->ID, 'google_login');
+            return $existing_by_sub;
+        }
+
+        $existing_by_email = get_user_by('email', $google_user['email']);
+        if ($existing_by_email instanceof WP_User) {
+            $this->sync_google_user_meta($existing_by_email->ID, $google_user, false);
+            $this->track_user_event($existing_by_email->ID, 'google_login');
+            return $existing_by_email;
+        }
+
+        $username = $this->generate_unique_username($google_user['email']);
+        $password = wp_generate_password(32, true, true);
+        $user_id = wp_create_user($username, $password, $google_user['email']);
+
+        if (is_wp_error($user_id)) {
+            return $user_id;
+        }
+
+        $display_name = $google_user['name'] ?: $google_user['given_name'] ?: $username;
+        wp_update_user([
+            'ID' => $user_id,
+            'display_name' => $display_name,
+            'first_name' => $google_user['given_name'] ?: $display_name
+        ]);
+
+        if ($this->options['auto_user_approval']) {
+            wp_update_user(['ID' => $user_id, 'role' => 'subscriber']);
+        }
+
+        $this->sync_google_user_meta($user_id, $google_user, true);
+        $this->track_user_event($user_id, 'google_registration');
+
+        return get_user_by('id', $user_id);
+    }
+
+    private function get_user_by_google_sub($google_sub) {
+        $users = get_users([
+            'meta_key' => 'myavana_google_sub',
+            'meta_value' => $google_sub,
+            'number' => 1,
+            'count_total' => false
+        ]);
+
+        if (!empty($users) && $users[0] instanceof WP_User) {
+            return $users[0];
+        }
+
+        return null;
+    }
+
+    private function sync_google_user_meta($user_id, $google_user, $is_new_user = false) {
+        update_user_meta($user_id, 'myavana_google_sub', $google_user['sub']);
+        update_user_meta($user_id, 'myavana_google_picture', $google_user['picture']);
+        update_user_meta($user_id, 'myavana_google_email', $google_user['email']);
+        update_user_meta($user_id, 'myavana_auth_provider', 'google');
+        update_user_meta($user_id, 'myavana_last_google_login', current_time('mysql'));
+
+        if ($is_new_user) {
+            update_user_meta($user_id, 'myavana_registration_source', 'google');
+        }
     }
 
     private function handle_forgot_password() {
@@ -543,8 +748,19 @@ class Myavana_Auth_System {
         add_action('wp_footer', [$this, 'render_onboarding_overlay']);
     }
 
+    private function verify_onboarding_nonce($nonce) {
+        if (!is_string($nonce) || $nonce === '') {
+            return false;
+        }
+
+        return wp_verify_nonce($nonce, 'myavana_onboarding') ||
+            wp_verify_nonce($nonce, 'myavana_nonce') ||
+            wp_verify_nonce($nonce, 'myavana_auth_nonce');
+    }
+
     public function handle_onboarding_step() {
-        if (!is_user_logged_in() || !wp_verify_nonce($_POST['nonce'], 'myavana_onboarding')) {
+        $nonce = sanitize_text_field(wp_unslash($_POST['nonce'] ?? ''));
+        if (!is_user_logged_in() || !$this->verify_onboarding_nonce($nonce)) {
             wp_send_json_error(['message' => 'Security check failed']);
         }
 
@@ -562,7 +778,8 @@ class Myavana_Auth_System {
     }
 
     public function handle_skip_onboarding() {
-        if (!is_user_logged_in() || !wp_verify_nonce($_POST['nonce'], 'myavana_onboarding')) {
+        $nonce = sanitize_text_field(wp_unslash($_POST['nonce'] ?? ''));
+        if (!is_user_logged_in() || !$this->verify_onboarding_nonce($nonce)) {
             wp_send_json_error(['message' => 'Security check failed']);
         }
 
@@ -571,15 +788,22 @@ class Myavana_Auth_System {
         if (isset($_POST['reset']) && $_POST['reset'] === 'true') {
             update_user_meta($user_id, 'myavana_onboarding_status', 'pending');
             delete_user_meta($user_id, 'myavana_onboarding_progress');
+            delete_user_meta($user_id, 'myavana_onboarding_completed');
+            delete_user_meta($user_id, 'myavana_onboarding_skipped_date');
+            update_user_meta($user_id, 'myavana_show_onboarding', true);
         } else {
             update_user_meta($user_id, 'myavana_onboarding_status', 'skipped');
+            update_user_meta($user_id, 'myavana_onboarding_completed', 'skipped');
+            update_user_meta($user_id, 'myavana_onboarding_skipped_date', current_time('mysql'));
+            delete_user_meta($user_id, 'myavana_show_onboarding');
         }
 
         wp_send_json_success(['message' => 'Onboarding updated']);
     }
 
     public function get_onboarding_progress() {
-        if (!is_user_logged_in() || !wp_verify_nonce($_POST['nonce'], 'myavana_onboarding')) {
+        $nonce = sanitize_text_field(wp_unslash($_POST['nonce'] ?? ''));
+        if (!is_user_logged_in() || !$this->verify_onboarding_nonce($nonce)) {
             wp_send_json_error(['message' => 'Security check failed']);
         }
 
@@ -595,7 +819,8 @@ class Myavana_Auth_System {
     }
 
     public function handle_reset_onboarding() {
-        if (!is_user_logged_in() || !wp_verify_nonce($_POST['nonce'], 'myavana_onboarding')) {
+        $nonce = sanitize_text_field(wp_unslash($_POST['nonce'] ?? ''));
+        if (!is_user_logged_in() || !$this->verify_onboarding_nonce($nonce)) {
             wp_send_json_error(['message' => 'Security check failed']);
         }
 
@@ -604,13 +829,17 @@ class Myavana_Auth_System {
         // Reset onboarding status and progress
         update_user_meta($user_id, 'myavana_onboarding_status', 'pending');
         delete_user_meta($user_id, 'myavana_onboarding_progress');
+        delete_user_meta($user_id, 'myavana_onboarding_completed');
+        delete_user_meta($user_id, 'myavana_onboarding_completed_date');
+        delete_user_meta($user_id, 'myavana_onboarding_skipped_date');
         update_user_meta($user_id, 'myavana_show_onboarding', true);
 
         wp_send_json_success(['message' => 'Onboarding status reset successfully']);
     }
 
     public function handle_trigger_onboarding() {
-        if (!is_user_logged_in() || !wp_verify_nonce($_POST['nonce'], 'myavana_onboarding')) {
+        $nonce = sanitize_text_field(wp_unslash($_POST['nonce'] ?? ''));
+        if (!is_user_logged_in() || !$this->verify_onboarding_nonce($nonce)) {
             wp_send_json_error(['message' => 'Security check failed']);
         }
 
@@ -652,7 +881,11 @@ class Myavana_Auth_System {
 
         // Set onboarding status
         update_user_meta($user_id, 'myavana_onboarding_status', 'pending');
+        delete_user_meta($user_id, 'myavana_onboarding_completed');
+        delete_user_meta($user_id, 'myavana_onboarding_completed_date');
+        delete_user_meta($user_id, 'myavana_onboarding_skipped_date');
         update_user_meta($user_id, 'myavana_registration_source', 'myavana_modal');
+        update_user_meta($user_id, 'myavana_show_onboarding', true);
 
         // Track registration
         $this->track_user_event($user_id, 'registration');
@@ -680,18 +913,27 @@ class Myavana_Auth_System {
 
         // Always enqueue auth scripts for non-logged-in users
         if (!is_user_logged_in()) {
-            wp_enqueue_script('myavana-auth-system', MYAVANA_URL . 'assets/js/myavana-auth-system.js', ['jquery'], '1.0.1', true);
+            $auth_script_version = file_exists(MYAVANA_DIR . 'assets/js/myavana-auth-system.js')
+                ? (string) filemtime(MYAVANA_DIR . 'assets/js/myavana-auth-system.js')
+                : '2.6.9';
+            wp_enqueue_script('myavana-auth-system', MYAVANA_URL . 'assets/js/myavana-auth-system.js', ['jquery'], $auth_script_version, true);
+            if (!empty($this->options['enable_google_auth']) && !empty($this->options['google_client_id'])) {
+                wp_enqueue_script('google-identity-services', 'https://accounts.google.com/gsi/client', [], null, true);
+            }
 
             wp_localize_script('myavana-auth-system', 'myavanaAuth', [
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('myavana_auth_nonce'),
+                'google_nonce' => wp_create_nonce('myavana_google_auth'),
                 'delay' => $this->options['delay_seconds'] * 1000,
                 'show_once' => $this->options['show_once_per_session'],
                 'onboarding_enabled' => $this->options['enable_onboarding'],
                 'is_logged_in' => is_user_logged_in(),
                 'debug' => defined('WP_DEBUG') && WP_DEBUG,
                 'show_site_wide' => $this->options['show_site_wide'],
-                'show_on_homepage' => $this->options['show_on_homepage']
+                'show_on_homepage' => $this->options['show_on_homepage'],
+                'google_auth_enabled' => !empty($this->options['enable_google_auth']) && !empty($this->options['google_client_id']),
+                'google_client_id' => (string) ($this->options['google_client_id'] ?? '')
             ]);
         }
     }
@@ -704,14 +946,9 @@ class Myavana_Auth_System {
             return;
         }
 
-        wp_enqueue_script('myavana-onboarding', MYAVANA_URL . 'assets/js/myavana-onboarding.js', ['jquery'], '1.0.0', true);
-
-        wp_localize_script('myavana-onboarding', 'myavanaOnboarding', [
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('myavana_onboarding'),
-            'steps' => $this->onboarding_steps,
-            'user_id' => $user_id
-        ]);
+        // The active onboarding experience is rendered inline via
+        // templates/auth/onboarding-modal.php. Avoid loading the legacy
+        // controller here because it targets a different DOM structure.
     }
 
     public function add_onboarding_meta() {
@@ -1017,7 +1254,9 @@ class Myavana_Auth_System {
             case 'complete':
                 // Step 3: Completion - Award points and mark as complete
                 update_user_meta($user_id, 'myavana_onboarding_status', 'completed');
+                update_user_meta($user_id, 'myavana_onboarding_completed', 'completed');
                 update_user_meta($user_id, 'myavana_onboarding_completed_date', current_time('mysql'));
+                delete_user_meta($user_id, 'myavana_show_onboarding');
                 $progress['complete'] = true;
 
                 // Award completion points
@@ -1042,11 +1281,13 @@ class Myavana_Auth_System {
     }
 
     private function award_onboarding_points($user_id) {
-        $points = $this->options['onboarding_completion_reward'];
+        $points = function_exists('myavana_get_gamification_summary')
+            ? Myavana_Gamification::get_reward_value('onboarding_completed', intval($this->options['onboarding_completion_reward'] ?? 25))
+            : intval($this->options['onboarding_completion_reward'] ?? 25);
 
         // Integration with gamification system if available
         if (function_exists('myavana_award_points')) {
-            myavana_award_points($user_id, $points, 'onboarding_completion');
+            myavana_award_points($user_id, $points, 'onboarding_completion', 'onboarding', null, 'onboarding_completed:' . $user_id);
         } else {
             // Store points in user meta as fallback
             $current_points = get_user_meta($user_id, 'myavana_points', true) ?: 0;
@@ -1074,6 +1315,7 @@ class Myavana_Auth_System {
         $hair_type = sanitize_text_field($_POST['hair_type'] ?? '');
         $hair_goals = sanitize_text_field($_POST['hair_goals'] ?? '');
         $hair_texture = sanitize_text_field($_POST['hair_texture'] ?? '');
+        $goal_items = array_values(array_filter(array_map('sanitize_text_field', array_map('trim', explode(',', $hair_goals)))));
 
         // Validate required fields
         if (empty($name)) {
@@ -1096,9 +1338,49 @@ class Myavana_Auth_System {
         update_user_meta($user_id, 'myavana_hair_type', $hair_type);
         update_user_meta($user_id, 'myavana_hair_texture', $hair_texture);
         update_user_meta($user_id, 'myavana_hair_goals', $hair_goals);
+        update_user_meta($user_id, 'myavana_primary_goal', $goal_items[0] ?? '');
         update_user_meta($user_id, 'myavana_onboarding_status', 'completed');
+        update_user_meta($user_id, 'myavana_onboarding_completed', 'completed');
         update_user_meta($user_id, 'myavana_onboarding_completed_date', current_time('mysql'));
+        update_user_meta($user_id, 'myavana_onboarding_progress', [
+            'welcome' => true,
+            'preferences' => true,
+            'complete' => true,
+            'completed_at' => current_time('mysql'),
+        ]);
         delete_user_meta($user_id, 'myavana_show_onboarding');
+
+        if (!empty($goal_items)) {
+            $existing_goals = get_user_meta($user_id, 'myavana_hair_goals_structured', true);
+            if (!is_array($existing_goals)) {
+                $existing_goals = [];
+            }
+
+            $existing_titles = array_map(static function ($goal) {
+                return strtolower(trim((string) ($goal['title'] ?? '')));
+            }, $existing_goals);
+
+            foreach ($goal_items as $goal_title) {
+                if (in_array(strtolower($goal_title), $existing_titles, true)) {
+                    continue;
+                }
+
+                $existing_goals[] = [
+                    'id' => 'goal_' . wp_generate_uuid4(),
+                    'title' => $goal_title,
+                    'category' => 'Onboarding',
+                    'start_date' => current_time('Y-m-d'),
+                    'target_date' => '',
+                    'description' => 'Added during onboarding',
+                    'progress' => 0,
+                    'status' => 'active',
+                    'created_at' => current_time('mysql'),
+                    'source' => 'onboarding',
+                ];
+            }
+
+            update_user_meta($user_id, 'myavana_hair_goals_structured', $existing_goals);
+        }
 
         // Save to myavana_profiles table
         global $wpdb;
@@ -1135,36 +1417,26 @@ class Myavana_Auth_System {
         // Track event
         $this->track_user_event($user_id, 'onboarding_completed');
 
-        // Create first hair journey entry
-        $first_entry_id = wp_insert_post([
-            'post_title' => 'Welcome to My Hair Journey!',
-            'post_content' => 'This is my first entry. Excited to start tracking my hair care journey with MYAVANA!',
-            'post_type' => 'hair_journey_entry',
-            'post_status' => 'publish',
-            'post_author' => $user_id,
-            'post_date' => current_time('mysql')
-        ]);
-
-        if ($first_entry_id && !is_wp_error($first_entry_id)) {
-            // Save entry metadata
-            update_post_meta($first_entry_id, 'mood_demeanor', 'Excited');
-            update_post_meta($first_entry_id, 'health_rating', 5);
-            update_post_meta($first_entry_id, 'entry_type', 'onboarding');
-            update_post_meta($first_entry_id, 'environment', 'home');
-
-            // Update user meta to track first entry
-            update_user_meta($user_id, 'myavana_first_entry_created', true);
-            update_user_meta($user_id, 'myavana_first_entry_id', $first_entry_id);
-            update_user_meta($user_id, 'myavana_first_entry_date', current_time('mysql'));
-
-            error_log('MYAVANA: Created first entry (ID: ' . $first_entry_id . ') for user ' . $user_id . ' during onboarding');
-        } else {
-            error_log('MYAVANA: Failed to create first entry for user ' . $user_id . ' during onboarding');
+        $prefill_parts = [];
+        $prefill_parts[] = 'Starting point for my hair journey.';
+        if (!empty($goal_items)) {
+            $prefill_parts[] = 'Main goals: ' . implode(', ', array_slice($goal_items, 0, 3)) . '.';
         }
+        if (!empty($hair_texture)) {
+            $prefill_parts[] = 'Hair texture: ' . ucfirst($hair_texture) . '.';
+        }
+        $prefill_parts[] = 'What I am noticing today, what I want to improve, and what I plan to stay consistent with.';
+
+        update_user_meta($user_id, 'myavana_first_entry_prefill', [
+            'title' => 'My First Hair Journey Check-In',
+            'description' => implode(' ', $prefill_parts),
+            'entry_type' => 'Wash Day',
+            'mood' => 'Excited',
+        ]);
 
         wp_send_json_success([
             'message' => 'Profile saved successfully!',
-            'redirect' => home_url('/hair-journey/?welcome=1')
+            'redirect' => home_url('/hair-journey/?welcome=1&start_entry=1')
         ]);
     }
 

@@ -8,6 +8,7 @@
 
     let uploadedImage = null;
     let imageData = null;
+    let latestAnalysisResult = null;
 
     // Initialize
     $(document).ready(function() {
@@ -27,12 +28,19 @@
 
         // Close modal
         $('#closeFreeAnalysisModal, #cancelUpload').on('click', closeModal);
+        $('#freeAnalysisModal .modal-overlay').on('click', closeModal);
 
         // Expand/Contract modal
         $('#expandModalBtn').on('click', toggleModalExpand);
 
         // Export results
         $('#exportResultsBtn').on('click', exportResults);
+        $(document).on('click', '#shareFreeResultsBtn', shareFreeResults);
+        $(document).on('click', '#copyFreeSummaryBtn', copyFreeSummary);
+        $(document).on('click', '.myavana-free-social-btn', function() {
+            const network = $(this).data('network');
+            shareFreeTo(network);
+        });
 
         // File input handler
         $('#hairPhotoInput').on('change', handleFileSelect);
@@ -59,31 +67,38 @@
 
         // Analyze button
         $('#analyzeBtn').on('click', startAnalysis);
+
+        // Keyboard close support
+        $(document).on('keydown.myavanaFreeAnalysis', function(e) {
+            if (e.key === 'Escape' && $('#freeAnalysisModal').hasClass('active')) {
+                closeModal();
+            }
+        });
     }
 
     function openModal() {
-        $('#freeAnalysisModal').addClass('active');
-        $('body').css('overflow', 'hidden');
-        resetModal();
+        window.location.href = window.myavanaAiToolUrl || 'https://www.myavana.com/pages/consumer';
     }
 
     function closeModal() {
         $('#freeAnalysisModal').removeClass('active');
-        $('body').css('overflow', '');
+        $('body').removeClass('myavana-free-analysis-open');
         resetModal();
     }
 
     function resetModal() {
-        $('.modal-step').removeClass('active');
-        $('#uploadStep').addClass('active');
-        $('#uploadPreview').hide();
-        $('.upload-content').show();
-        $('#analyzeBtn').prop('disabled', true);
-        $('#exportResultsBtn').hide();
-        $('.modal-container').removeClass('expanded');
+        const $modal = $('#freeAnalysisModal');
+        $modal.find('.modal-step').removeClass('active');
+        $modal.find('#uploadStep').addClass('active');
+        $modal.find('#uploadPreview').hide();
+        $modal.find('.upload-content').show();
+        $modal.find('#analyzeBtn').prop('disabled', true);
+        $modal.find('#exportResultsBtn').hide();
+        $modal.find('.modal-container').removeClass('expanded');
         $('#expandModalBtn').html('<i class="fas fa-expand-alt"></i>').attr('title', 'Expand');
         uploadedImage = null;
         imageData = null;
+        latestAnalysisResult = null;
     }
 
     function handleFileSelect(e) {
@@ -128,8 +143,9 @@
         }
 
         // Switch to analyzing step
-        $('.modal-step').removeClass('active');
-        $('#analyzingStep').addClass('active');
+        const $modal = $('#freeAnalysisModal');
+        $modal.find('.modal-step').removeClass('active');
+        $modal.find('#analyzingStep').addClass('active');
 
         // Animate progress
         animateProgress();
@@ -191,8 +207,9 @@
     }
 
     function displayResults(data) {
-        const analysis = data.analysis;
+        const analysis = normalizeAnalysisData(data.analysis || {});
         const remaining = data.remaining_analyses;
+        latestAnalysisResult = analysis;
 
         let resultsHTML = `
             <div class="results-header">
@@ -206,8 +223,9 @@
                 <div class="result-card">
                     <div class="result-card-icon">🎯</div>
                     <h4>Hair Type</h4>
-                    <p class="result-value">${analysis.hair_type}</p>
-                    ${analysis.porosity ? `<p class="result-detail">Porosity: ${analysis.porosity}</p>` : ''}
+                    <p class="result-value">${escapeHtml(analysis.hair_type)}</p>
+                    ${analysis.curl_pattern ? `<p class="result-detail">Curl Pattern: ${escapeHtml(analysis.curl_pattern)}</p>` : ''}
+                    ${analysis.porosity ? `<p class="result-detail">Porosity: ${escapeHtml(analysis.porosity)}</p>` : ''}
                 </div>
                 ` : ''}
 
@@ -216,6 +234,17 @@
                     <div class="result-card-icon">💪</div>
                     <h4>Health Score</h4>
                     <p class="result-value">${analysis.health_score}/10</p>
+                    ${analysis.hydration ? `<p class="result-detail">Hydration: ${analysis.hydration}%</p>` : ''}
+                </div>
+                ` : ''}
+
+                ${(analysis.texture || analysis.density || analysis.length) ? `
+                <div class="result-card">
+                    <div class="result-card-icon">🧬</div>
+                    <h4>Hair Structure</h4>
+                    ${analysis.texture ? `<p class="result-detail">Texture: ${escapeHtml(analysis.texture)}</p>` : ''}
+                    ${analysis.density ? `<p class="result-detail">Density: ${escapeHtml(analysis.density)}</p>` : ''}
+                    ${analysis.length ? `<p class="result-detail">Length: ${escapeHtml(analysis.length)}</p>` : ''}
                 </div>
                 ` : ''}
 
@@ -224,7 +253,7 @@
                     <div class="result-card-icon">⚠️</div>
                     <h4>Areas of Concern</h4>
                     <ul class="result-list">
-                        ${analysis.concerns.map(c => `<li>${c}</li>`).join('')}
+                        ${analysis.concerns.map(c => `<li>${escapeHtml(c)}</li>`).join('')}
                     </ul>
                 </div>
                 ` : ''}
@@ -234,7 +263,7 @@
                     <div class="result-card-icon">💡</div>
                     <h4>Recommended Actions</h4>
                     <ol class="result-list numbered">
-                        ${analysis.recommendations.map(r => `<li>${r}</li>`).join('')}
+                        ${analysis.recommendations.map(r => `<li>${escapeHtml(r)}</li>`).join('')}
                     </ol>
                 </div>
                 ` : ''}
@@ -244,7 +273,7 @@
                     <div class="result-card-icon">🛍️</div>
                     <h4>Product Suggestions</h4>
                     <ul class="result-list">
-                        ${analysis.products.map(p => `<li>${p}</li>`).join('')}
+                        ${analysis.products.map(p => `<li>${escapeHtml(p)}</li>`).join('')}
                     </ul>
                 </div>
                 ` : ''}
@@ -259,6 +288,20 @@
             </div>
 
             <div class="results-footer">
+                <div class="myavana-free-share">
+                    <h4>Share Your Results</h4>
+                    <p>Post your progress and inspire your community.</p>
+                    <div class="myavana-free-share-actions">
+                        <button class="modal-btn-secondary" id="shareFreeResultsBtn">Share</button>
+                        <button class="modal-btn-secondary" id="copyFreeSummaryBtn">Copy Summary</button>
+                    </div>
+                    <div class="myavana-free-social-actions">
+                        <button class="myavana-free-social-btn" data-network="x">X</button>
+                        <button class="myavana-free-social-btn" data-network="facebook">Facebook</button>
+                        <button class="myavana-free-social-btn" data-network="linkedin">LinkedIn</button>
+                    </div>
+                </div>
+
                 <div class="remaining-analyses">
                     ${remaining > 0
                         ? `<p>You have <strong>${remaining}</strong> free ${remaining === 1 ? 'analysis' : 'analyses'} remaining today!</p>`
@@ -289,14 +332,15 @@
         `;
 
         $('#resultsContent').html(resultsHTML);
-        $('.modal-step').removeClass('active');
-        $('#resultsStep').addClass('active');
+        const $modal = $('#freeAnalysisModal');
+        $modal.find('.modal-step').removeClass('active');
+        $modal.find('#resultsStep').addClass('active');
 
         // Show export button
-        $('#exportResultsBtn').fadeIn();
+        $modal.find('#exportResultsBtn').fadeIn();
 
         // Animate results
-        $('.result-card').each(function(index) {
+        $modal.find('.result-card').each(function(index) {
             $(this).css({
                 opacity: 0,
                 transform: 'translateY(20px)'
@@ -338,8 +382,9 @@
         `;
 
         $('#resultsContent').html(resultsHTML);
-        $('.modal-step').removeClass('active');
-        $('#resultsStep').addClass('active');
+        const $modal = $('#freeAnalysisModal');
+        $modal.find('.modal-step').removeClass('active');
+        $modal.find('#resultsStep').addClass('active');
     }
 
     function displayError(message) {
@@ -361,20 +406,176 @@
         `;
 
         $('#resultsContent').html(resultsHTML);
-        $('.modal-step').removeClass('active');
-        $('#resultsStep').addClass('active');
+        const $modal = $('#freeAnalysisModal');
+        $modal.find('.modal-step').removeClass('active');
+        $modal.find('#resultsStep').addClass('active');
     }
 
     function formatRawAnalysis(text) {
         // Format markdown-style text to HTML
-        return text
+        const safeText = escapeHtml(text || '');
+        return safeText
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\n/g, '<br>')
             .replace(/- (.*?)(<br>|$)/g, '<li>$1</li>');
     }
 
+    function normalizeAnalysisData(analysis) {
+        const data = analysis && typeof analysis === 'object' ? analysis : {};
+        const nested = data.hair_analysis && typeof data.hair_analysis === 'object' ? data.hair_analysis : {};
+
+        return {
+            hair_type: data.hair_type || nested.type || 'Not determined',
+            curl_pattern: data.curl_pattern || nested.curl_pattern || '',
+            porosity: data.porosity || nested.porosity || '',
+            texture: data.texture || nested.texture || '',
+            density: data.density || nested.density || '',
+            length: data.length || nested.length || '',
+            health_score: normalizeHealthScore(data.health_score || nested.health_score || 0),
+            hydration: parseInt(data.hydration || nested.hydration || 0, 10) || 0,
+            elasticity: parseInt(data.elasticity || nested.elasticity || 0, 10) || 0,
+            concerns: normalizeStringArray(data.concerns),
+            recommendations: normalizeStringArray(data.recommendations),
+            products: normalizeStringArray(data.products),
+            summary: data.summary || '',
+            raw_analysis: data.raw_analysis || ''
+        };
+    }
+
+    function normalizeHealthScore(rawScore) {
+        const score = parseInt(rawScore, 10);
+        if (!score || Number.isNaN(score)) {
+            return 0;
+        }
+
+        if (score <= 10) {
+            return score;
+        }
+
+        return Math.max(1, Math.min(10, Math.round(score / 10)));
+    }
+
+    function normalizeStringArray(value) {
+        if (!Array.isArray(value)) {
+            return [];
+        }
+
+        return value.map(item => {
+            if (typeof item === 'string') {
+                return item;
+            }
+            if (item && typeof item === 'object' && item.name) {
+                return String(item.name);
+            }
+            return '';
+        }).filter(Boolean);
+    }
+
+    function buildShareText() {
+        if (!latestAnalysisResult) {
+            return '';
+        }
+
+        const a = latestAnalysisResult;
+        const parts = [
+            `I just used MYAVANA AI Hair Analysis.`,
+            `Hair type: ${a.hair_type}.`
+        ];
+
+        if (a.health_score) {
+            parts.push(`Health score: ${a.health_score}/10.`);
+        }
+
+        if (a.summary) {
+            parts.push(a.summary);
+        } else if (a.recommendations && a.recommendations[0]) {
+            parts.push(`Top recommendation: ${a.recommendations[0]}`);
+        }
+
+        return parts.join(' ');
+    }
+
+    function shareFreeResults() {
+        const shareText = buildShareText();
+        if (!shareText) {
+            return;
+        }
+
+        if (navigator.share) {
+            navigator.share({
+                title: 'MYAVANA Free Hair Analysis',
+                text: shareText,
+                url: window.location.href
+            }).catch(() => {});
+            return;
+        }
+
+        shareFreeTo('x');
+    }
+
+    function shareFreeTo(network) {
+        const shareText = encodeURIComponent(buildShareText());
+        const shareUrl = encodeURIComponent(window.location.href);
+        let url = '';
+
+        if (network === 'x') {
+            url = `https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`;
+        } else if (network === 'facebook') {
+            url = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`;
+        } else if (network === 'linkedin') {
+            url = `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`;
+        }
+
+        if (url) {
+            window.open(url, '_blank', 'width=640,height=700,noopener,noreferrer');
+        }
+    }
+
+    function copyFreeSummary() {
+        const shareText = buildShareText();
+        if (!shareText) {
+            return;
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(shareText).then(() => {
+                $('#copyFreeSummaryBtn').text('Copied!');
+                setTimeout(() => $('#copyFreeSummaryBtn').text('Copy Summary'), 1200);
+            }).catch(() => {
+                fallbackCopyText(shareText);
+            });
+            return;
+        }
+
+        fallbackCopyText(shareText);
+    }
+
+    function fallbackCopyText(text) {
+        const temp = document.createElement('textarea');
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        $('#copyFreeSummaryBtn').text('Copied!');
+        setTimeout(() => $('#copyFreeSummaryBtn').text('Copy Summary'), 1200);
+    }
+
+    function escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/\"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     function toggleModalExpand() {
-        const $container = $('.modal-container');
+        if (window.matchMedia('(max-width: 768px)').matches) {
+            return;
+        }
+
+        const $container = $('#freeAnalysisModal .modal-container');
         const $btn = $('#expandModalBtn');
         const isExpanded = $container.hasClass('expanded');
 

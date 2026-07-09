@@ -130,7 +130,7 @@ if (!function_exists('myavana_get_dashboard_stats_ajax')) {
         $user_id = get_current_user_id();
 
         // Load the dashboard shortcode file to access helper function
-        $dashboard_file = MYAVANA_PATH . 'templates/advanced-dashboard-shortcode.php';
+        $dashboard_file = MYAVANA_DIR . 'templates/advanced-dashboard-shortcode.php';
         if (!function_exists('myavana_get_dashboard_data') && file_exists($dashboard_file)) {
             require_once $dashboard_file;
         }
@@ -198,7 +198,7 @@ if (!function_exists('myavana_load_entry_form_dash')) {
         }
 
         // Load the entry form component directly
-        $component_path = MYAVANA_PATH . 'templates/components/entry-form.php';
+        $component_path = MYAVANA_DIR . 'templates/components/entry-form.php';
 
         if (file_exists($component_path)) {
             ob_start();

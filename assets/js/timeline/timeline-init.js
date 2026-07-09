@@ -238,10 +238,10 @@
      * Set initial view
      */
     function setInitialView() {
-        // Set calendar as default view on page load
-        MyavanaTimeline.Navigation.switchView('calendar');
+        // Set timeline as default view on page load
+        MyavanaTimeline.Navigation.switchView('timeline');
         MyavanaTimeline.Navigation.setCalendarView('month');
-        console.log('  ✓ Initial view set (Calendar - Month)');
+        console.log('  ✓ Initial view set (Timeline)');
     }
 
     /**

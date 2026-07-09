@@ -917,6 +917,40 @@
     border-bottom-color: var(--myavana-coral);
 }
 
+.myavana-profile-quick-strip {
+    max-width: 1200px;
+    margin: -8px auto 20px;
+    padding: 0 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.myavana-profile-quick-chip {
+    border: 1px solid var(--myavana-border);
+    border-radius: 999px;
+    background: var(--myavana-white);
+    color: var(--myavana-onyx);
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: var(--myavana-transition);
+}
+
+.myavana-profile-quick-chip:hover {
+    border-color: var(--myavana-coral);
+    color: var(--myavana-coral);
+    transform: translateY(-1px);
+}
+
+.myavana-profile-quick-chip.active {
+    border-color: var(--myavana-coral);
+    background: var(--myavana-sand);
+    color: var(--myavana-coral);
+}
+
 /* ============================================
    Profile Content Area
    ============================================ */
@@ -1365,6 +1399,95 @@
     line-height: 1.5;
 }
 
+.myavana-routine-health-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.myavana-routine-health-stat {
+    display: grid;
+    gap: 4px;
+    padding: 14px;
+    border-radius: 18px;
+    background: rgba(243, 236, 230, 0.84);
+}
+
+.myavana-routine-health-stat strong {
+    font-size: 24px;
+    line-height: 1;
+    color: var(--myavana-onyx);
+}
+
+.myavana-routine-health-stat span {
+    color: var(--myavana-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.myavana-routine-health-banner {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 14px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(231, 166, 144, 0.12), rgba(244, 231, 221, 0.92));
+    color: var(--myavana-onyx);
+}
+
+.myavana-routine-health-banner span {
+    color: var(--myavana-muted);
+}
+
+.myavana-routine-health-stack {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.myavana-routine-health-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(225, 210, 202, 0.7);
+}
+
+.myavana-routine-health-row.is-overdue {
+    border-color: rgba(178, 84, 59, 0.24);
+    background: rgba(255, 247, 244, 0.92);
+}
+
+.myavana-routine-health-row strong,
+.myavana-routine-health-row span {
+    display: block;
+}
+
+.myavana-routine-health-row span {
+    margin-top: 4px;
+    color: var(--myavana-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.myavana-routine-health-row em {
+    font-style: normal;
+    font-weight: 700;
+    color: var(--myavana-blueberry);
+    white-space: nowrap;
+}
+
+.myavana-routine-health-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 /* Empty State */
 .myavana-empty-state {
     padding: 48px 24px;
@@ -1635,6 +1758,86 @@
     padding-top: 24px;
 }
 
+.myavana-up-completion-track {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--myavana-border);
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.myavana-up-completion-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--myavana-coral), var(--myavana-light-coral));
+}
+
+.myavana-up-completion-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.myavana-up-completion-meta strong {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 28px;
+    color: var(--myavana-onyx);
+    line-height: 1;
+}
+
+.myavana-up-completion-meta span {
+    font-family: 'Archivo', sans-serif;
+    color: var(--myavana-blueberry);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.myavana-up-missing-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.myavana-up-missing-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: var(--myavana-sand);
+    color: var(--myavana-onyx);
+    font-family: 'Archivo', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.myavana-up-action-list {
+    margin: 0 0 16px;
+    padding-left: 18px;
+    color: var(--myavana-onyx);
+}
+
+.myavana-up-action-list li {
+    margin-bottom: 8px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.myavana-up-action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.myavana-mobile-bottom-nav,
+.myavana-mobile-nav-btn,
+.myavana-fab,
+.myavana-fab-menu {
+    display: none !important;
+}
+
 /* ============================================
    Mobile Bottom Navigation
    ============================================ */
@@ -1761,7 +1964,7 @@
 
 @media (max-width: 768px) {
     .myavana-unified-profile-container {
-        padding-bottom: 80px;
+        padding-bottom: 0;
     }
 
     .myavana-profile-cover {
@@ -1813,11 +2016,30 @@
     }
 
     .myavana-profile-nav {
-        display: none; /* Hide desktop tabs on mobile */
+        display: block;
+        margin-bottom: 12px;
     }
 
-    .myavana-mobile-bottom-nav {
-        display: flex; /* Show mobile bottom nav */
+    .myavana-profile-nav-container {
+        padding: 0 12px;
+        gap: 6px;
+    }
+
+    .myavana-profile-tab {
+        font-size: 13px;
+        padding: 12px 14px;
+        gap: 6px;
+    }
+
+    .myavana-profile-quick-strip {
+        padding: 0 16px;
+        gap: 8px;
+        margin: 0 auto 16px;
+    }
+
+    .myavana-profile-quick-chip {
+        font-size: 12px;
+        padding: 8px 12px;
     }
 
     .myavana-community-stats-grid {
@@ -1836,6 +2058,19 @@
 @media (max-width: 480px) {
     .myavana-profile-content {
         padding: 0 16px;
+    }
+
+    .myavana-profile-tab {
+        padding: 10px 12px;
+        font-size: 12px;
+    }
+
+    .myavana-up-completion-meta strong {
+        font-size: 24px;
+    }
+
+    .myavana-up-action-row {
+        flex-direction: column;
     }
 
     .myavana-community-stats-grid {

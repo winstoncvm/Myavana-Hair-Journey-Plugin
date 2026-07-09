@@ -33,6 +33,17 @@ function myavana_hair_journey_page_shortcode($atts = [], $content = null){
     $analysis_history = $shared_data['analysis_history'];
     $current_routine = $shared_data['current_routine'];
     $user_stats = $shared_data['stats'];
+    $show_welcome_banner = isset($_GET['welcome']) && wp_unslash($_GET['welcome']) === '1';
+    $start_first_entry = isset($_GET['start_entry']) && wp_unslash($_GET['start_entry']) === '1';
+    $first_entry_prefill = [];
+
+    if ($start_first_entry) {
+        $saved_prefill = get_user_meta($user_id, 'myavana_first_entry_prefill', true);
+        if (is_array($saved_prefill)) {
+            $first_entry_prefill = $saved_prefill;
+        }
+        delete_user_meta($user_id, 'myavana_first_entry_prefill');
+    }
 
     // Analysis limit info
     $analysis_limit_info = $shared_data['analysis_limit_info'];
@@ -46,89 +57,15 @@ function myavana_hair_journey_page_shortcode($atts = [], $content = null){
 
     ob_start();
     ?>
-    <div class="hair-journey-container" data-theme="light">
-        <!-- Luxury Navigation -->
-        <nav class="myavana-luxury-nav">
-            <div class="myavana-luxury-nav-container">
-                <a href="<?php echo home_url(); ?>" class="myavana-luxury-logo">
-                    <div class="myavana-logo-section">
-                        <img src="<?php echo esc_url(home_url()); ?>/wp-content/plugins/myavana-hair-journey/assets/images/myavana-primary-logo.png"
-                            alt="Myavana Logo" class="myavana-logo" />
-                    </div>
-                </a>
-
-                <?php if (!$is_logged_in): ?>
-                    <!-- GUEST NAV -->
-                    <div class="myavana-luxury-nav-menu">
-                        <a href="#features" class="myavana-luxury-nav-link">Features</a>
-                        <a href="#how-it-works" class="myavana-luxury-nav-link">How It Works</a>
-                        <a href="#" onclick="showMyavanaModal('login'); return false;" class="myavana-luxury-nav-link myavana-nav-signin-mobile">
-                            Sign In
-                        </a>
-                    </div>
-
-                    <div class="myavana-luxury-nav-actions">
-                        <button class="myavana-luxury-btn-secondary" onclick="showMyavanaModal('login')">Sign In</button>
-                        <button class="myavana-luxury-btn-primary" onclick="showMyavanaModal('register')">Start Your Journey</button>
-                    </div>
-
-                <?php else: ?>
-                    <!-- LOGGED-IN NAV -->
-                    <div class="myavana-luxury-nav-menu" id="mainNavMenu">
-                        <a href="/hair-journey/" class="myavana-luxury-nav-link">My Hair Journey</a>
-                        <a href="/community/" class="myavana-luxury-nav-link">Community</a>
-                        <a href="/profile" class="myavana-luxury-nav-link">Profile</a>
-                        <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createGoal()">+ Goal</a>
-                            <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createRoutine()">+ Routine</a>
-                            <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="openAIAnalysisModal()">Smart Entry</a>
-                            <a style="cursor: pointer;" class="myavana-luxury-nav-link" onclick="createEntry()">+ Entry</a>
-                        <!-- Action Buttons - Desktop -->
-                        <!-- <div class="myavana-luxury-nav-action-buttons desktop-only">
-                           
-                        </div> -->
-
-                        <!-- Logout always visible on desktop -->
-                        <a href="<?php echo wp_logout_url(home_url()); ?>" class="myavana-luxury-nav-link myavana-nav-logout-desktop">
-                            Logout
-                        </a>
-                    </div>
-                    <!-- Mobile Menu Toggle -->
-                    <!-- CORRECT — only jQuery handles it -->
-                    <button class="myavana-luxury-mobile-toggle" aria-label="Toggle menu">
-                        <span></span><span></span><span></span>
-                    </button>
-                <?php endif; ?>
-
-                <!-- MOBILE SLIDE-OUT MENU (only for logged-in users) -->
-                <?php if ($is_logged_in): ?>
-                <div class="myavana-mobile-menu-overlay" id="mobileMenuOverlay" onclick="toggleMobileMenu()"></div>
-                <div class="myavana-mobile-menu-panel" id="mobileMenuPanel">
-                    <div class="mobile-menu-header">
-                        <div class="mobile-menu-user">
-                            <img src="<?php echo get_avatar_url($current_user->ID, ['size' => 60]); ?>" alt="Avatar" class="mobile-menu-avatar">
-                            <div>
-                                <strong><?php echo esc_html($current_user->display_name); ?></strong>
-                                <small>Welcome back!</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mobile-menu-links">
-                        <a href="/hair-journey/">My Hair Journey</a>
-                        <a href="/community/" >Community</a>
-                        <a href="/profile">Profile</a>
-                        <hr>
-                        <button type="button" class="mobile-menu-action" onclick="createGoal(); toggleMobileMenu()">+ Goal</button>
-                        <button type="button" class="mobile-menu-action" onclick="createRoutine(); toggleMobileMenu()">+ Routine</button>
-                        <button type="button" class="mobile-menu-action smart" onclick="openAIAnalysisModal(); toggleMobileMenu()">Smart Entry</button>
-                        <button type="button" class="mobile-menu-action primary" onclick="createEntry(); toggleMobileMenu()">+ Entry</button>
-                        <hr>
-                        <a href="<?php echo wp_logout_url(home_url()); ?>" class="mobile-menu-logout">Logout</a>
-                    </div>
-                </div>
-                <?php endif; ?>
-            </div>
-        </nav>
+    <div class="hair-journey-container journey-dashboard-layout" data-theme="light">
+        
+    <?php
+    // The new sticky sidebar
+    if ( file_exists( $partials_dir . '/journey-sidebar.php' ) ) {
+        include $partials_dir . '/journey-sidebar.php';
+    }
+    ?>
+    <div class="journey-main-content">
     <?php
     // Note: All assets (TourGuideJS, FilePond, Select2) are now properly enqueued
     // in the main plugin file via enqueue_hair_journey_assets() method
@@ -138,6 +75,9 @@ function myavana_hair_journey_page_shortcode($atts = [], $content = null){
     if ( file_exists( $partials_dir . '/timeline-area.php' ) ) {
         include $partials_dir . '/timeline-area.php';
     }
+    ?>
+    </div> <!-- /.journey-main-content -->
+    <?php
     // Include the detailed view offcanvas (entry/goal/routine) used by the new-timeline view handlers
     if ( file_exists( $partials_dir . '/view-offcanvas.php' ) ) {
         include $partials_dir . '/view-offcanvas.php';
@@ -187,7 +127,43 @@ function myavana_hair_journey_page_shortcode($atts = [], $content = null){
     <script>
     // Pre-loaded entry data cache - avoids AJAX calls
     window.myavanaEntryCache = <?php echo json_encode($entry_cache); ?>;
+    window.myavanaJourneyLaunchState = <?php echo wp_json_encode([
+        'showWelcome' => $show_welcome_banner,
+        'startEntry' => $start_first_entry,
+        'entryPrefill' => $first_entry_prefill,
+    ]); ?>;
     console.log('[HairJourney] Entry cache loaded:', Object.keys(window.myavanaEntryCache).length, 'entries');
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const launchState = window.myavanaJourneyLaunchState || {};
+        if (!launchState.startEntry) {
+            return;
+        }
+
+        const launchEntryFlow = function (attempt) {
+            if (typeof window.createEntry === 'function') {
+                window.createEntry(launchState.entryPrefill || {});
+
+                if (window.history && typeof window.history.replaceState === 'function') {
+                    const nextUrl = new URL(window.location.href);
+                    nextUrl.searchParams.delete('welcome');
+                    nextUrl.searchParams.delete('start_entry');
+                    window.history.replaceState({}, document.title, nextUrl.toString());
+                }
+                return;
+            }
+
+            if ((attempt || 0) < 8) {
+                window.setTimeout(function () {
+                    launchEntryFlow((attempt || 0) + 1);
+                }, 350);
+            }
+        };
+
+        window.setTimeout(function () {
+            launchEntryFlow(0);
+        }, 700);
+    });
     </script>
     <?php
 

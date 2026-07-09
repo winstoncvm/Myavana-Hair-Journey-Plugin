@@ -1,0 +1,406 @@
+/* =========================================================
+   Hair Journey — Premium Compact Redesign Override
+   Additive overrides: stacks after existing partials.
+   Approach: gentle compaction — preserve readability,
+   fix only spacing/gaps, not direction/layout fundamentals.
+   ========================================================= */
+
+/* ---- 1. HEADER — Gentler padding reduction ---- */
+
+.dashboard-header {
+    padding: 0.8rem 0.95rem;
+    border-radius: 24px;
+}
+
+/* ---- 2. METRICS — Keep vertical stacking, just tighten gap/padding ---- */
+
+/* Keep the existing grid but tighter */
+.journey-command-metrics-hjn {
+    gap: 0.42rem;
+}
+
+.journey-command-metric-hjn {
+    padding: 0.48rem 0.62rem;
+    border-radius: 14px;
+    /* IMPORTANT: Do NOT change flex-direction — keep stacked label/value */
+}
+
+.journey-command-metric-value-hjn {
+    font-size: 0.92rem;
+}
+
+.journey-command-metric-label-hjn {
+    font-size: 0.58rem;
+}
+
+/* ---- 3. ACTION BUTTONS — Slightly smaller ---- */
+
+.action-buttons-compact-hjn {
+    gap: 0.38rem;
+    flex-wrap: wrap;
+}
+
+.action-buttons-compact-hjn .action-btn {
+    min-height: 36px;
+    padding: 0.48rem 0.72rem;
+    font-size: 0.72rem;
+}
+
+/* ---- 4. XP LOWER ROW — Tighten but keep its layout ---- */
+
+.journey-command-lower-hjn {
+    margin-top: 0.6rem;
+    gap: 0.65rem;
+}
+
+.journey-xp-track-hjn {
+    height: 7px;
+}
+
+.journey-next-win-hjn strong {
+    font-size: 0.86rem;
+}
+
+.journey-badge-pill-hjn {
+    min-height: 28px;
+    padding: 0.26rem 0.52rem;
+    font-size: 0.62rem;
+}
+
+/* ---- 5. SPOTLIGHT CARDS — Modestly shorter ---- */
+
+.journey-spotlight-grid-hjn {
+    margin-top: 0.6rem;
+    gap: 0.6rem;
+}
+
+.journey-spotlight-card-hjn {
+    padding: 0.8rem 0.92rem;
+    border-radius: 20px;
+}
+
+.journey-spotlight-card-hjn h3 {
+    font-size: 0.96rem;
+}
+
+.journey-spotlight-card-hjn p {
+    margin: 0.32rem 0 0.65rem;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.journey-spotlight-btn-hjn {
+    min-height: 34px;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.72rem;
+}
+
+/* ---- 6. REWARDS DRAWER — Collapsible panel ---- */
+
+/* Toggle button */
+.journey-rewards-toggle-hjn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.42rem 0.76rem;
+    border-radius: 999px;
+    border: 1px solid rgba(74, 77, 104, 0.12);
+    background: rgba(255, 255, 255, 0.8);
+    color: var(--myavana-blueberry);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.journey-rewards-toggle-hjn:hover {
+    background: rgba(252, 229, 215, 0.82);
+    border-color: rgba(231, 166, 144, 0.45);
+}
+
+.journey-rewards-toggle-hjn .toggle-arrow {
+    font-size: 0.6rem;
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+.journey-rewards-toggle-hjn.is-open .toggle-arrow {
+    transform: rotate(180deg);
+}
+
+/* Drawer container — collapsed by default */
+.journey-rewards-drawer-hjn {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.38s ease, opacity 0.28s ease;
+    margin-top: 0;
+}
+
+.journey-rewards-drawer-hjn.is-open {
+    max-height: 1400px;
+    opacity: 1;
+    margin-top: 0.65rem;
+}
+
+.journey-rewards-drawer-hjn .journey-rewards-grid-hjn {
+    margin-top: 0;
+    gap: 0.65rem;
+}
+
+.journey-rewards-drawer-hjn .journey-reward-panel-hjn {
+    padding: 0.8rem;
+    border-radius: 18px;
+}
+
+.journey-rewards-drawer-hjn .journey-quest-item-hjn,
+.journey-rewards-drawer-hjn .journey-reward-feed-item-hjn {
+    padding: 0.6rem 0.75rem;
+    border-radius: 12px;
+}
+
+/* ---- 7. HUB DRAWER — Slide-in side panel ---- */
+
+/* Overlay */
+.journey-hub-overlay-hjn {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 20, 30, 0.38);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.28s ease;
+}
+
+.journey-hub-overlay-hjn.is-open {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Drawer panel */
+.journey-hub-drawer-hjn {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(440px, 94vw);
+    z-index: 1210;
+    display: flex;
+    flex-direction: column;
+    background:
+        radial-gradient(circle at top right, rgba(231, 166, 144, 0.14), transparent 35%),
+        linear-gradient(180deg, rgba(255, 248, 244, 0.99) 0%, rgba(255, 255, 255, 0.99) 100%);
+    border-left: 1px solid rgba(74, 77, 104, 0.1);
+    box-shadow: -24px 0 56px rgba(34, 35, 35, 0.14);
+    transform: translateX(100%);
+    transition: transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
+    overflow: hidden;
+}
+
+.journey-hub-drawer-hjn.is-open {
+    transform: translateX(0);
+}
+
+.journey-hub-drawer-header-hjn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.1rem 1.25rem 0.75rem;
+    border-bottom: 1px solid rgba(74, 77, 104, 0.08);
+    flex-shrink: 0;
+}
+
+.journey-hub-drawer-title-hjn {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.journey-hub-drawer-close-hjn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(74, 77, 104, 0.1);
+    background: rgba(255, 255, 255, 0.8);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    transition: background 0.2s;
+}
+
+.journey-hub-drawer-close-hjn:hover {
+    background: rgba(252, 229, 215, 0.9);
+}
+
+.journey-hub-drawer-body-hjn {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+/* KPI grid inside drawer */
+.journey-hub-drawer-body-hjn .journey-hub-kpi-grid-hjn {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+}
+
+.journey-hub-drawer-body-hjn .journey-hub-kpi-card-hjn {
+    padding: 0.65rem 0.6rem;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid rgba(74, 77, 104, 0.08);
+    text-align: center;
+}
+
+.journey-hub-drawer-body-hjn .journey-hub-kpi-value-hjn {
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.journey-hub-drawer-body-hjn .journey-hub-kpi-label-hjn {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    margin-top: 0.18rem;
+}
+
+.journey-hub-drawer-body-hjn .journey-hub-kpi-card-hjn.is-accent {
+    background: linear-gradient(135deg, var(--myavana-coral) 0%, #cf7e61 100%);
+    border-color: transparent;
+}
+
+.journey-hub-drawer-body-hjn .journey-hub-kpi-card-hjn.is-accent .journey-hub-kpi-value-hjn,
+.journey-hub-drawer-body-hjn .journey-hub-kpi-card-hjn.is-accent .journey-hub-kpi-label-hjn {
+    color: #fff;
+}
+
+/* Hub trigger button in header */
+.journey-hub-trigger-hjn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    padding: 0.42rem 0.76rem;
+    border-radius: 999px;
+    border: 1px solid rgba(74, 77, 104, 0.12);
+    background: rgba(255, 255, 255, 0.8);
+    color: var(--text-primary);
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.journey-hub-trigger-hjn:hover {
+    background: rgba(252, 229, 215, 0.82);
+    border-color: rgba(231, 166, 144, 0.45);
+}
+
+/* ---- 8. TIMELINE WORKSPACE — Tighten shell only ---- */
+
+.journey-stage-shell-hjn {
+    gap: 0.65rem;
+    padding: 0.85rem;
+}
+
+/* Stats: keep existing flex-direction (column), just tighten padding */
+.journey-stage-stat-hjn {
+    padding: 0.62rem 0.75rem;
+    border-radius: 16px;
+}
+
+.journey-stage-stat-hjn span {
+    font-size: 0.64rem;
+}
+
+.journey-stage-stat-hjn strong {
+    font-size: 1rem;
+}
+
+.journey-stage-controls-hjn {
+    padding: 0.7rem 0.85rem;
+    border-radius: 18px;
+    width: 100%;
+    max-width: 100%;
+}
+
+.journey-stage-area-hjn {
+    padding: 1.1rem 1.3rem 1.5rem;
+}
+
+/* ---- 9. HIDE HUB OVERVIEW from main flow (moved to drawer) ---- */
+
+.journey-hub-overview-hjn {
+    display: none !important;
+}
+
+/* ---- 10. DARK MODE OVERRIDES ---- */
+
+.hair-journey-container[data-theme="dark"] .journey-rewards-toggle-hjn,
+.hair-journey-container[data-theme="dark"] .journey-hub-trigger-hjn {
+    background: rgba(30, 34, 43, 0.82);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.hair-journey-container[data-theme="dark"] .journey-hub-drawer-hjn {
+    background: linear-gradient(180deg, #181b22 0%, #111216 100%);
+    border-left-color: rgba(255, 255, 255, 0.08);
+}
+
+.hair-journey-container[data-theme="dark"] .journey-hub-drawer-header-hjn {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.hair-journey-container[data-theme="dark"] .journey-hub-drawer-title-hjn {
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.hair-journey-container[data-theme="dark"] .journey-hub-drawer-close-hjn {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* ---- 11. RESPONSIVE ---- */
+
+@media (max-width: 768px) {
+    .journey-spotlight-grid-hjn {
+        grid-template-columns: 1fr;
+    }
+
+    .journey-hub-drawer-body-hjn .journey-hub-kpi-grid-hjn {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 560px) {
+    .action-buttons-compact-hjn .action-btn {
+        flex: 1 1 calc(50% - 0.3rem);
+    }
+
+    .action-btn-primary {
+        flex-basis: 100% !important;
+    }
+}

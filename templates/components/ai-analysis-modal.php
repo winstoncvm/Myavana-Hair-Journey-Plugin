@@ -61,7 +61,7 @@ if (!function_exists('myavana_render_ai_analysis_modal')) {
                             <input id="aiTermsAgree" type="checkbox">
                             <label for="aiTermsAgree"><div class="tick_mark"></div></label>
                             <span class="myavana-checkbox-text">
-                                I agree to the <a href="/terms" target="_blank" style="color: var(--myavana-coral); font-weight: 600;">hair analysis terms of use</a>
+                                I agree to the <a href="<?php echo esc_url(home_url('/terms/')); ?>" target="_blank" rel="noopener noreferrer" style="color: var(--myavana-coral); font-weight: 600;">hair analysis terms of use</a>
                                 and understand my images are processed securely.
                             </span>
                         </div>

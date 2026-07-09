@@ -91,8 +91,167 @@
                 this.animateStats(statsWidget, stats);
             }
 
+            this.syncSummaryUI(stats);
+
             // Store stats for later use
             this.currentStats = stats;
+        },
+
+        syncSummaryUI: function(stats) {
+            const bindings = {
+                myavanaGamificationPoints: stats.total_points,
+                myavanaGamificationStreak: stats.current_streak,
+                myavanaGamificationBadges: stats.badges_earned,
+                myavanaGamificationCheckin: stats.checked_in_today ? 'Done' : 'Open',
+                myavanaGamificationXpMeta: `${stats.xp_progress_percent || 0}%`
+            };
+
+            Object.keys(bindings).forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.textContent = bindings[id];
+                }
+            });
+
+            const levelNodes = document.querySelectorAll('[data-gamification-level]');
+            levelNodes.forEach((node) => {
+                node.textContent = stats.level;
+            });
+
+            const xpBar = document.getElementById('myavanaGamificationXpBar');
+            if (xpBar) {
+                const pct = Math.max(0, Math.min(100, stats.xp_progress_percent || 0));
+                xpBar.style.width = `${pct}%`;
+            }
+
+            const checkInBtn = document.getElementById('myavana-checkin-btn');
+            if (checkInBtn) {
+                if (stats.checked_in_today) {
+                    checkInBtn.disabled = true;
+                    checkInBtn.textContent = 'Checked In';
+                } else {
+                    checkInBtn.disabled = false;
+                    checkInBtn.textContent = 'Check In';
+                }
+            }
+
+            this.syncQuestUI(stats);
+            this.syncActiveChallengesUI(stats);
+            this.syncRecentRewardsUI(stats);
+        },
+
+        syncQuestUI: function(stats) {
+            const groups = {
+                daily: stats.daily_quests || [],
+                weekly: stats.weekly_quests || []
+            };
+
+            Object.keys(groups).forEach((group) => {
+                const items = groups[group];
+                document.querySelectorAll(`[data-gamification-quest-group="${group}"]`).forEach((container) => {
+                    container.innerHTML = this.renderQuestGroupHTML(items);
+                });
+
+                const meta = document.querySelector(`[data-gamification-quest-meta="${group}"]`);
+                if (meta) {
+                    const completed = items.filter((item) => (item.current || 0) >= (item.target || 1)).length;
+                    meta.textContent = `${completed}/${items.length}`;
+                }
+            });
+        },
+
+        renderQuestGroupHTML: function(items) {
+            if (!items.length) {
+                return '<div class="journey-reward-empty-hjn">No quests available yet.</div>';
+            }
+
+            return items.map((item) => {
+                const current = parseInt(item.current || 0, 10);
+                const target = Math.max(1, parseInt(item.target || 1, 10));
+                const complete = current >= target;
+                const pct = Math.max(0, Math.min(100, Math.round((current / target) * 100)));
+
+                return `
+                    <div class="journey-quest-item-hjn${complete ? ' is-complete' : ''}">
+                        <div class="journey-quest-copy-hjn">
+                            <strong>${this.escapeHtml(item.label || 'Quest')}</strong>
+                            <span>${this.escapeHtml(item.description || '')}</span>
+                        </div>
+                        <div class="journey-quest-progress-hjn">
+                            <span class="journey-quest-count-hjn">${current}/${target}</span>
+                            <div class="journey-quest-bar-hjn"><span style="width:${pct}%"></span></div>
+                            <small>${this.escapeHtml(item.reward_label || '')}</small>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        },
+
+        syncRecentRewardsUI: function(stats) {
+            const rewards = stats.recent_rewards || [];
+            document.querySelectorAll('[data-gamification-recent-rewards]').forEach((container) => {
+                container.innerHTML = this.renderRecentRewardsHTML(rewards);
+            });
+        },
+
+        syncActiveChallengesUI: function(stats) {
+            const challenges = stats.active_challenges || [];
+            document.querySelectorAll('[data-gamification-active-challenges]').forEach((container) => {
+                container.innerHTML = this.renderActiveChallengesHTML(challenges);
+            });
+        },
+
+        renderActiveChallengesHTML: function(challenges) {
+            if (!challenges.length) {
+                return '<div class="journey-reward-empty-hjn">No active challenges configured yet.</div>';
+            }
+
+            return challenges.slice(0, 3).map((challenge) => {
+                const current = parseInt(challenge.current || 0, 10);
+                const target = Math.max(1, parseInt(challenge.target || 1, 10));
+                const pct = Math.max(0, Math.min(100, parseInt(challenge.progress_percent || 0, 10)));
+                const complete = !!challenge.completed;
+                const description = `${challenge.description || ''}${challenge.window_label ? ' · ' + challenge.window_label : ''}`;
+
+                return `
+                    <div class="journey-quest-item-hjn${complete ? ' is-complete' : ''}">
+                        <div class="journey-quest-copy-hjn">
+                            <strong>${this.escapeHtml(challenge.title || 'Challenge')}</strong>
+                            <span>${this.escapeHtml(description)}</span>
+                        </div>
+                        <div class="journey-quest-progress-hjn">
+                            <span class="journey-quest-count-hjn">${current}/${target}</span>
+                            <div class="journey-quest-bar-hjn"><span style="width:${pct}%"></span></div>
+                            <small>+${parseInt(challenge.reward_points || 0, 10)} pts</small>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        },
+
+        renderRecentRewardsHTML: function(rewards) {
+            if (!rewards.length) {
+                return '<div class="journey-reward-empty-hjn">Complete actions to unlock your first rewards.</div>';
+            }
+
+            return rewards.map((reward) => `
+                <div class="journey-reward-feed-item-hjn">
+                    <div>
+                        <strong>${this.escapeHtml(reward.reason || 'Reward earned')}</strong>
+                        <span>${this.escapeHtml(reward.relative_time || '')}</span>
+                    </div>
+                    <em>+${parseInt(reward.points_change || 0, 10)}</em>
+                </div>
+            `).join('');
+        },
+
+        escapeHtml: function(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         },
 
         /**

@@ -27,7 +27,7 @@
      */
     function attachEventListeners() {
         // Close offcanvas
-        $(document).on('click', '.offcanvas-close-hjn, .offcanvas-overlay-hjn', function() {
+        $(document).on('click', '.offcanvas-close-hjn, .offcanvas-overlay-hjn.profile-edit-overlay', function() {
             closeProfileEditOffcanvas();
         });
 
@@ -440,7 +440,7 @@
         loadProfileData();
 
         // Show overlay and offcanvas
-        $('.offcanvas-overlay-hjn').addClass('active');
+        $('.offcanvas-overlay-hjn.profile-edit-overlay').addClass('active');
         $('.offcanvas-hjn.profile-edit').addClass('active');
 
         // Prevent body scroll
@@ -452,7 +452,7 @@
      */
     function closeProfileEditOffcanvas() {
         // Hide overlay and offcanvas
-        $('.offcanvas-overlay-hjn').removeClass('active');
+        $('.offcanvas-overlay-hjn.profile-edit-overlay').removeClass('active');
         $('.offcanvas-hjn.profile-edit').removeClass('active');
 
         // Re-enable body scroll

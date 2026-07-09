@@ -59,11 +59,11 @@
 
 /* Profile Edit Form Enhancements */
 .offcanvas-hjn.profile-edit {
-    z-index: 10000;
+    z-index: 10090;
 }
 
-.offcanvas-overlay-hjn.active {
-    z-index: 9999;
+.offcanvas-overlay-hjn.profile-edit-overlay.active {
+    z-index: 10045;
 }
 
 /* Form Field Styling */
@@ -203,13 +203,31 @@
 /* Mobile Optimizations */
 @media (max-width: 768px) {
     .offcanvas-hjn.profile-edit {
-        width: 100%;
-        max-width: 100%;
+        top: 8px;
+        right: 8px;
+        bottom: 8px;
+        width: calc(100vw - 16px);
+        max-width: calc(100vw - 16px);
+        height: calc(100dvh - 16px);
+        max-height: calc(100dvh - 16px);
+        border-radius: 16px;
+        overflow: hidden;
     }
 
     .offcanvas-close-hjn {
         min-width: 44px;
         min-height: 44px;
+    }
+
+    .offcanvas-hjn.profile-edit .offcanvas-header-hjn {
+        padding: 0.75rem 0.9rem;
+    }
+
+    .offcanvas-hjn.profile-edit .offcanvas-body-hjn {
+        padding: 0.9rem;
+        padding-bottom: calc(146px + env(safe-area-inset-bottom, 0px));
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     #sidebar-profile-edit-form input,
@@ -218,13 +236,21 @@
         font-size: 16px; /* Prevent zoom on focus in iOS */
     }
 
-    .offcanvas-footer-hjn {
+    .offcanvas-hjn.profile-edit .offcanvas-footer-hjn {
+        position: sticky;
+        bottom: 0;
+        z-index: 3;
+        background: var(--myavana-white, #ffffff);
+        border-top: 1px solid rgba(34, 35, 35, 0.12);
+        box-shadow: 0 -8px 18px rgba(34, 35, 35, 0.08);
+        padding: 0.75rem 0.9rem calc(0.85rem + env(safe-area-inset-bottom, 0px));
         flex-direction: column;
-        gap: 8px;
+        gap: 0.5rem;
     }
 
-    .offcanvas-footer-hjn button {
+    .offcanvas-hjn.profile-edit .offcanvas-footer-hjn button {
         width: 100%;
+        min-height: 46px;
     }
 }
 

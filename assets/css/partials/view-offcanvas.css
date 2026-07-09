@@ -9,7 +9,7 @@
     bottom: 0;
     background: rgba(34, 35, 35, 0.7);
     backdrop-filter: blur(4px);
-    z-index: 1;
+    z-index: 10055;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -29,10 +29,10 @@
     height: 100vh;
     background: var(--myavana-white);
     box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
-    z-index: 10001;
+    z-index: 10080;
     display: flex;
     flex-direction: column;
-    transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .offcanvas-hjn.active {
@@ -41,7 +41,7 @@
 
 /* Offcanvas Header */
 .offcanvas-header-hjn {
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
     border-bottom: 2px solid var(--border-color);
     display: flex;
     align-items: center;
@@ -85,7 +85,7 @@
 .offcanvas-body-hjn {
     flex: 1;
     overflow-y: auto;
-    padding: 2rem;
+    padding: 1.25rem;
     background: var(--myavana-stone);
 }
 
@@ -130,6 +130,36 @@
 }
 
 /* View Gallery */
+.view-primary-image-hjn {
+    position: relative;
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 2px solid var(--border-color);
+    background: var(--myavana-white);
+}
+
+.view-primary-image-hjn img {
+    width: 100%;
+    max-height: 360px;
+    object-fit: cover;
+    display: block;
+}
+
+.view-primary-badge-hjn {
+    position: absolute;
+    top: 0.65rem;
+    left: 0.65rem;
+    z-index: 2;
+    padding: 0.28rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--myavana-white);
+    background: rgba(34, 35, 35, 0.78);
+}
+
 .view-gallery-hjn {
     border-radius: 1rem;
     overflow: hidden;
@@ -167,6 +197,26 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.view-media-grid-hjn {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.75rem;
+}
+
+.view-video-card-hjn {
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 2px solid var(--border-color);
+    background: var(--myavana-white);
+}
+
+.view-video-card-hjn video {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
 }
 /* Image Overlay Styles */
 .image-overlay-hjn {
@@ -438,6 +488,65 @@
     font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-primary);
+}
+
+.view-detail-grid-hjn {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.view-detail-item-hjn {
+    border-radius: 0.75rem;
+    border: 1px solid rgba(34, 35, 35, 0.12);
+    background: rgba(245, 245, 247, 0.8);
+    padding: 0.75rem 0.875rem;
+}
+
+.view-detail-label-hjn {
+    display: block;
+    font-size: 0.75rem;
+    line-height: 1.25;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    margin-bottom: 0.35rem;
+}
+
+.view-detail-value-hjn {
+    display: block;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: var(--myavana-onyx);
+    font-weight: 600;
+}
+
+.view-followup-stack-hjn {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.view-followup-item-hjn {
+    border-radius: 0.75rem;
+    border: 1px solid rgba(34, 35, 35, 0.12);
+    background: rgba(245, 245, 247, 0.8);
+    padding: 0.85rem;
+}
+
+.view-followup-title-hjn {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    margin-bottom: 0.4rem;
+}
+
+.view-followup-text-hjn {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--myavana-onyx);
+    white-space: pre-wrap;
 }
 
 /* Progress Circle */
@@ -744,6 +853,81 @@
     background: var(--myavana-white);
 }
 
+@media (max-width: 768px) {
+    .offcanvas-hjn {
+        width: 100%;
+        max-width: 100%;
+        right: 0;
+        top: auto;
+        bottom: 0;
+        height: min(88vh, 760px);
+        border-radius: 16px 16px 0 0;
+        transform: translateY(105%);
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .offcanvas-hjn.active {
+        right: 0;
+        transform: translateY(0);
+    }
+
+    .offcanvas-header-hjn {
+        padding: 0.75rem 0.875rem;
+    }
+
+    .offcanvas-header-hjn::before {
+        content: '';
+        position: absolute;
+        top: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 38px;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(34, 35, 35, 0.2);
+    }
+
+    .offcanvas-title-hjn {
+        font-size: 1.125rem;
+    }
+
+    .offcanvas-body-hjn,
+    .offcanvas-content-hjn {
+        padding: 0.875rem;
+    }
+
+    .offcanvas-footer-hjn {
+        position: sticky;
+        bottom: 0;
+        padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+        background: #fff;
+    }
+
+    .btn-hjn,
+    .btn-primary-hjn,
+    .btn-secondary-hjn {
+        min-height: 42px;
+    }
+}
+
+@media (max-width: 480px) {
+    .view-section-hjn {
+        padding: 1rem;
+    }
+
+    .view-primary-image-hjn img {
+        max-height: 240px;
+    }
+
+    .view-item-title-hjn {
+        font-size: 1.125rem;
+    }
+
+    .completion-stats-hjn {
+        grid-template-columns: 1fr;
+    }
+}
+
 .btn-hjn {
     flex: 1;
     padding: 0.5rem 0.8rem;
@@ -854,5 +1038,27 @@
 
     .progress-percentage-hjn {
         font-size: 1.5rem;
+    }
+}
+
+/* Mobile safe-area guard: keep top & bottom breathing room so close/cancel stay tappable */
+@media (max-width: 768px) {
+    .offcanvas-hjn.view-offcanvas-hjn {
+        right: 8px !important;
+        bottom: 8px !important;
+        width: calc(100vw - 16px) !important;
+        max-width: calc(100vw - 16px) !important;
+        height: min(calc(100dvh - 16px), 760px) !important;
+        max-height: calc(100dvh - 16px) !important;
+        border-radius: 16px !important;
+    }
+
+    .offcanvas-hjn.view-offcanvas-hjn.active {
+        right: 8px !important;
+        bottom: 8px !important;
+    }
+
+    .offcanvas-hjn.view-offcanvas-hjn .offcanvas-footer-hjn {
+        padding-bottom: calc(0.9rem + env(safe-area-inset-bottom, 0px)) !important;
     }
 }

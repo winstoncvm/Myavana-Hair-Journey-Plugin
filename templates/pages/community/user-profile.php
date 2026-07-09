@@ -87,7 +87,7 @@ function myavana_user_profile_shortcode($atts = []) {
                         </div>
                         <div class="myavana-profile-stat">
                             <span class="myavana-stat-number"><?php echo esc_html($social_stats['followers_count'] ?? 0); ?></span>
-                            <span class="myavana-stat-label">Followers</span>
+                            <span class="myavana-stat-label">Followersz</span>
                         </div>
                         <div class="myavana-profile-stat">
                             <span class="myavana-stat-number"><?php echo esc_html($social_stats['following_count'] ?? 0); ?></span>

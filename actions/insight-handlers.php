@@ -60,22 +60,16 @@ function myavana_check_insight_unlocks() {
 
     $insights_table = $wpdb->prefix . 'myavana_insights';
     $user_insights_table = $wpdb->prefix . 'myavana_user_insights';
-    $user_stats_table = $wpdb->prefix . 'myavana_user_stats';
+    $user_summary = function_exists('myavana_get_gamification_summary')
+        ? myavana_get_gamification_summary($user_id)
+        : null;
 
-    // Get user stats
-    $user_stats = $wpdb->get_row($wpdb->prepare(
-        "SELECT * FROM $user_stats_table WHERE user_id = %d",
-        $user_id
-    ));
-
-    if (!$user_stats) {
+    if (!$user_summary) {
         wp_send_json_success(['new_unlocks' => []]);
         return;
     }
 
-    // Get total entries
-    $total_entries = wp_count_posts('hair_journey_entry');
-    $published_entries = $total_entries ? $total_entries->publish : 0;
+    $published_entries = intval($user_summary['total_entries'] ?? 0);
 
     // Get locked insights
     $locked_insights = $wpdb->get_results($wpdb->prepare(
@@ -103,25 +97,25 @@ function myavana_check_insight_unlocks() {
         } elseif (strpos($requirement, 'streak') !== false) {
             // "Maintain a 7-day streak"
             preg_match('/(\d+)-day streak/', $requirement, $matches);
-            if ($matches && $user_stats->current_streak >= intval($matches[1])) {
+            if ($matches && intval($user_summary['current_streak'] ?? 0) >= intval($matches[1])) {
                 $should_unlock = true;
             }
         } elseif (strpos($requirement, 'ai analyses') !== false) {
             // "Complete 10 AI analyses"
             preg_match('/(\d+)\s*ai analyses/i', $requirement, $matches);
-            if ($matches && $user_stats->total_ai_analyses >= intval($matches[1])) {
+            if ($matches && intval($user_summary['total_ai_analyses'] ?? 0) >= intval($matches[1])) {
                 $should_unlock = true;
             }
         } elseif (strpos($requirement, 'level') !== false) {
             // "Reach level 5"
             preg_match('/level\s*(\d+)/i', $requirement, $matches);
-            if ($matches && $user_stats->current_level >= intval($matches[1])) {
+            if ($matches && intval($user_summary['level'] ?? 1) >= intval($matches[1])) {
                 $should_unlock = true;
             }
         } elseif (strpos($requirement, 'points') !== false) {
             // "Earn 500 points"
             preg_match('/(\d+)\s*points/', $requirement, $matches);
-            if ($matches && $user_stats->total_points >= intval($matches[1])) {
+            if ($matches && intval($user_summary['total_points'] ?? 0) >= intval($matches[1])) {
                 $should_unlock = true;
             }
         } elseif (strpos($requirement, 'badges') !== false) {
@@ -153,15 +147,13 @@ function myavana_check_insight_unlocks() {
 
             // Award points
             if ($insight['points_reward'] > 0) {
-                $wpdb->update(
-                    $user_stats_table,
-                    [
-                        'total_points' => $user_stats->total_points + $insight['points_reward'],
-                        'current_level' => floor(($user_stats->total_points + $insight['points_reward']) / 100) + 1
-                    ],
-                    ['user_id' => $user_id],
-                    ['%d', '%d'],
-                    ['%d']
+                myavana_award_points(
+                    $user_id,
+                    intval($insight['points_reward']),
+                    'Insight unlocked: ' . $insight['title'],
+                    'insight',
+                    0,
+                    'insight_unlock:' . $user_id . ':' . $insight['insight_key']
                 );
             }
 

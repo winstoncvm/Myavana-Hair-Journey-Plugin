@@ -193,15 +193,7 @@
             if (typeof window.openAIAnalysisModal === 'function') {
                 window.openAIAnalysisModal();
             } else {
-                // Fallback: toggle the tryon interface
-                $('.hair-analysis-container').addClass('hidden');
-                $('.myavana-tryon').removeClass('hidden');
-
-                // Update button state
-                const btn = $(this);
-                btn.addClass('cancel-active');
-                btn.find('i').removeClass('fa-plus').addClass('fa-times');
-                btn.find('span').text('Cancel Analysis');
+                window.location.href = window.myavanaAiToolUrl || 'https://www.myavana.com/pages/consumer';
             }
         });
 

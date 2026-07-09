@@ -52,8 +52,52 @@ $start_offset = $start_day - 1;
 $calendar_data = [
     'entries' => [],
     'goals' => [],
-    'routines' => []
+    'routines' => [],
+    'routine_records' => [],
+    'routine_summary' => [],
+    'routine_notifications' => [],
+    'today' => current_time('Y-m-d'),
+    'routes' => [
+        'routines' => home_url('/routines/'),
+        'profile' => home_url('/profile/'),
+    ],
 ];
+
+$routine_tracking = function_exists('myavana_get_routine_tracking_context')
+    ? myavana_get_routine_tracking_context($user_id, (array) $current_routine)
+    : [];
+$routine_tracking_by_id = !empty($routine_tracking['routines_by_id']) && is_array($routine_tracking['routines_by_id'])
+    ? $routine_tracking['routines_by_id']
+    : [];
+$calendar_data['routine_records'] = !empty($routine_tracking['records']) && is_array($routine_tracking['records'])
+    ? $routine_tracking['records']
+    : [];
+$calendar_data['routine_summary'] = !empty($routine_tracking['summary']) && is_array($routine_tracking['summary'])
+    ? $routine_tracking['summary']
+    : [];
+$calendar_data['routine_notifications'] = !empty($routine_tracking['notifications']) && is_array($routine_tracking['notifications'])
+    ? $routine_tracking['notifications']
+    : [];
+
+$resolve_entry_thumbnail = static function(int $post_id): string {
+    $thumbnail = get_the_post_thumbnail_url($post_id, 'medium');
+
+    if (!$thumbnail) {
+        $featured_image_index = get_post_meta($post_id, 'featured_image_index', true);
+        $gallery_images = get_post_meta($post_id, '_entry_gallery', true);
+
+        if (is_array($gallery_images) && !empty($gallery_images)) {
+            $index = ($featured_image_index !== '') ? intval($featured_image_index) : 0;
+            if (isset($gallery_images[$index])) {
+                $thumbnail = wp_get_attachment_image_url($gallery_images[$index], 'medium');
+            } else {
+                $thumbnail = wp_get_attachment_image_url($gallery_images[0], 'medium');
+            }
+        }
+    }
+
+    return $thumbnail ?: '';
+};
 
 // Process entries for calendar
 foreach ($entries as $entry) {
@@ -72,7 +116,7 @@ foreach ($entries as $entry) {
         'day' => intval(date('j', strtotime($entry_date))),
         'month' => intval(date('n', strtotime($entry_date))),
         'year' => intval(date('Y', strtotime($entry_date))),
-        'thumbnail' => get_the_post_thumbnail_url($post_id, 'medium'),
+        'thumbnail' => $resolve_entry_thumbnail($post_id),
         'rating' => get_post_meta($post_id, 'health_rating', true),
         'mood' => get_post_meta($post_id, 'mood_demeanor', true),
         'products' => get_post_meta($post_id, 'products_used', true),
@@ -80,185 +124,96 @@ foreach ($entries as $entry) {
 }
 
 // Process goals for calendar
-// Let's log to see the goals fields and values before processing:
 foreach ($hair_goals as $idx => $goal) {
     $start_date = $goal['start_date'] ?? $goal['start'] ?? '';
-    $end_date = $goal['target_date'] ?? $goal['end'] ?? '';
-    
-
-    if ($start_date) {
-        // Convert dates to timestamps with validation
-        $start_timestamp = strtotime($start_date);
-        $end_timestamp = $end_date ? strtotime($end_date) : null;
-        
-        $calendar_data['goals'][] = [
-            'id' => $idx,
-            'title' => $goal['title'] ?? $goal['goal_title'] ?? 'Untitled Goal',
-            'description' => $goal['description'] ?? $goal['notes'] ?? '',
-            'start_date' => $start_date,
-            'end_date' => $end_date, // Fixed: use $end_date instead of undefined $target_date
-            'start_day' => $start_timestamp ? intval(date('j', $start_timestamp)) : null,
-            'start_month' => $start_timestamp ? intval(date('n', $start_timestamp)) : null,
-            'start_year' => $start_timestamp ? intval(date('Y', $start_timestamp)) : null,
-            'end_day' => $end_timestamp ? intval(date('j', $end_timestamp)) : null,
-            'end_month' => $end_timestamp ? intval(date('n', $end_timestamp)) : null,
-            'end_year' => $end_timestamp ? intval(date('Y', $end_timestamp)) : null,
-            'progress' => isset($goal['progress']) ? intval($goal['progress']) : (isset($goal['progress_percent']) ? intval($goal['progress_percent']) : 0),
-        ];
-        
-        // Log the processed goal data
-        error_log("Processed goal {$idx}: " . print_r(end($calendar_data['goals']), true));
-    } else {
-        error_log("Goal {$idx} skipped - no start date found");
+    if ($start_date === '') {
+        continue;
     }
+
+    $end_date = $goal['target_date'] ?? $goal['end_date'] ?? ($goal['end'] ?? '');
+    $start_timestamp = strtotime($start_date);
+    $end_timestamp = $end_date ? strtotime($end_date) : null;
+
+    $calendar_data['goals'][] = [
+        'id' => $idx,
+        'title' => $goal['title'] ?? $goal['goal_title'] ?? 'Untitled Goal',
+        'description' => $goal['description'] ?? $goal['notes'] ?? '',
+        'start_date' => $start_date,
+        'end_date' => $end_date,
+        'start_day' => $start_timestamp ? intval(date('j', $start_timestamp)) : null,
+        'start_month' => $start_timestamp ? intval(date('n', $start_timestamp)) : null,
+        'start_year' => $start_timestamp ? intval(date('Y', $start_timestamp)) : null,
+        'end_day' => $end_timestamp ? intval(date('j', $end_timestamp)) : null,
+        'end_month' => $end_timestamp ? intval(date('n', $end_timestamp)) : null,
+        'end_year' => $end_timestamp ? intval(date('Y', $end_timestamp)) : null,
+        'progress' => isset($goal['progress']) ? intval($goal['progress']) : (isset($goal['progress_percent']) ? intval($goal['progress_percent']) : 0),
+    ];
 }
 
+// Process routines for calendar with shared tracking metadata
+foreach ((array) $current_routine as $idx => $routine) {
+    $routine_title = $routine['name'] ?? $routine['title'] ?? $routine['routine_title'] ?? 'Routine';
+    $routine_time = function_exists('myavana_normalize_routine_time')
+        ? myavana_normalize_routine_time($routine)
+        : ($routine['time_of_day'] ?? $routine['time'] ?? $routine['routine_time'] ?? '08:00');
+    $routine_frequency = function_exists('myavana_normalize_routine_frequency')
+        ? myavana_normalize_routine_frequency($routine['frequency'] ?? $routine['routine_frequency'] ?? 'weekly')
+        : ($routine['frequency'] ?? $routine['routine_frequency'] ?? 'weekly');
+    $created_date = function_exists('myavana_get_routine_created_date')
+        ? myavana_get_routine_created_date($routine, current_time('Y-m-d'))
+        : ($routine['created_at'] ?? $routine['created_on'] ?? $routine['date_created'] ?? ($routine['start_date'] ?? ''));
+    $tracking = $routine_tracking_by_id[$idx] ?? [];
 
-
-// Process routines for calendar
-if (!empty($current_routine)) {
-    error_log("=== STARTING ROUTINE PROCESSING ===");
-    error_log("Total routines found: " . count($current_routine));
-    
-    foreach ($current_routine as $idx => $routine) {
-        error_log("--- Processing Routine {$idx} ---");
-        error_log("Available fields in routine {$idx}: " . implode(', ', array_keys($routine)));
-        
-        // Use the correct field names based on the log output
-        $routine_title = $routine['name'] ?? $routine['title'] ?? $routine['routine_title'] ?? 'Routine';
-        $routine_time = $routine['time_of_day'] ?? $routine['time'] ?? $routine['routine_time'] ?? '08:00';
-        $routine_frequency = $routine['frequency'] ?? $routine['routine_frequency'] ?? 'daily';
-        
-        // Get created date - check multiple possible field names
-        $created_date = $routine['created_at'] ?? $routine['created_on'] ?? $routine['date_created'] ?? $routine['start_date'] ?? '';
-        
-        error_log("Routine {$idx} - Raw name: " . ($routine['name'] ?? 'NOT SET'));
-        error_log("Routine {$idx} - Raw time_of_day: " . ($routine['time_of_day'] ?? 'NOT SET'));
-        error_log("Routine {$idx} - Raw frequency: " . ($routine['frequency'] ?? 'NOT SET'));
-        error_log("Routine {$idx} - Raw created_at: " . ($routine['created_at'] ?? 'NOT SET'));
-        error_log("Routine {$idx} - Raw created_on: " . ($routine['created_on'] ?? 'NOT SET'));
-        error_log("Routine {$idx} - Raw date_created: " . ($routine['date_created'] ?? 'NOT SET'));
-        error_log("Routine {$idx} - Raw start_date: " . ($routine['start_date'] ?? 'NOT SET'));
-        
-        error_log("Routine {$idx} - Final title: '{$routine_title}'");
-        error_log("Routine {$idx} - Final time: '{$routine_time}'");
-        error_log("Routine {$idx} - Final frequency: '{$routine_frequency}'");
-        error_log("Routine {$idx} - Final created_date: '{$created_date}'");
-        
-        // Enhanced time parsing with validation
-        $hour = 8; // default fallback
-        if (!empty($routine_time)) {
-            // Handle different time formats (HH:MM, HH.MM, HH MM, etc.)
-            $cleaned_time = str_replace(['.', ' '], ':', $routine_time);
-            $time_parts = explode(':', $cleaned_time);
-            error_log("Routine {$idx} - Time parsing - Cleaned: '{$cleaned_time}', Parts: " . print_r($time_parts, true));
-            
-            if (count($time_parts) >= 1 && is_numeric($time_parts[0])) {
-                $parsed_hour = intval($time_parts[0]);
-                // Handle 12-hour format if needed
-                if (isset($time_parts[1]) && strpos(strtoupper($time_parts[1]), 'PM') !== false && $parsed_hour < 12) {
-                    $parsed_hour += 12;
-                } elseif (isset($time_parts[1]) && strpos(strtoupper($time_parts[1]), 'AM') !== false && $parsed_hour == 12) {
-                    $parsed_hour = 0;
-                }
-                
-                if ($parsed_hour >= 0 && $parsed_hour <= 23) {
-                    $hour = $parsed_hour;
-                    error_log("Routine {$idx} - Successfully parsed hour: {$hour}");
-                } else {
-                    error_log("Routine {$idx} - WARNING: Invalid hour {$parsed_hour}, using default 8");
-                }
-            } else {
-                error_log("Routine {$idx} - WARNING: Could not parse hour from '{$routine_time}', using default 8");
-            }
-        } else {
-            error_log("Routine {$idx} - WARNING: Empty time, using default 8:00");
+    $hour = 8;
+    if (!empty($routine_time) && preg_match('/(\d{1,2})/', (string) $routine_time, $time_match)) {
+        $parsed_hour = intval($time_match[1]);
+        if ($parsed_hour >= 0 && $parsed_hour <= 23) {
+            $hour = $parsed_hour;
         }
-        
-        // Parse created date into components if available
-        $created_components = [];
-        if (!empty($created_date)) {
-            $created_timestamp = strtotime($created_date);
-            if ($created_timestamp) {
-                $created_components = [
-                    'created_date' => $created_date,
-                    'created_day' => intval(date('j', $created_timestamp)),
-                    'created_month' => intval(date('n', $created_timestamp)),
-                    'created_year' => intval(date('Y', $created_timestamp)),
-                    'created_timestamp' => $created_timestamp
-                ];
-                error_log("Routine {$idx} - Created date parsed: " . print_r($created_components, true));
-            } else {
-                error_log("Routine {$idx} - WARNING: Could not parse created date '{$created_date}'");
-            }
-        } else {
-            error_log("Routine {$idx} - No created date found");
-        }
-        
-        // Steps/products debugging - using 'products' field instead of 'steps'
-        $steps = $routine['products'] ?? $routine['steps'] ?? $routine['routine_steps'] ?? [];
-        error_log("Routine {$idx} - Raw products: " . print_r($routine['products'] ?? 'NOT SET', true));
-        error_log("Routine {$idx} - Final products/steps count: " . (is_array($steps) ? count($steps) : 'NOT ARRAY'));
-        
-        // Also include description if available
-        $description = $routine['description'] ?? '';
-        if (!empty($description)) {
-            error_log("Routine {$idx} - Description: '{$description}'");
-        }
-        
-        $routine_data = [
-            'id' => $idx,
-            'title' => $routine_title,
-            'time' => $routine_time,
-            'hour' => $hour,
-            'frequency' => $routine_frequency,
-            'steps' => $steps,
-            'description' => $description, // Include description in the output
-            'products' => $steps, // Also include products separately for clarity
-        ];
-        
-        // Merge created date components if available
-        if (!empty($created_components)) {
-            $routine_data = array_merge($routine_data, $created_components);
-        }
-        
-        $calendar_data['routines'][] = $routine_data;
-        error_log("Routine {$idx} - ✅ Successfully added to calendar data");
-        error_log("Routine {$idx} - Final routine data: " . print_r($routine_data, true));
     }
-    
-    error_log("=== ROUTINE PROCESSING COMPLETE ===");
-    error_log("Final routines count in calendar_data: " . count($calendar_data['routines'] ?? []));
-} else {
-    error_log("=== NO ROUTINES TO PROCESS ===");
+
+    $steps = $routine['products'] ?? $routine['steps'] ?? $routine['routine_steps'] ?? [];
+    $calendar_data['routines'][] = [
+        'id' => $idx,
+        'title' => $routine_title,
+        'time' => $routine_time,
+        'hour' => $hour,
+        'frequency' => $routine_frequency,
+        'steps' => $steps,
+        'description' => $routine['description'] ?? ($routine['notes'] ?? ''),
+        'products' => $steps,
+        'created_date' => $created_date,
+        'duration' => $routine['duration'] ?? ($routine['routine_duration'] ?? ''),
+        'goal_link' => $routine['routine_goal_link'] ?? '',
+        'phase' => $routine['routine_phase'] ?? '',
+        'status' => $routine['status'] ?? 'active',
+        'routine_reminder_days' => $routine['routine_reminder_days'] ?? '',
+        'routine_auto_track' => $routine['routine_auto_track'] ?? 0,
+        'schedule_days' => $tracking['schedule_days'] ?? [],
+        'today_status' => $tracking['today_status'] ?? '',
+        'due_today' => !empty($tracking['due_today']),
+        'overdue' => !empty($tracking['overdue']),
+        'last_due_date' => $tracking['last_due_date'] ?? '',
+        'next_due_date' => $tracking['next_due_date'] ?? '',
+        'last_completed' => $tracking['last_completed'] ?? '',
+        'completion_rate_30d' => intval($tracking['completion_rate_30d'] ?? 0),
+        'current_streak' => intval($tracking['current_streak'] ?? 0),
+        'completed_dates' => $tracking['completed_dates'] ?? [],
+    ];
 }
+
+$routine_matches_day = static function(array $routine, string $date_str): bool {
+    return function_exists('myavana_routine_matches_date')
+        ? myavana_routine_matches_date($routine, $date_str)
+        : false;
+};
 
 // Check if we have any data
 $has_data = !empty($calendar_data['entries']) || !empty($calendar_data['goals']) || !empty($calendar_data['routines']);
-
-// Debug output (remove after testing)
-error_log('Calendar Debug - Entries: ' . count($calendar_data['entries']));
-error_log('Calendar Debug - Goals: ' . count($calendar_data['goals']));
-// Additional debug: raw stored user meta
-if (empty($calendar_data['goals'])) {
-    $raw_goals = get_user_meta($user_id, 'myavana_hair_goals_structured', true);
-    error_log('Calendar Debug - Raw hair_goals meta: ' . print_r($raw_goals, true));
-}
-error_log('Calendar Debug - Current Month: ' . $current_month . ', Year: ' . $current_year);
-if (!empty($calendar_data['entries'])) {
-    error_log('First entry: ' . print_r($calendar_data['entries'][0], true));
-}
-if (!empty($calendar_data['goals'])) {
-    error_log('First goal: ' . print_r($calendar_data['goals'][0], true));
-}
-if (empty($calendar_data['routines'])) {
-    $raw_routines = get_user_meta($user_id, 'myavana_current_routine', true);
-    error_log('Calendar Debug - Raw current_routine meta: ' . print_r($raw_routines, true));
-}
 ?>
 
 <!-- Calendar View -->
-<div id="calendarView" class="view-content calendar-view-hjn active">
+<div id="calendarView" class="view-content calendar-view-hjn">
 
     <!-- Calendar Controls -->
     <div class="calendar-controls-hjn">
@@ -313,6 +268,22 @@ if (empty($calendar_data['routines'])) {
             </button> -->
         </div>
     </div>
+
+    <section class="calendar-routine-planner-hjn" id="calendarRoutinePlanner">
+        <div class="calendar-routine-planner-head-hjn">
+            <div>
+                <span class="calendar-routine-planner-kicker-hjn">Routine Planner</span>
+                <h3>Track your routine cadence from the calendar</h3>
+                <p>Mark routines done, snooze reminders, and keep your streak visible without leaving the planner.</p>
+            </div>
+            <div class="calendar-routine-planner-links-hjn">
+                <a href="<?php echo esc_url(home_url('/routines/')); ?>" class="calendar-routine-link-hjn">Manage routines</a>
+                <a href="<?php echo esc_url(home_url('/profile/')); ?>" class="calendar-routine-link-hjn ghost">View profile</a>
+            </div>
+        </div>
+        <div class="calendar-routine-summary-grid-hjn" id="calendarRoutineSummary"></div>
+        <div class="calendar-routine-notifications-hjn" id="calendarRoutineNotifications"></div>
+    </section>
 
     <!-- Filter & Search Panel -->
     <div class="calendar-filters-panel-hjn" id="calendarFiltersPanel" style="display: none;">
@@ -450,8 +421,10 @@ if (empty($calendar_data['routines'])) {
                             return $day_timestamp >= $start_timestamp && $day_timestamp <= $end_timestamp;
                         });
 
-                        // Get routines for this day (if daily or matches frequency)
-                        $day_routines = $calendar_data['routines'];
+                        // Get routines scheduled for this date.
+                        $day_routines = array_values(array_filter($calendar_data['routines'], static function($routine) use ($routine_matches_day, $date_str) {
+                            return $routine_matches_day((array) $routine, $date_str);
+                        }));
 
                         $has_content = !empty($day_entries) || !empty($day_goals) || !empty($day_routines);
                     ?>
@@ -468,31 +441,37 @@ if (empty($calendar_data['routines'])) {
                                         </div>
                                     <?php endif; ?>
                                     <?php if (!empty($day_goals)): ?>
-                                        <div class="goal-bar-span-new highlighted" style="left: 0%; bottom: 0px; width: 100%; z-index: 0;">
-                                            <div class="goal-span-title" style="font-size: 8px; width: 100%;"><?php echo esc_html($day_goals[array_key_first($day_goals)]['title']); ?></div>
+                                        <div class="calendar-day-indicator-hjn calendar-indicator-goal-hjn" title="<?php echo count($day_goals); ?> goals">
+                                            <?php echo count($day_goals); ?>
                                         </div>
                                     <?php endif; ?>
                                     <?php if (!empty($day_routines)): ?>
-                                        <div class="routine-stack-container">
-                                            <?php foreach ($day_routines as $routine): ?>
-                                                <div class="routine-stack-card">
-                                                    <div class="routine-stack-icon">
-                                                        <?php 
-                                                        // Use a sun icon for morning routines (before 12 PM), moon otherwise
-                                                        echo ($routine['hour'] < 12) ? '☀️' : '🌙'; 
-                                                        ?>
-                                                    </div>
-                                                    <div class="routine-stack-content">
-                                                        <div class="routine-stack-title"><?php echo esc_html($routine['title']); ?></div>
-                                                        <div class="routine-stack-time"><?php echo esc_html($routine['time']); ?></div>
-                                                    </div>
-                                                </div>
-                                            <?php endforeach; ?>
+                                        <div class="calendar-day-indicator-hjn calendar-indicator-routine-hjn" title="<?php echo count($day_routines); ?> routines">
+                                            <?php echo count($day_routines); ?>
                                         </div>
                                     <?php endif; ?>
                                 </div>
-                                
-                                
+
+                                <div class="calendar-day-focus-hjn">
+                                    <?php if (!empty($day_goals)): $day_goal = reset($day_goals); ?>
+                                        <div class="calendar-day-focus-chip-hjn is-goal" title="<?php echo esc_attr($day_goal['title']); ?>">
+                                            <span class="chip-icon-hjn">🎯</span>
+                                            <span class="chip-text-hjn"><?php echo esc_html(wp_trim_words($day_goal['title'], 2)); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                    <?php if (!empty($day_routines)): $day_routine = reset($day_routines); ?>
+                                        <div class="calendar-day-focus-chip-hjn is-routine" title="<?php echo esc_attr($day_routine['title']); ?>">
+                                            <span class="chip-icon-hjn"><?php echo intval($day_routine['hour']) < 12 ? '☀️' : '🌙'; ?></span>
+                                            <span class="chip-text-hjn"><?php echo esc_html(wp_trim_words($day_routine['title'], 2)); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                    <?php if (count($day_goals) > 1 || count($day_routines) > 1): ?>
+                                        <div class="calendar-day-focus-chip-hjn is-more">
+                                            +<?php echo intval(max(0, count($day_goals) - 1) + max(0, count($day_routines) - 1)); ?> more
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+
                                 <!-- Mini previews for entries -->
                                 <?php
                                 $preview_entries = array_slice($day_entries, 0, 2);
@@ -500,8 +479,15 @@ if (empty($calendar_data['routines'])) {
                                 ?>
                                     <div class="calendar-day-entry-preview-hjn"
                                          onclick="event.stopPropagation(); openViewOffcanvas('entry', <?php echo $entry['id']; ?>)">
-                                        <span class="calendar-entry-time-hjn"><?php echo esc_html($entry['time']); ?></span>
-                                        <span class="calendar-entry-title-hjn"><?php echo esc_html(wp_trim_words($entry['title'], 3)); ?></span>
+                                        <?php if (!empty($entry['thumbnail'])): ?>
+                                            <span class="calendar-entry-thumb-hjn" style="background-image: url('<?php echo esc_url($entry['thumbnail']); ?>');"></span>
+                                        <?php else: ?>
+                                            <span class="calendar-entry-thumb-hjn is-fallback">📸</span>
+                                        <?php endif; ?>
+                                        <span class="calendar-entry-preview-body-hjn">
+                                            <span class="calendar-entry-time-hjn"><?php echo esc_html($entry['time']); ?></span>
+                                            <span class="calendar-entry-title-hjn"><?php echo esc_html(wp_trim_words($entry['title'], 3)); ?></span>
+                                        </span>
                                     </div>
                                 <?php endforeach; ?>
 
@@ -543,8 +529,10 @@ if (empty($calendar_data['routines'])) {
                         return $day_timestamp >= $start_timestamp && $day_timestamp <= $end_timestamp;
                     });
 
-                    // Get routines for this day (if daily or matches frequency)
-                    $day_routines = $calendar_data['routines'];
+                    // Get routines scheduled for this date.
+                    $day_routines = array_values(array_filter($calendar_data['routines'], static function($routine) use ($routine_matches_day, $date_str) {
+                        return $routine_matches_day((array) $routine, $date_str);
+                    }));
 
                     $has_content = !empty($day_entries) || !empty($day_goals) || !empty($day_routines);
                 ?>
@@ -580,7 +568,7 @@ if (empty($calendar_data['routines'])) {
                         <?php if ($has_content): ?>
                             <div class="calendar-day-list-content-hjn">
                                 <?php if (!empty($day_goals)): ?>
-                                    <?php foreach ($day_goals as $goal): ?>
+                                    <?php foreach (array_slice($day_goals, 0, 2) as $goal): ?>
                                         <div class="calendar-list-goal-hjn">
                                             <div class="goal-list-title-hjn"><?php echo esc_html($goal['title']); ?></div>
                                             <div class="goal-list-progress-hjn">
@@ -588,11 +576,14 @@ if (empty($calendar_data['routines'])) {
                                             </div>
                                         </div>
                                     <?php endforeach; ?>
+                                    <?php if (count($day_goals) > 2): ?>
+                                        <div class="calendar-list-more-hjn">+<?php echo count($day_goals) - 2; ?> more goals</div>
+                                    <?php endif; ?>
                                 <?php endif; ?>
 
                                 <?php if (!empty($day_routines)): ?>
                                     <div class="calendar-list-routines-hjn">
-                                        <?php foreach ($day_routines as $routine): ?>
+                                        <?php foreach (array_slice($day_routines, 0, 2) as $routine): ?>
                                             <div class="calendar-list-routine-hjn">
                                                 <div class="routine-list-icon-hjn">
                                                     <?php echo ($routine['hour'] < 12) ? '☀️' : '🌙'; ?>
@@ -604,6 +595,9 @@ if (empty($calendar_data['routines'])) {
                                             </div>
                                         <?php endforeach; ?>
                                     </div>
+                                    <?php if (count($day_routines) > 2): ?>
+                                        <div class="calendar-list-more-hjn">+<?php echo count($day_routines) - 2; ?> more routines</div>
+                                    <?php endif; ?>
                                 <?php endif; ?>
 
                                 <?php
@@ -611,11 +605,18 @@ if (empty($calendar_data['routines'])) {
                                 foreach ($preview_entries as $entry):
                                 ?>
                                     <div class="calendar-list-entry-hjn">
-                                        <div class="entry-list-time-hjn"><?php echo esc_html($entry['time']); ?></div>
-                                        <div class="entry-list-title-hjn"><?php echo esc_html($entry['title']); ?></div>
-                                        <?php if ($entry['mood']): ?>
-                                            <div class="entry-list-mood-hjn"><?php echo esc_html($entry['mood']); ?></div>
+                                        <?php if (!empty($entry['thumbnail'])): ?>
+                                            <span class="entry-list-thumb-hjn" style="background-image: url('<?php echo esc_url($entry['thumbnail']); ?>');"></span>
+                                        <?php else: ?>
+                                            <span class="entry-list-thumb-hjn is-fallback">📸</span>
                                         <?php endif; ?>
+                                        <div class="entry-list-body-hjn">
+                                            <div class="entry-list-time-hjn"><?php echo esc_html($entry['time']); ?></div>
+                                            <div class="entry-list-title-hjn"><?php echo esc_html($entry['title']); ?></div>
+                                            <?php if ($entry['mood']): ?>
+                                                <div class="entry-list-mood-hjn"><?php echo esc_html($entry['mood']); ?></div>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                 <?php endforeach; ?>
 
@@ -811,15 +812,10 @@ if (empty($calendar_data['routines'])) {
                         $endTs = $goal['end_date'] ? strtotime($goal['end_date']) : $startTs;
                         return $dayTs >= $startTs && $dayTs <= $endTs;
                     });
-                    $weekday_num = $dayDate->format('w');
                     $routines = $calendar_data['routines'] ?? [];
-                    $dayRoutines = array_filter($routines, function($routine) use ($weekday_num) {
-                        switch ($routine['frequency']) {
-                            case 'daily': return true;
-                            case 'weekly': return true; // Weekly routines apply to all days
-                            default: return false;
-                        }
-                    });
+                    $dayRoutines = array_values(array_filter($routines, static function($routine) use ($routine_matches_day, $dateStr) {
+                        return $routine_matches_day((array) $routine, $dateStr);
+                    }));
 
                     $hasContent = !empty($dayEntries) || !empty($dayGoals) || !empty($dayRoutines);
                     if (!$hasContent) continue; // Skip empty days in mobile list
@@ -878,11 +874,18 @@ if (empty($calendar_data['routines'])) {
                             foreach ($previewEntries as $entry):
                             ?>
                                 <div class="calendar-list-entry-hjn">
-                                    <div class="entry-list-time-hjn"><?php echo esc_html($entry['time']); ?></div>
-                                    <div class="entry-list-title-hjn"><?php echo esc_html($entry['title']); ?></div>
-                                    <?php if ($entry['mood']): ?>
-                                        <div class="entry-list-mood-hjn"><?php echo esc_html($entry['mood']); ?></div>
+                                    <?php if (!empty($entry['thumbnail'])): ?>
+                                        <span class="entry-list-thumb-hjn" style="background-image: url('<?php echo esc_url($entry['thumbnail']); ?>');"></span>
+                                    <?php else: ?>
+                                        <span class="entry-list-thumb-hjn is-fallback">📸</span>
                                     <?php endif; ?>
+                                    <div class="entry-list-body-hjn">
+                                        <div class="entry-list-time-hjn"><?php echo esc_html($entry['time']); ?></div>
+                                        <div class="entry-list-title-hjn"><?php echo esc_html($entry['title']); ?></div>
+                                        <?php if ($entry['mood']): ?>
+                                            <div class="entry-list-mood-hjn"><?php echo esc_html($entry['mood']); ?></div>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             <?php endforeach; ?>
 
@@ -958,7 +961,17 @@ if (empty($calendar_data['routines'])) {
                 <div class="calendar-single-day-hjn">
                     <div class="calendar-day-header-hjn">
                         <h3 id="singleDayTitle"><?php echo date('l, F j, Y'); ?></h3>
+                        <div class="calendar-day-header-meta-hjn">
+                            <div class="calendar-day-summary-hjn" id="dayViewSummary"></div>
+                            <div class="calendar-day-filter-group-hjn" id="dayViewFilterGroup">
+                                <button type="button" class="calendar-day-filter-btn-hjn active" data-day-filter="all">All</button>
+                                <button type="button" class="calendar-day-filter-btn-hjn" data-day-filter="entries">Entries</button>
+                                <button type="button" class="calendar-day-filter-btn-hjn" data-day-filter="routines">Routines</button>
+                                <button type="button" class="calendar-day-filter-btn-hjn" data-day-filter="goals">Goals</button>
+                            </div>
+                        </div>
                     </div>
+                    <div class="calendar-day-goals-strip-hjn" id="dayGoalsStrip"></div>
 
                     <div class="calendar-single-day-grid-hjn" id="singleDayGrid">
                         <?php
@@ -980,20 +993,24 @@ if (empty($calendar_data['routines'])) {
                                  onclick="openViewOffcanvas('entry', <?php echo $entry['id']; ?>)">
                                 <?php if ($entry['thumbnail']): ?>
                                     <div class="calendar-day-entry-image-hjn" style="background-image: url('<?php echo esc_url($entry['thumbnail']); ?>');"></div>
+                                <?php else: ?>
+                                    <div class="calendar-day-entry-icon-hjn">📸</div>
                                 <?php endif; ?>
                                 <div class="calendar-day-entry-content-hjn">
-                                    <div class="calendar-day-entry-time-block-hjn"><?php echo esc_html($entry['time']); ?></div>
+                                    <div class="calendar-day-entry-meta-row-hjn">
+                                        <div class="calendar-day-entry-time-block-hjn"><?php echo esc_html($entry['time']); ?></div>
+                                        <?php if ($entry['rating']): ?>
+                                            <div class="calendar-day-entry-rating-block-hjn">
+                                                <svg viewBox="0 0 24 24" width="12" height="12">
+                                                    <path fill="currentColor" d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"/>
+                                                </svg>
+                                                <?php echo esc_html($entry['rating']); ?>/10
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
                                     <div class="calendar-day-entry-title-block-hjn"><?php echo esc_html($entry['title']); ?></div>
                                     <?php if ($entry['mood']): ?>
                                         <div class="calendar-day-entry-mood-block-hjn"><?php echo esc_html($entry['mood']); ?></div>
-                                    <?php endif; ?>
-                                    <?php if ($entry['rating']): ?>
-                                        <div class="calendar-day-entry-rating-block-hjn">
-                                            <svg viewBox="0 0 24 24" width="12" height="12">
-                                                <path fill="currentColor" d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"/>
-                                            </svg>
-                                            <?php echo esc_html($entry['rating']); ?>/10
-                                        </div>
                                     <?php endif; ?>
                                 </div>
                             </div>

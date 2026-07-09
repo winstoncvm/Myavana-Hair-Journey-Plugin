@@ -18,6 +18,7 @@ class Myavana_Shortcodes {
 
         require_once MYAVANA_DIR . 'templates/pages/home/home-one.php';
         require_once MYAVANA_DIR . 'templates/pages/hair-journey.php';
+        require_once MYAVANA_DIR . 'templates/pages/legal.php';
         // require_once MYAVANA_DIR . 'templates/widgets/recent-activity.php';
         // require_once MYAVANA_DIR . 'templates/widgets/quick-stats.php';
         // require_once MYAVANA_DIR . 'templates/widgets/recommended-products.php';
@@ -42,6 +43,8 @@ class Myavana_Shortcodes {
         add_shortcode('myavana_recommended_products_widget', [$this, 'recommended_products_widget_shortcode']);
         add_shortcode('myavana_hair_diary_timeline', [$this, 'hair_timeline_shortcode']);
         add_shortcode('myavana_hair_diary', [$this, 'hair_diary_shortcode']);
+        add_shortcode('myavana_goals_page', [$this, 'goals_page_shortcode']);
+        add_shortcode('myavana_routines_page', [$this, 'routines_page_shortcode']);
         add_shortcode('myavana_community_feed', [$this, 'community_feed_shortcode']);
         add_shortcode('myavana_user_profile', [$this, 'user_profile_shortcode']);
         add_shortcode('myavana_unified_profile', [$this, 'unified_profile_shortcode']);
@@ -49,6 +52,8 @@ class Myavana_Shortcodes {
         add_shortcode('myavana_trending_posts', [$this, 'trending_posts_shortcode']);
         add_shortcode('myavana_routine_library', [$this, 'routine_library_shortcode']);
         add_shortcode('myavana_community_stats', [$this, 'community_stats_shortcode']);
+        add_shortcode('myavana_privacy_policy', [$this, 'privacy_policy_shortcode']);
+        add_shortcode('myavana_terms', [$this, 'terms_shortcode']);
     }
 
     public function login_shortcode() {
@@ -122,6 +127,15 @@ class Myavana_Shortcodes {
     public function hair_diary_shortcode() {
         return hair_journey_diary_shortcode();
     }
+
+    public function goals_page_shortcode($atts = []) {
+        return myavana_goals_page_shortcode($atts);
+    }
+
+    public function routines_page_shortcode($atts = []) {
+        return myavana_routines_page_shortcode($atts);
+    }
+
     public function community_feed_shortcode($atts = []) {
         return myavana_community_feed_shortcode($atts);
     }
@@ -133,7 +147,7 @@ class Myavana_Shortcodes {
     public function unified_profile_shortcode($atts = []) {
         // Enqueue unified profile assets
         wp_enqueue_style('myavana-unified-profile', MYAVANA_URL . 'assets/css/unified-profile.css', [], '1.0.0');
-        wp_enqueue_script('myavana-unified-profile', MYAVANA_URL . 'assets/js/unified-profile.js', ['jquery'], '1.0.0', true);
+        wp_enqueue_script('myavana-unified-profile', MYAVANA_URL . 'assets/js/unified-profile.js', ['jquery'], '1.0.1', true);
 
         // Localize script with settings
         wp_localize_script('myavana-unified-profile', 'myavanaUpSettings', [
@@ -160,6 +174,14 @@ class Myavana_Shortcodes {
 
     public function community_stats_shortcode($atts = []) {
         return myavana_community_stats_shortcode($atts);
+    }
+
+    public function privacy_policy_shortcode($atts = []) {
+        return myavana_privacy_policy_shortcode($atts);
+    }
+
+    public function terms_shortcode($atts = []) {
+        return myavana_terms_shortcode($atts);
     }
 }
 ?>

@@ -1061,19 +1061,43 @@ function myavana_update_entry() {
     }
 
     // Validate required fields
-    if (empty($_POST['title'])) {
+    $raw_title = $_POST['title'] ?? ($_POST['entry_title'] ?? '');
+    if (empty($raw_title)) {
         wp_send_json_error('Title is required');
         return;
     }
 
     // Sanitize input data
-    $title = sanitize_text_field($_POST['title']);
-    $description = sanitize_textarea_field($_POST['description']);
-    $products = isset($_POST['products']) ? sanitize_text_field($_POST['products']) : '';
-    $notes = isset($_POST['notes']) ? sanitize_text_field($_POST['notes']) : '';
+    $title = sanitize_text_field($raw_title);
+    $description = sanitize_textarea_field($_POST['description'] ?? ($_POST['entry_content'] ?? ''));
+
+    $products_raw = $_POST['products'] ?? '';
+    if (is_array($products_raw)) {
+        $products_list = array_values(array_filter(array_map('sanitize_text_field', $products_raw)));
+    } else {
+        $products_list = array_values(array_filter(array_map('sanitize_text_field', preg_split('/\r\n|\r|\n|,/', (string) $products_raw))));
+    }
+    $products = implode(', ', $products_list);
+
+    $notes = isset($_POST['notes']) ? sanitize_textarea_field($_POST['notes']) : '';
     $rating = isset($_POST['rating']) ? min(max(intval($_POST['rating']), 1), 5) : 3;
-    $mood = isset($_POST['mood']) ? sanitize_text_field($_POST['mood']) : '';
+    $mood = isset($_POST['mood_demeanor']) ? sanitize_text_field($_POST['mood_demeanor']) : sanitize_text_field($_POST['mood'] ?? '');
     $environment = isset($_POST['environment']) ? sanitize_text_field($_POST['environment']) : '';
+    $entry_type = sanitize_text_field($_POST['entry_type'] ?? '');
+    $scalp_condition = sanitize_text_field($_POST['scalp_condition'] ?? '');
+    $hair_feel = sanitize_text_field($_POST['hair_feel'] ?? '');
+    $length_check_cm = isset($_POST['length_check_cm']) && $_POST['length_check_cm'] !== ''
+        ? floatval($_POST['length_check_cm'])
+        : '';
+    if ($length_check_cm !== '') {
+        $length_check_cm = max(0, min(200, $length_check_cm));
+    }
+    $entry_tags_raw = sanitize_text_field($_POST['entry_tags'] ?? '');
+    $entry_tags = array_values(array_filter(array_map('sanitize_text_field', preg_split('/\r\n|\r|\n|,/', $entry_tags_raw))));
+    $next_step = sanitize_textarea_field($_POST['next_step'] ?? '');
+    $techniques = sanitize_text_field($_POST['techniques'] ?? '');
+    $video_notes = isset($_POST['video_notes']) ? sanitize_textarea_field($_POST['video_notes']) : '';
+    $entry_time = sanitize_text_field($_POST['entry_time'] ?? '');
 
     // Prepare update array
     $update_data = [
@@ -1085,8 +1109,8 @@ function myavana_update_entry() {
     // Handle date if provided (allow user to change entry date)
     if (!empty($_POST['entry_date'])) {
         $entry_date = sanitize_text_field($_POST['entry_date']);
-        // Convert YYYY-MM-DD to WordPress datetime format
-        $update_data['post_date'] = $entry_date . ' ' . current_time('H:i:s');
+        $time_component = preg_match('/^\d{2}:\d{2}$/', $entry_time) ? $entry_time . ':00' : current_time('H:i:s');
+        $update_data['post_date'] = $entry_date . ' ' . $time_component;
         $update_data['post_date_gmt'] = get_gmt_from_date($update_data['post_date']);
     }
 
@@ -1100,25 +1124,124 @@ function myavana_update_entry() {
 
     // Update metadata
     update_post_meta($entry_id, 'products_used', $products);
+    update_post_meta($entry_id, 'products_used_list', $products_list);
     update_post_meta($entry_id, 'stylist_notes', $notes);
     update_post_meta($entry_id, 'health_rating', $rating);
     update_post_meta($entry_id, 'mood_demeanor', $mood);
     update_post_meta($entry_id, 'environment', $environment);
+    update_post_meta($entry_id, 'entry_type', $entry_type);
+    update_post_meta($entry_id, 'scalp_condition', $scalp_condition);
+    update_post_meta($entry_id, 'hair_feel', $hair_feel);
+    if ($length_check_cm !== '') {
+        update_post_meta($entry_id, 'length_check_cm', $length_check_cm);
+    } else {
+        delete_post_meta($entry_id, 'length_check_cm');
+    }
+    update_post_meta($entry_id, 'entry_tags', implode(', ', $entry_tags));
+    update_post_meta($entry_id, 'entry_tags_list', $entry_tags);
+    update_post_meta($entry_id, 'next_step', $next_step);
+    update_post_meta($entry_id, 'techniques', $techniques);
+    update_post_meta($entry_id, 'video_notes', $video_notes);
+    if (preg_match('/^\d{2}:\d{2}$/', $entry_time)) {
+        update_post_meta($entry_id, 'entry_time', $entry_time);
+    }
 
-    // Handle photo upload if provided
-    if (!empty($_FILES['photo']['name'])) {
-        require_once ABSPATH . 'wp-admin/includes/media.php';
-        require_once ABSPATH . 'wp-admin/includes/file.php';
-        require_once ABSPATH . 'wp-admin/includes/image.php';
+    require_once ABSPATH . 'wp-admin/includes/media.php';
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+    require_once ABSPATH . 'wp-admin/includes/image.php';
 
-        $upload = wp_handle_upload($_FILES['photo'], ['test_form' => false]);
-        if ($upload && !isset($upload['error'])) {
-            // Delete old thumbnail if exists
-            $old_thumbnail_id = get_post_thumbnail_id($entry_id);
-            if ($old_thumbnail_id) {
-                wp_delete_attachment($old_thumbnail_id, true);
+    // Existing gallery media
+    $gallery_ids = get_post_meta($entry_id, '_entry_gallery', true);
+    if (!is_array($gallery_ids) || empty($gallery_ids)) {
+        $gallery_ids = get_post_meta($entry_id, 'entry_photos', true);
+    }
+    if (!is_array($gallery_ids)) {
+        $gallery_ids = [];
+    }
+
+    $video_ids = get_post_meta($entry_id, '_entry_videos', true);
+    if (!is_array($video_ids)) {
+        $video_ids = [];
+    }
+
+    // Remove selected existing image/video attachments
+    $removed_gallery_ids = [];
+    if (!empty($_POST['removed_gallery_ids'])) {
+        $decoded = json_decode(wp_unslash($_POST['removed_gallery_ids']), true);
+        if (is_array($decoded)) {
+            $removed_gallery_ids = array_map('intval', $decoded);
+        }
+    }
+
+    $removed_video_ids = [];
+    if (!empty($_POST['removed_video_ids'])) {
+        $decoded = json_decode(wp_unslash($_POST['removed_video_ids']), true);
+        if (is_array($decoded)) {
+            $removed_video_ids = array_map('intval', $decoded);
+        }
+    }
+
+    if (!empty($removed_gallery_ids)) {
+        foreach ($removed_gallery_ids as $remove_id) {
+            $gallery_ids = array_values(array_filter($gallery_ids, function($id) use ($remove_id) {
+                return intval($id) !== intval($remove_id);
+            }));
+            if ($remove_id) {
+                wp_delete_attachment($remove_id, true);
+            }
+        }
+    }
+
+    if (!empty($removed_video_ids)) {
+        foreach ($removed_video_ids as $remove_id) {
+            $video_ids = array_values(array_filter($video_ids, function($id) use ($remove_id) {
+                return intval($id) !== intval($remove_id);
+            }));
+            if ($remove_id) {
+                wp_delete_attachment($remove_id, true);
+            }
+        }
+    }
+
+    // Add new image uploads (multi-image)
+    if (!empty($_FILES['entry_photos']) && !empty($_FILES['entry_photos']['name']) && is_array($_FILES['entry_photos']['name'])) {
+        foreach ($_FILES['entry_photos']['name'] as $key => $value) {
+            if (empty($_FILES['entry_photos']['name'][$key])) {
+                continue;
             }
 
+            $file = [
+                'name' => $_FILES['entry_photos']['name'][$key],
+                'type' => $_FILES['entry_photos']['type'][$key],
+                'tmp_name' => $_FILES['entry_photos']['tmp_name'][$key],
+                'error' => $_FILES['entry_photos']['error'][$key],
+                'size' => $_FILES['entry_photos']['size'][$key],
+            ];
+
+            $upload = wp_handle_upload($file, ['test_form' => false]);
+            if ($upload && !isset($upload['error'])) {
+                $attachment = [
+                    'post_mime_type' => $upload['type'],
+                    'post_title' => sanitize_file_name(basename($upload['file'])),
+                    'post_content' => '',
+                    'post_status' => 'inherit',
+                    'post_author' => $user_id
+                ];
+
+                $attachment_id = wp_insert_attachment($attachment, $upload['file'], $entry_id);
+                if (!is_wp_error($attachment_id)) {
+                    $attachment_data = wp_generate_attachment_metadata($attachment_id, $upload['file']);
+                    wp_update_attachment_metadata($attachment_id, $attachment_data);
+                    $gallery_ids[] = intval($attachment_id);
+                }
+            }
+        }
+    }
+
+    // Backward-compatible single image upload
+    if (!empty($_FILES['photo']['name'])) {
+        $upload = wp_handle_upload($_FILES['photo'], ['test_form' => false]);
+        if ($upload && !isset($upload['error'])) {
             $attachment = [
                 'post_mime_type' => $upload['type'],
                 'post_title' => sanitize_file_name(basename($upload['file'])),
@@ -1131,9 +1254,67 @@ function myavana_update_entry() {
             if (!is_wp_error($attachment_id)) {
                 $attachment_data = wp_generate_attachment_metadata($attachment_id, $upload['file']);
                 wp_update_attachment_metadata($attachment_id, $attachment_data);
-                set_post_thumbnail($entry_id, $attachment_id);
+                $gallery_ids[] = intval($attachment_id);
             }
         }
+    }
+
+    // Handle video uploads
+    if (!empty($_FILES['entry_videos']) && !empty($_FILES['entry_videos']['name']) && is_array($_FILES['entry_videos']['name'])) {
+        foreach ($_FILES['entry_videos']['name'] as $key => $value) {
+            if (empty($_FILES['entry_videos']['name'][$key])) {
+                continue;
+            }
+
+            $file = [
+                'name' => $_FILES['entry_videos']['name'][$key],
+                'type' => $_FILES['entry_videos']['type'][$key],
+                'tmp_name' => $_FILES['entry_videos']['tmp_name'][$key],
+                'error' => $_FILES['entry_videos']['error'][$key],
+                'size' => $_FILES['entry_videos']['size'][$key],
+            ];
+
+            if (!empty($file['type']) && strpos($file['type'], 'video/') !== 0) {
+                continue;
+            }
+
+            $upload = wp_handle_upload($file, ['test_form' => false]);
+            if ($upload && !isset($upload['error'])) {
+                $attachment = [
+                    'post_mime_type' => $upload['type'],
+                    'post_title' => sanitize_file_name(basename($upload['file'])),
+                    'post_content' => '',
+                    'post_status' => 'inherit',
+                    'post_author' => $user_id
+                ];
+                $attachment_id = wp_insert_attachment($attachment, $upload['file'], $entry_id);
+                if (!is_wp_error($attachment_id)) {
+                    $attachment_data = wp_generate_attachment_metadata($attachment_id, $upload['file']);
+                    wp_update_attachment_metadata($attachment_id, $attachment_data);
+                    $video_ids[] = intval($attachment_id);
+                }
+            }
+        }
+    }
+
+    // Persist media
+    $gallery_ids = array_values(array_unique(array_map('intval', $gallery_ids)));
+    $video_ids = array_values(array_unique(array_map('intval', $video_ids)));
+
+    if (!empty($gallery_ids)) {
+        set_post_thumbnail($entry_id, $gallery_ids[0]);
+        update_post_meta($entry_id, '_entry_gallery', $gallery_ids);
+        update_post_meta($entry_id, 'entry_photos', $gallery_ids);
+    } else {
+        delete_post_thumbnail($entry_id);
+        delete_post_meta($entry_id, '_entry_gallery');
+        delete_post_meta($entry_id, 'entry_photos');
+    }
+
+    if (!empty($video_ids)) {
+        update_post_meta($entry_id, '_entry_videos', $video_ids);
+    } else {
+        delete_post_meta($entry_id, '_entry_videos');
     }
 
     wp_send_json_success([
@@ -1167,27 +1348,151 @@ function myavana_get_entry_details() {
     // Get all meta data
     $meta_data = get_post_meta($entry_id);
 
+    $normalize_attachment_ids = static function($raw_value) {
+        if (is_string($raw_value)) {
+            $trimmed = trim($raw_value);
+            if ($trimmed === '') {
+                return [];
+            }
+
+            $maybe_unserialized = maybe_unserialize($trimmed);
+            if (is_array($maybe_unserialized)) {
+                $raw_value = $maybe_unserialized;
+            } else {
+                $decoded = json_decode($trimmed, true);
+                if (is_array($decoded)) {
+                    $raw_value = $decoded;
+                } else {
+                    $raw_value = preg_split('/[\r\n,]+/', $trimmed);
+                }
+            }
+        }
+
+        if (!is_array($raw_value)) {
+            return [];
+        }
+
+        $ids = [];
+        foreach ($raw_value as $item) {
+            if (is_array($item) && isset($item['id'])) {
+                $item = $item['id'];
+            }
+            $id = intval($item);
+            if ($id > 0) {
+                $ids[] = $id;
+            }
+        }
+
+        return array_values(array_unique($ids));
+    };
+
     // Get thumbnail URL
     $thumbnail_url = get_the_post_thumbnail_url($entry_id, 'large');
     if (!$thumbnail_url) {
-        // Fallback to medium or thumbnail size
         $thumbnail_url = get_the_post_thumbnail_url($entry_id, 'medium') ?: get_the_post_thumbnail_url($entry_id, 'thumbnail');
     }
 
+    // Build gallery images payload
+    $gallery_ids = $normalize_attachment_ids(get_post_meta($entry_id, '_entry_gallery', true));
+    if (empty($gallery_ids)) {
+        $gallery_ids = $normalize_attachment_ids(get_post_meta($entry_id, 'entry_photos', true));
+    }
+
+    $images_payload = [];
+    foreach ($gallery_ids as $attachment_id) {
+        $attachment_id = intval($attachment_id);
+        if (!$attachment_id) {
+            continue;
+        }
+        $image_url = wp_get_attachment_image_url($attachment_id, 'large');
+        if (!$image_url) {
+            continue;
+        }
+        $images_payload[] = [
+            'id' => $attachment_id,
+            'url' => $image_url,
+            'thumbnail' => wp_get_attachment_image_url($attachment_id, 'medium') ?: $image_url,
+        ];
+    }
+    if (empty($images_payload) && !empty($thumbnail_url)) {
+        $thumb_id = get_post_thumbnail_id($entry_id);
+        $images_payload[] = [
+            'id' => $thumb_id ? intval($thumb_id) : null,
+            'url' => $thumbnail_url,
+            'thumbnail' => $thumbnail_url,
+        ];
+    }
+
+    // Build videos payload
+    $video_ids = $normalize_attachment_ids(get_post_meta($entry_id, '_entry_videos', true));
+    if (empty($video_ids)) {
+        $video_ids = $normalize_attachment_ids(get_post_meta($entry_id, 'entry_videos', true));
+    }
+
+    $videos_payload = [];
+    foreach ($video_ids as $video_id) {
+        $video_id = intval($video_id);
+        if (!$video_id) {
+            continue;
+        }
+        $video_url = wp_get_attachment_url($video_id);
+        if (!$video_url) {
+            continue;
+        }
+        $videos_payload[] = [
+            'id' => $video_id,
+            'url' => $video_url,
+            'mime' => get_post_mime_type($video_id),
+        ];
+    }
+
     // Build detailed response
+    $products_list = get_post_meta($entry_id, 'products_used_list', true);
+    if (!is_array($products_list)) {
+        $products_raw = isset($meta_data['products_used'][0]) ? $meta_data['products_used'][0] : '';
+        $products_list = array_values(array_filter(array_map('trim', explode(',', (string) $products_raw))));
+    }
+    $entry_tags_list = get_post_meta($entry_id, 'entry_tags_list', true);
+    if (!is_array($entry_tags_list)) {
+        $entry_tags_raw = isset($meta_data['entry_tags'][0]) ? $meta_data['entry_tags'][0] : '';
+        $entry_tags_list = array_values(array_filter(array_map('trim', explode(',', (string) $entry_tags_raw))));
+    }
+
     $detailed_data = [
         'id' => $entry_id,
         'title' => $entry->post_title,
+        'content' => $entry->post_content,
         'description' => $entry->post_content,
         'date' => get_the_date('F j, Y g:i A', $entry_id),
+        'created_at' => get_the_date('F j, Y g:i A', $entry_id),
+        'updated_at' => get_the_modified_date('F j, Y g:i A', $entry_id),
         'entry_date' => get_the_date('Y-m-d', $entry_id), // Raw date for form input
+        'entry_time' => isset($meta_data['entry_time'][0]) ? $meta_data['entry_time'][0] : get_the_time('H:i', $entry_id),
         'rating' => isset($meta_data['health_rating'][0]) ? $meta_data['health_rating'][0] : '5',
         'mood' => isset($meta_data['mood_demeanor'][0]) ? $meta_data['mood_demeanor'][0] : 'Happy',
+        'mood_demeanor' => isset($meta_data['mood_demeanor'][0]) ? $meta_data['mood_demeanor'][0] : '',
         'environment' => isset($meta_data['environment'][0]) ? $meta_data['environment'][0] : 'Home',
+        'entry_type' => isset($meta_data['entry_type'][0]) ? $meta_data['entry_type'][0] : '',
+        'scalp_condition' => isset($meta_data['scalp_condition'][0]) ? $meta_data['scalp_condition'][0] : '',
+        'hair_feel' => isset($meta_data['hair_feel'][0]) ? $meta_data['hair_feel'][0] : '',
+        'length_check_cm' => isset($meta_data['length_check_cm'][0]) ? $meta_data['length_check_cm'][0] : '',
+        'entry_tags' => isset($meta_data['entry_tags'][0]) ? $meta_data['entry_tags'][0] : '',
+        'entry_tags_list' => $entry_tags_list,
+        'next_step' => isset($meta_data['next_step'][0]) ? $meta_data['next_step'][0] : '',
+        'techniques' => isset($meta_data['techniques'][0]) ? $meta_data['techniques'][0] : '',
         'products' => isset($meta_data['products_used'][0]) ? $meta_data['products_used'][0] : '',
-        'notes' => isset($meta_data['stylist_notes'][0]) ? $meta_data['stylist_notes'][0] : '',
+        'products_used' => isset($meta_data['products_used'][0]) ? $meta_data['products_used'][0] : '',
+        'products_used_list' => $products_list,
+        'products_list' => $products_list,
+        'notes' => isset($meta_data['stylist_notes'][0]) ? $meta_data['stylist_notes'][0] : (isset($meta_data['notes'][0]) ? $meta_data['notes'][0] : ''),
+        'video_notes' => isset($meta_data['video_notes'][0]) ? $meta_data['video_notes'][0] : '',
         'image' => $thumbnail_url ?: '',
         'thumbnail' => $thumbnail_url ?: '', // Alias for compatibility
+        'images' => $images_payload,
+        'videos' => $videos_payload,
+        'image_count' => count($images_payload),
+        'video_count' => count($videos_payload),
+        'featured_image_index' => isset($meta_data['featured_image_index'][0]) ? intval($meta_data['featured_image_index'][0]) : 0,
         'ai_tags' => isset($meta_data['ai_tags'][0]) ? maybe_unserialize($meta_data['ai_tags'][0]) : [],
         'analysis_data' => isset($meta_data['analysis_data'][0]) ? json_decode($meta_data['analysis_data'][0], true) : null,
         'session_id' => isset($meta_data['session_id'][0]) ? $meta_data['session_id'][0] : ''
@@ -1201,7 +1506,6 @@ add_action('wp_ajax_myavana_get_entry_details', 'myavana_get_entry_details');
  * AJAX handler for saving hair journey entries (both manual and automated)
  */
 function myavana_add_entry() {
-    
     global $wpdb;
     $user_id = get_current_user_id();
     if (!$user_id) {
@@ -1210,6 +1514,24 @@ function myavana_add_entry() {
     }
 
     $is_automated = isset($_POST['is_automated']) && $_POST['is_automated'] == '1';
+
+    // Enforce nonce verification for manual submissions and validate when token is provided.
+    $security_token = isset($_POST['security']) ? sanitize_text_field(wp_unslash($_POST['security'])) : sanitize_text_field($_POST['myavana_nonce'] ?? '');
+    $nonce_verified = false;
+    if (!empty($security_token)) {
+        $nonce_verified = wp_verify_nonce($security_token, 'myavana_add_entry') ||
+            wp_verify_nonce($security_token, 'myavana_entry_action') ||
+            wp_verify_nonce($security_token, 'myavana_get_entry_details');
+    }
+    if (!$is_automated && !$nonce_verified) {
+        wp_send_json_error('Security check failed');
+        return;
+    }
+    if ($is_automated && !empty($security_token) && !$nonce_verified) {
+        wp_send_json_error('Security check failed');
+        return;
+    }
+
     $timestamp = current_time('mysql');
 
     // Prepare entry data
@@ -1226,42 +1548,72 @@ function myavana_add_entry() {
             return sanitize_text_field($product['name'] ?? '');
         }, $analysis['products'] ?? []);
         $products = implode(', ', array_filter($products)); // Filter out empty names
-        $notes = sanitize_text_field($analysis['recommendations'] ? implode("\n", $analysis['recommendations']) : '');
+        $notes = !empty($analysis['recommendations']) && is_array($analysis['recommendations'])
+            ? sanitize_textarea_field(implode("\n", $analysis['recommendations']))
+            : '';
         $rating = min(max(intval($analysis['hair_analysis']['health_score'] ?? 5) / 20, 1), 5);
         $session_id = sanitize_text_field($_POST['session_id'] ?? '');
         $tags = myavana_generate_ai_tags_new($analysis);
         $metadata = [
             'analysis_data' => wp_json_encode($analysis),
+            'entry_type' => 'AI Analysis',
             'environment' => sanitize_text_field($analysis['environment'] ?? ''),
-            'mood_demeanor' => sanitize_text_field($analysis['mood_demeanor'] ?? '')
+            'mood_demeanor' => sanitize_text_field($analysis['mood_demeanor'] ?? ''),
+            'scalp_condition' => sanitize_text_field($analysis['scalp_condition'] ?? ''),
+            'hair_feel' => sanitize_text_field($analysis['hair_feel'] ?? ''),
+            'entry_tags' => sanitize_text_field(implode(', ', array_filter((array) ($analysis['tags'] ?? []))))
         ];
     } else {
         // Manual form submission
-        if (empty($_POST['title']) || empty($_POST['rating'])) {
-            wp_send_json_error('Title and rating are required');
+        $raw_title = $_POST['title'] ?? ($_POST['entry_title'] ?? '');
+        if (empty($raw_title)) {
+            wp_send_json_error('Title is required');
             return;
         }
-        $title = sanitize_text_field($_POST['title']);
-        $description = sanitize_textarea_field($_POST['description']);
+        $title = sanitize_text_field($raw_title);
+        $description = sanitize_textarea_field($_POST['description'] ?? ($_POST['entry_content'] ?? ''));
 
-        // Handle products - can be array, comma-separated string, or single value
+        // Handle products - can be array, comma-separated string, or line-separated.
         $products = '';
+        $products_list = [];
         if (isset($_POST['products'])) {
             if (is_array($_POST['products'])) {
-                $products = implode(', ', array_map('sanitize_text_field', $_POST['products']));
+                $products_list = array_values(array_filter(array_map('sanitize_text_field', $_POST['products'])));
             } else {
-                $products = sanitize_text_field($_POST['products']);
+                $products_list = array_values(array_filter(array_map('sanitize_text_field', preg_split('/\r\n|\r|\n|,/', (string) $_POST['products']))));
             }
+            $products = implode(', ', $products_list);
         }
 
-        $notes = sanitize_text_field($_POST['notes'] ?? '');
-        $rating = min(max(intval($_POST['rating']), 1), 5);
+        $notes = sanitize_textarea_field($_POST['notes'] ?? '');
+        $video_notes = sanitize_textarea_field($_POST['video_notes'] ?? '');
+        $rating = isset($_POST['rating']) && $_POST['rating'] !== ''
+            ? min(max(intval($_POST['rating']), 1), 5)
+            : 0;
         $session_id = '';
         $tags = [];
+        $length_check_cm = isset($_POST['length_check_cm']) && $_POST['length_check_cm'] !== ''
+            ? max(0, min(200, floatval($_POST['length_check_cm'])))
+            : '';
+        $entry_tags_raw = sanitize_text_field($_POST['entry_tags'] ?? '');
+        $entry_tags = array_values(array_filter(array_map('sanitize_text_field', preg_split('/\r\n|\r|\n|,/', $entry_tags_raw))));
+        $entry_time = sanitize_text_field($_POST['entry_time'] ?? '');
         $metadata = [
+            'entry_type' => sanitize_text_field($_POST['entry_type'] ?? ''),
             'environment' => sanitize_text_field($_POST['environment'] ?? ''),
-            'mood_demeanor' => sanitize_text_field($_POST['mood_demeanor'] ?? '')
+            'scalp_condition' => sanitize_text_field($_POST['scalp_condition'] ?? ''),
+            'hair_feel' => sanitize_text_field($_POST['hair_feel'] ?? ''),
+            'length_check_cm' => $length_check_cm,
+            'entry_tags' => implode(', ', $entry_tags),
+            'entry_tags_list' => $entry_tags,
+            'next_step' => sanitize_textarea_field($_POST['next_step'] ?? ''),
+            'techniques' => sanitize_text_field($_POST['techniques'] ?? ''),
+            'mood_demeanor' => sanitize_text_field($_POST['mood_demeanor'] ?? ''),
+            'video_notes' => $video_notes
         ];
+        if (preg_match('/^\d{2}:\d{2}$/', $entry_time)) {
+            $metadata['entry_time'] = $entry_time;
+        }
     }
 
     // Use user-selected date if provided, otherwise use current time
@@ -1270,7 +1622,10 @@ function myavana_add_entry() {
         $entry_date = sanitize_text_field($_POST['entry_date']);
         // Validate date format (YYYY-MM-DD)
         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $entry_date)) {
-            $post_date = $entry_date . ' ' . current_time('H:i:s');
+            $time_component = isset($entry_time) && preg_match('/^\d{2}:\d{2}$/', $entry_time)
+                ? $entry_time . ':00'
+                : current_time('H:i:s');
+            $post_date = $entry_date . ' ' . $time_component;
         }
     }
 
@@ -1287,6 +1642,9 @@ function myavana_add_entry() {
     if ($post_id && !is_wp_error($post_id)) {
         // Save metadata
         update_post_meta($post_id, 'products_used', $products);
+        if (isset($products_list) && is_array($products_list)) {
+            update_post_meta($post_id, 'products_used_list', $products_list);
+        }
         update_post_meta($post_id, 'stylist_notes', $notes);
         update_post_meta($post_id, 'health_rating', $rating);
         
@@ -1302,6 +1660,7 @@ function myavana_add_entry() {
 
         // Handle photo upload
         $attachment_ids = [];
+        $video_attachment_ids = [];
         $featured_image_index = isset($_POST['featured_image_index']) ? intval($_POST['featured_image_index']) : 0;
 
         if ($is_automated && !empty($_POST['image_data'])) {
@@ -1367,20 +1726,116 @@ function myavana_add_entry() {
             }
         }
 
+        // Handle video uploads
+        if (!empty($_FILES['entry_videos']) && !empty($_FILES['entry_videos']['name']) && is_array($_FILES['entry_videos']['name'])) {
+            require_once ABSPATH . 'wp-admin/includes/media.php';
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+            require_once ABSPATH . 'wp-admin/includes/image.php';
+
+            foreach ($_FILES['entry_videos']['name'] as $key => $value) {
+                if (empty($_FILES['entry_videos']['name'][$key])) {
+                    continue;
+                }
+
+                $file = [
+                    'name' => $_FILES['entry_videos']['name'][$key],
+                    'type' => $_FILES['entry_videos']['type'][$key],
+                    'tmp_name' => $_FILES['entry_videos']['tmp_name'][$key],
+                    'error' => $_FILES['entry_videos']['error'][$key],
+                    'size' => $_FILES['entry_videos']['size'][$key],
+                ];
+
+                if (!empty($file['type']) && strpos($file['type'], 'video/') !== 0) {
+                    continue;
+                }
+
+                $upload = wp_handle_upload($file, ['test_form' => false]);
+                if ($upload && !isset($upload['error'])) {
+                    $attachment = [
+                        'post_mime_type' => $upload['type'],
+                        'post_title' => sanitize_file_name(basename($upload['file'])),
+                        'post_content' => '',
+                        'post_status' => 'inherit',
+                        'post_author' => $user_id
+                    ];
+                    $attachment_id = wp_insert_attachment($attachment, $upload['file'], $post_id);
+                    if (!is_wp_error($attachment_id)) {
+                        $attachment_data = wp_generate_attachment_metadata($attachment_id, $upload['file']);
+                        wp_update_attachment_metadata($attachment_id, $attachment_data);
+                        $video_attachment_ids[] = $attachment_id;
+                    }
+                }
+            }
+        }
+
         // Set featured image (thumbnail) - use the specified index or first image
         if (!empty($attachment_ids)) {
             $featured_index = min($featured_image_index, count($attachment_ids) - 1);
             set_post_thumbnail($post_id, $attachment_ids[$featured_index]);
+            update_post_meta($post_id, 'featured_image_index', $featured_index);
 
             // Save all attachment IDs as meta for gallery display
             update_post_meta($post_id, 'entry_photos', $attachment_ids);
+            update_post_meta($post_id, '_entry_gallery', $attachment_ids);
         } elseif ($is_automated) {
             wp_delete_post($post_id, true);
             wp_send_json_error('Failed to save photo for automated entry');
             return;
         }
 
+        if (!empty($video_attachment_ids)) {
+            update_post_meta($post_id, '_entry_videos', $video_attachment_ids);
+        }
+
+        if (!$is_automated && empty($attachment_ids) && empty($video_attachment_ids)) {
+            wp_delete_post($post_id, true);
+            wp_send_json_error('Add at least one photo or video');
+            return;
+        }
+
+        Myavana_Gamification::sync_user_totals($user_id);
+
+        if (!empty($attachment_ids)) {
+            myavana_award_points(
+                $user_id,
+                Myavana_Gamification::get_reward_value('entry_photo_bonus', 5),
+                'Entry with photos added',
+                'entry_media',
+                $post_id,
+                'entry_media_photo:' . $post_id,
+                ['images' => count($attachment_ids)]
+            );
+        }
+
+        if (!empty($video_attachment_ids)) {
+            myavana_award_points(
+                $user_id,
+                Myavana_Gamification::get_reward_value('entry_video_bonus', 10),
+                'Entry with video added',
+                'entry_media',
+                $post_id,
+                'entry_media_video:' . $post_id,
+                ['videos' => count($video_attachment_ids)]
+            );
+        }
+
+        if ($is_automated) {
+            myavana_award_points(
+                $user_id,
+                Myavana_Gamification::get_reward_value('ai_entry_bonus', 20),
+                'AI analysis entry added',
+                'ai_entry',
+                $post_id,
+                'entry_ai_bonus:' . $post_id
+            );
+        }
+
+        if (function_exists('myavana_check_badge_unlocks')) {
+            myavana_check_badge_unlocks($user_id);
+        }
+
         // Generate AI tip
+        $tip = 'Keep up with your haircare routine!';
         try {
             $context = sprintf(
                 'User added a %s hair journey entry with title: %s, health rating: %d.',
@@ -1390,23 +1845,20 @@ function myavana_add_entry() {
             );
             $ai = new Myavana_AI();
             $tip = $ai->get_ai_tip($context);
-            wp_send_json_success([
-                'message' => 'Entry added successfully!',
-                'tip' => $tip,
-                'entry_id' => $post_id
-            ]);
         } catch (Exception $e) {
-            wp_send_json_success([
-                'message' => 'Entry added successfully!',
-                'tip' => 'Keep up with your haircare routine!',
-                'entry_id' => $post_id
-            ]);
+            $tip = 'Keep up with your haircare routine!';
         }
 
         // Update hair profile for automated entries
         if ($is_automated) {
             myavana_update_hair_profile($user_id, $analysis, $timestamp);
         }
+
+        wp_send_json_success([
+            'message' => 'Entry added successfully!',
+            'tip' => $tip,
+            'entry_id' => $post_id
+        ]);
     } else {
         wp_send_json_error('Error adding entry. Please try again.');
     }
@@ -1499,6 +1951,19 @@ function myavana_save_hair_analysis() {
         ['%s'],
         ['%d']
     );
+
+    Myavana_Gamification::sync_user_totals($user_id);
+    myavana_award_points(
+        $user_id,
+        Myavana_Gamification::get_reward_value('ai_analysis_saved', 25),
+        'AI analysis saved',
+        'ai_analysis',
+        null,
+        'analysis_saved:' . md5(($analysis_data['date'] ?? current_time('mysql')) . '|' . ($analysis_data['summary'] ?? ''))
+    );
+    if (function_exists('myavana_check_badge_unlocks')) {
+        myavana_check_badge_unlocks($user_id);
+    }
 
     wp_send_json_success(['message' => 'Analysis saved successfully']);
 }

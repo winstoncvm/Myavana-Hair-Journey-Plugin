@@ -408,7 +408,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 10000;
+    z-index: 10100;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -442,6 +442,7 @@
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .myavana-up-edit-offcanvas.active .myavana-up-edit-panel {
@@ -879,7 +880,44 @@
 /* Responsive */
 @media (max-width: 768px) {
     .myavana-up-edit-panel {
-        width: 100%;
+        top: 8px;
+        right: 8px;
+        bottom: 8px;
+        left: 8px;
+        width: auto;
+        max-width: none;
+        height: auto;
+        max-height: calc(100dvh - 16px);
+        border-radius: 16px;
+    }
+
+    .myavana-up-edit-header {
+        padding: 20px 16px 14px;
+    }
+
+    .myavana-up-edit-title {
+        font-size: 20px;
+        margin-bottom: 4px;
+    }
+
+    .myavana-up-edit-subtitle {
+        font-size: 13px;
+    }
+
+    .myavana-up-edit-close {
+        top: 12px;
+        right: 12px;
+        width: 44px;
+        height: 44px;
+    }
+
+    .myavana-up-edit-form {
+        padding: 16px;
+        padding-bottom: calc(166px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .myavana-up-edit-section {
+        margin-bottom: 28px;
     }
 
     .myavana-up-field-row,
@@ -895,6 +933,25 @@
     .myavana-up-avatar-actions label,
     .myavana-up-avatar-actions button {
         width: 100%;
+        justify-content: center;
+    }
+
+    .myavana-up-edit-actions {
+        position: sticky;
+        bottom: 0;
+        z-index: 6;
+        margin: 0 -16px 0;
+        padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+        border-top: 1px solid rgba(34, 35, 35, 0.12);
+        box-shadow: 0 -8px 18px rgba(34, 35, 35, 0.08);
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .myavana-up-edit-actions .myavana-up-btn-ghost,
+    .myavana-up-edit-actions .myavana-up-btn-primary {
+        width: 100%;
+        min-height: 46px;
         justify-content: center;
     }
 }

@@ -330,25 +330,14 @@ class Myavana_Community_Integration {
         $points = isset($point_values[$action]) ? $point_values[$action] : 0;
 
         if ($points > 0) {
-            global $wpdb;
-            $table = $wpdb->prefix . 'myavana_user_stats';
-
-            // Update user points
-            $wpdb->query($wpdb->prepare(
-                "UPDATE $table SET total_points = total_points + %d WHERE user_id = %d",
-                $points, $user_id
-            ));
-
-            // If no row was updated, insert new record
-            if ($wpdb->rows_affected === 0) {
-                $wpdb->insert(
-                    $table,
-                    [
-                        'user_id' => $user_id,
-                        'total_points' => $points,
-                        'level' => 1
-                    ],
-                    ['%d', '%d', '%d']
+            if (function_exists('myavana_award_points')) {
+                myavana_award_points(
+                    $user_id,
+                    $points,
+                    'Community action: ' . $action,
+                    'community_action',
+                    0,
+                    'community_action:' . $action . ':' . $user_id . ':' . gmdate('YmdHis')
                 );
             }
 

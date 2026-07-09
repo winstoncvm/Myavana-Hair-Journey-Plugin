@@ -68,6 +68,229 @@
             document.body.style.overflow = 'hidden';
         }
 
+        function hasValue(value) {
+            return value !== undefined && value !== null && value !== '';
+        }
+
+        function parseRefValue(rawValue) {
+            if (!hasValue(rawValue)) {
+                return null;
+            }
+            const normalized = String(rawValue).trim();
+            if (normalized === '') {
+                return null;
+            }
+            return /^-?\d+$/.test(normalized) ? parseInt(normalized, 10) : normalized;
+        }
+
+        function valuesMatch(reference, candidate) {
+            if (!hasValue(reference) || !hasValue(candidate)) {
+                return false;
+            }
+            const referenceText = String(reference).trim();
+            const candidateText = String(candidate).trim();
+            if (referenceText === candidateText) {
+                return true;
+            }
+            if (/^-?\d+$/.test(referenceText) && /^-?\d+$/.test(candidateText)) {
+                return parseInt(referenceText, 10) === parseInt(candidateText, 10);
+            }
+            return false;
+        }
+
+        function normalizeStringList(value) {
+            if (Array.isArray(value)) {
+                return value
+                    .map(item => typeof item === 'string' ? item : (item && item.name ? item.name : String(item || '')))
+                    .map(item => item.trim())
+                    .filter(Boolean);
+            }
+            if (typeof value === 'string') {
+                return value
+                    .split(/[\n,]/)
+                    .map(item => item.trim())
+                    .filter(Boolean);
+            }
+            if (value && typeof value === 'object') {
+                return Object.values(value)
+                    .map(item => String(item || '').trim())
+                    .filter(Boolean);
+            }
+            return [];
+        }
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function parseJsonSafe(value, fallback) {
+            try {
+                return JSON.parse(value);
+            } catch (e) {
+                return fallback;
+            }
+        }
+
+        function normalizeMediaItems(value, mediaType) {
+            const rawItems = [];
+            const normalized = [];
+            const seenUrls = new Set();
+
+            const queue = item => {
+                if (!hasValue(item)) return;
+                rawItems.push(item);
+            };
+
+            if (Array.isArray(value)) {
+                value.forEach(queue);
+            } else if (typeof value === 'string') {
+                const trimmed = value.trim();
+                if (trimmed) {
+                    if ((trimmed.startsWith('[') && trimmed.endsWith(']')) || (trimmed.startsWith('{') && trimmed.endsWith('}'))) {
+                        const parsed = parseJsonSafe(trimmed, null);
+                        if (Array.isArray(parsed)) {
+                            parsed.forEach(queue);
+                        } else if (parsed && typeof parsed === 'object') {
+                            queue(parsed);
+                        }
+                    } else {
+                        trimmed.split(/[\n,]/).map(part => part.trim()).filter(Boolean).forEach(queue);
+                    }
+                }
+            } else if (value && typeof value === 'object') {
+                queue(value);
+            }
+
+            rawItems.forEach(item => {
+                let media = null;
+
+                if (typeof item === 'string') {
+                    media = { url: item.trim() };
+                } else if (item && typeof item === 'object') {
+                    const resolvedUrl = item.url || item.src || item.thumbnail || item.file || '';
+                    media = {
+                        id: hasValue(item.id) ? item.id : null,
+                        url: String(resolvedUrl || '').trim(),
+                        thumbnail: String(item.thumbnail || resolvedUrl || '').trim(),
+                        mime: item.mime || ''
+                    };
+                }
+
+                if (!media || !media.url) {
+                    return;
+                }
+
+                const dedupeKey = media.url;
+                if (seenUrls.has(dedupeKey)) {
+                    return;
+                }
+                seenUrls.add(dedupeKey);
+
+                if (mediaType === 'video' && media.mime && !String(media.mime).startsWith('video/')) {
+                    return;
+                }
+
+                normalized.push(media);
+            });
+
+            return normalized;
+        }
+
+        function getEntryImageMedia(entry) {
+            const aggregated = [];
+            const sources = [
+                entry.images,
+                entry.gallery_images,
+                entry.entry_photos,
+                entry.photo_gallery,
+                entry.image,
+                entry.image_url,
+                entry.thumbnail
+            ];
+            sources.forEach(source => {
+                normalizeMediaItems(source, 'image').forEach(item => aggregated.push(item));
+            });
+            return normalizeMediaItems(aggregated, 'image');
+        }
+
+        function getEntryVideoMedia(entry) {
+            const aggregated = [];
+            const sources = [
+                entry.videos,
+                entry.entry_videos,
+                entry.video_urls,
+                entry.video,
+                entry.video_url
+            ];
+            sources.forEach(source => {
+                normalizeMediaItems(source, 'video').forEach(item => aggregated.push(item));
+            });
+            return normalizeMediaItems(aggregated, 'video');
+        }
+
+        function clampIndex(index, maxLength) {
+            const length = Math.max(0, parseInt(maxLength || 0, 10));
+            if (length < 1) return 0;
+            const parsed = parseInt(index, 10);
+            if (Number.isNaN(parsed)) return 0;
+            return Math.min(length - 1, Math.max(0, parsed));
+        }
+
+        function formatEntryDateText(entry) {
+            if (hasValue(entry.date)) {
+                return String(entry.date);
+            }
+
+            const dateValue = hasValue(entry.entry_date) ? String(entry.entry_date) : '';
+            const timeValue = hasValue(entry.entry_time) ? String(entry.entry_time) : '';
+            if (!dateValue) {
+                return timeValue;
+            }
+
+            const dateParts = dateValue.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            let displayDate = dateValue;
+            if (dateParts) {
+                const parsedDate = new Date(
+                    parseInt(dateParts[1], 10),
+                    parseInt(dateParts[2], 10) - 1,
+                    parseInt(dateParts[3], 10)
+                );
+                displayDate = parsedDate.toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            }
+
+            return timeValue ? `${displayDate} ${timeValue}` : displayDate;
+        }
+
+        function renderDetailGrid(containerId, sectionId, rows) {
+            const sectionEl = document.getElementById(sectionId);
+            const containerEl = document.getElementById(containerId);
+            if (!sectionEl || !containerEl) return;
+
+            const activeRows = (rows || []).filter(row => hasValue(row.value));
+            if (!activeRows.length) {
+                sectionEl.style.display = 'none';
+                containerEl.innerHTML = '';
+                return;
+            }
+
+            containerEl.innerHTML = activeRows.map(row => `
+                <div class="view-detail-item-hjn">
+                    <div class="view-detail-label-hjn">${escapeHtml(row.label)}</div>
+                    <div class="view-detail-value-hjn">${escapeHtml(row.value)}</div>
+                </div>
+            `).join('');
+            sectionEl.style.display = 'block';
+        }
+
         /**
          * Load Entry View
          *
@@ -86,18 +309,10 @@
             if (loadingEl) loadingEl.style.display = 'flex';
             if (contentEl) contentEl.style.display = 'none';
 
-            // FIRST: Try to get entry from pre-loaded cache (avoids AJAX issues)
-            if (window.myavanaEntryCache && window.myavanaEntryCache[entryId]) {
-                console.log('[loadEntry] Found entry in cache:', entryId);
-                setTimeout(() => {
-                    populateEntryView(window.myavanaEntryCache[entryId]);
-                }, 100); // Small delay for smooth UX
-                return;
-            }
+            const cachedEntry = window.myavanaEntryCache && window.myavanaEntryCache[entryId]
+                ? window.myavanaEntryCache[entryId]
+                : null;
 
-            console.log('[loadEntry] Entry not in cache, attempting AJAX fallback');
-
-            // FALLBACK: Fetch entry data via AJAX (may fail with nonce issues)
             const settings = window.myavanaTimelineSettings || window.myavanaTimeline || window.myavanaTimelineInstance || {};
 
             fetch(settings.ajaxUrl || settings.ajaxurl || '/wp-admin/admin-ajax.php', {
@@ -114,7 +329,16 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.data) {
-                    populateEntryView(data.data);
+                    const payload = Object.assign({}, cachedEntry || {}, data.data || {});
+                    if (!hasValue(payload.id)) payload.id = entryId;
+                    if (!hasValue(payload.entry_id)) payload.entry_id = payload.id;
+                    populateEntryView(payload);
+                    return;
+                }
+
+                if (cachedEntry) {
+                    console.warn('[loadEntry] AJAX details unavailable, using cached entry payload');
+                    populateEntryView(cachedEntry);
                 } else {
                     console.error('Failed to load entry:', data);
                     showViewError('Failed to load entry details');
@@ -122,7 +346,12 @@
             })
             .catch(error => {
                 console.error('Error loading entry:', error);
-                showViewError('Error loading entry details');
+                if (cachedEntry) {
+                    console.warn('[loadEntry] Network error, using cached entry payload');
+                    populateEntryView(cachedEntry);
+                } else {
+                    showViewError('Error loading entry details');
+                }
             });
         }
 
@@ -142,19 +371,23 @@
             if (loadingEl) loadingEl.style.display = 'none';
             if (contentEl) contentEl.style.display = 'flex';
 
+            resetEntryViewSections();
+
             // Populate title
             const titleEl = document.getElementById('entryTitle');
             if (titleEl) titleEl.textContent = entry.title || entry.entry_title || 'Untitled Entry';
 
             // Populate date
             const dateEl = document.getElementById('entryDate');
-            if (dateEl) dateEl.textContent = entry.entry_date ? new Date(entry.entry_date).toLocaleDateString() : '';
+            if (dateEl) dateEl.textContent = formatEntryDateText(entry);
 
-            // Populate gallery - FIXED: Handle gallery correctly
+            // Populate media
             populateEntryGallery(entry);
+            populateEntryVideos(entry);
 
-            // Populate rating - FIXED: 5 stars instead of 10
-            if (entry.rating) {
+            // Populate rating
+            const ratingNum = parseInt(entry.rating || entry.health_rating || 0, 10);
+            if (ratingNum > 0) {
                 const ratingSection = document.getElementById('entryRatingSection');
                 const ratingStars = document.getElementById('entryRatingStars');
                 const ratingValue = document.getElementById('entryRatingValue');
@@ -162,7 +395,6 @@
                 if (ratingSection) ratingSection.style.display = 'block';
 
                 if (ratingStars) {
-                    const ratingNum = parseInt(entry.rating) || 0;
                     const starsHTML = Array.from({length: 5}, (_, i) => {
                         const filled = i < ratingNum;
                         return `<svg class="rating-star-hjn ${filled ? '' : 'empty'}" viewBox="0 0 24 24"><path fill="currentColor" d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"/></svg>`;
@@ -171,7 +403,6 @@
                 }
 
                 if (ratingValue) {
-                    const ratingNum = parseInt(entry.rating) || 0;
                     ratingValue.textContent = `${ratingNum}/5`;
                 }
             }
@@ -179,32 +410,40 @@
             // Populate content
             const contentTextEl = document.getElementById('entryContent');
             if (contentTextEl) {
-                contentTextEl.textContent = entry.content || 'No description provided.';
+                contentTextEl.textContent = entry.content || entry.description || 'No description provided.';
             }
 
             // Populate mood
-            if (entry.mood) {
+            const mood = entry.mood || entry.mood_demeanor || '';
+            if (mood) {
                 const moodSection = document.getElementById('entryMoodSection');
                 const moodEl = document.getElementById('entryMood');
 
                 if (moodSection) moodSection.style.display = 'block';
-                if (moodEl) moodEl.textContent = entry.mood;
+                if (moodEl) moodEl.textContent = mood;
             }
 
             // Populate products (server may return array, comma-separated string, or empty)
             handleProducts(entry);
+            populateEntryDetails(entry);
+            populateEntryFollowUp(entry);
 
             // Populate AI analysis
-            if (entry.ai_analysis) {
+            const aiSummary = entry.ai_analysis ||
+                (entry.analysis_data && entry.analysis_data.summary) ||
+                (entry.analysis_data && entry.analysis_data.overall_assessment) ||
+                '';
+
+            if (aiSummary) {
                 const aiSection = document.getElementById('entryAISection');
                 const aiEl = document.getElementById('entryAI');
 
                 if (aiSection) aiSection.style.display = 'block';
-                if (aiEl) aiEl.textContent = entry.ai_analysis;
+                if (aiEl) aiEl.textContent = aiSummary;
             }
 
             // Store data for edit functionality (handle both id and entry_id)
-            const currentEntryId = entry.id || entry.entry_id || entryId;
+            const currentEntryId = hasValue(entry.id) ? entry.id : (hasValue(entry.entry_id) ? entry.entry_id : null);
             console.log('[loadEntry] Storing currentViewData with ID:', currentEntryId, 'Full entry:', entry);
             MyavanaTimeline.State.set('currentViewData', { 
                 type: 'entry', 
@@ -214,6 +453,46 @@
             });
         }
 
+        function resetEntryViewSections() {
+            const hiddenSectionIds = [
+                'entryRatingSection',
+                'entryMoodSection',
+                'entryProductsSection',
+                'entryDetailsSection',
+                'entryFollowUpSection',
+                'entryVideosSection',
+                'entryAISection'
+            ];
+            hiddenSectionIds.forEach(sectionId => {
+                const sectionEl = document.getElementById(sectionId);
+                if (sectionEl) {
+                    sectionEl.style.display = 'none';
+                }
+            });
+
+            const clearIds = [
+                'entryProducts',
+                'entryDetailsGrid',
+                'entryFollowUpStack',
+                'entryAI',
+                'entryVideos',
+                'entryGallery',
+                'entryPrimaryImage',
+                'entryRatingStars'
+            ];
+            clearIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.innerHTML = '';
+                }
+            });
+
+            const primaryImageEl = document.getElementById('entryPrimaryImage');
+            if (primaryImageEl) {
+                primaryImageEl.style.display = 'none';
+            }
+        }
+
         /**
          * Populate entry gallery correctly
          *
@@ -221,55 +500,150 @@
          */
         function populateEntryGallery(entry) {
             const galleryEl = document.getElementById('entryGallery');
+            const primaryImageEl = document.getElementById('entryPrimaryImage');
             if (!galleryEl) return;
 
-            // Get all images from entry
-            const images = [];
-            
-            // Check for gallery images first
-            if (entry.images && Array.isArray(entry.images)) {
-                entry.images.forEach(img => {
-                    if (img && (img.url || img.thumbnail || img.src)) {
-                        images.push(img.url || img.thumbnail || img.src);
-                    }
-                });
-            }
-            
-            // Check for single image field
-            if (entry.image && !images.includes(entry.image)) {
-                images.push(entry.image);
-            }
-            
-            // Check for image_url field
-            if (entry.image_url && !images.includes(entry.image_url)) {
-                images.push(entry.image_url);
-            }
-
-            console.log('[populateEntryGallery] Found images:', images);
-
-            // Display gallery
-            if (images.length === 0) {
+            const images = getEntryImageMedia(entry);
+            if (!images.length) {
                 galleryEl.style.display = 'none';
                 galleryEl.innerHTML = '';
-            } else if (images.length === 1) {
-                galleryEl.innerHTML = `
-                    <div class="view-gallery-grid-hjn">
-                        <div class="view-gallery-item-hjn">
-                            <img src="${images[0]}" alt="${entry.title || 'Entry image'}" class="view-gallery-img-hjn" onclick="MyavanaTimeline.View.openImageOverlay('${images[0]}')" />
-                        </div>
+                if (primaryImageEl) {
+                    primaryImageEl.style.display = 'none';
+                    primaryImageEl.innerHTML = '';
+                }
+                return;
+            }
+
+            const featuredIndex = clampIndex(entry.featured_image_index, images.length);
+            const featuredMedia = images[featuredIndex] || images[0];
+            const featuredUrl = featuredMedia ? String(featuredMedia.url || '').trim() : '';
+
+            if (primaryImageEl && featuredUrl) {
+                primaryImageEl.innerHTML = `
+                    <span class="view-primary-badge-hjn">Featured Photo</span>
+                    <img src="${escapeHtml(featuredUrl)}"
+                         alt="${escapeHtml(entry.title || 'Entry image')}"
+                         class="view-gallery-img-hjn"
+                         onclick='MyavanaTimeline.View.openImageOverlay(${JSON.stringify(featuredUrl)})' />
+                `;
+                primaryImageEl.style.display = 'block';
+            }
+
+            const remainingImages = images.filter((item, index) => index !== featuredIndex);
+            if (!remainingImages.length) {
+                galleryEl.style.display = 'none';
+                galleryEl.innerHTML = '';
+                return;
+            }
+
+            const gridHTML = remainingImages.map((imgItem, index) => {
+                const imgUrl = String(imgItem.url || '').trim();
+                return `
+                    <div class="view-gallery-item-hjn">
+                        <img src="${escapeHtml(imgUrl)}"
+                             alt="${escapeHtml(`${entry.title || 'Entry image'} ${index + 1}`)}"
+                             class="view-gallery-img-hjn"
+                             onclick='MyavanaTimeline.View.openImageOverlay(${JSON.stringify(imgUrl)})' />
                     </div>
                 `;
-                galleryEl.style.display = 'block';
-            } else {
-                const gridHTML = images.map(imgUrl => `
-                    <div class="view-gallery-item-hjn">
-                        <img src="${imgUrl}" alt="${entry.title || 'Entry image'}" class="view-gallery-img-hjn" onclick="MyavanaTimeline.View.openImageOverlay('${imgUrl}')" />
-                    </div>
-                `).join('');
-                
-                galleryEl.innerHTML = `<div class="view-gallery-grid-hjn">${gridHTML}</div>`;
-                galleryEl.style.display = 'block';
+            }).join('');
+
+            galleryEl.innerHTML = `<div class="view-gallery-grid-hjn">${gridHTML}</div>`;
+            galleryEl.style.display = 'block';
+        }
+
+        function populateEntryVideos(entry) {
+            const videosSection = document.getElementById('entryVideosSection');
+            const videosEl = document.getElementById('entryVideos');
+            if (!videosSection || !videosEl) return;
+
+            const videos = getEntryVideoMedia(entry);
+            if (!videos.length) {
+                videosSection.style.display = 'none';
+                videosEl.innerHTML = '';
+                return;
             }
+
+            const cards = videos
+                .map(video => {
+                    const videoUrl = typeof video === 'string' ? video : (video && video.url);
+                    if (!videoUrl) return '';
+                    return `
+                        <div class="view-video-card-hjn">
+                            <video controls playsinline preload="metadata">
+                                <source src="${escapeHtml(videoUrl)}" type="${escapeHtml(video.mime || '')}" />
+                            </video>
+                        </div>
+                    `;
+                })
+                .filter(Boolean)
+                .join('');
+
+            if (!cards) {
+                videosSection.style.display = 'none';
+                videosEl.innerHTML = '';
+                return;
+            }
+
+            videosEl.innerHTML = cards;
+            videosSection.style.display = 'block';
+        }
+
+        function populateEntryDetails(entry) {
+            const tags = Array.isArray(entry.entry_tags_list)
+                ? entry.entry_tags_list.join(', ')
+                : (entry.entry_tags || '');
+            const imageCount = getEntryImageMedia(entry).length;
+            const videoCount = getEntryVideoMedia(entry).length;
+            const mediaSummary = (imageCount || videoCount)
+                ? `${imageCount} photo${imageCount === 1 ? '' : 's'}${videoCount ? `, ${videoCount} video${videoCount === 1 ? '' : 's'}` : ''}`
+                : '';
+            const createdAt = entry.created_at || '';
+            const updatedAt = entry.updated_at || '';
+
+            const detailRows = [
+                { label: 'Date', value: entry.entry_date },
+                { label: 'Type', value: entry.entry_type },
+                { label: 'Time', value: entry.entry_time },
+                { label: 'Environment', value: entry.environment },
+                { label: 'Scalp Condition', value: entry.scalp_condition },
+                { label: 'Hair Feel', value: entry.hair_feel },
+                { label: 'Length Check', value: hasValue(entry.length_check_cm) ? `${entry.length_check_cm} cm` : '' },
+                { label: 'Techniques', value: entry.techniques },
+                { label: 'Tags', value: tags },
+                { label: 'Media', value: mediaSummary },
+                { label: 'Session', value: entry.session_id || '' },
+                { label: 'Created', value: createdAt },
+                { label: 'Updated', value: updatedAt },
+            ];
+
+            renderDetailGrid('entryDetailsGrid', 'entryDetailsSection', detailRows);
+        }
+
+        function populateEntryFollowUp(entry) {
+            const sectionEl = document.getElementById('entryFollowUpSection');
+            const stackEl = document.getElementById('entryFollowUpStack');
+            if (!sectionEl || !stackEl) return;
+
+            const blocks = [
+                { title: 'Notes', value: entry.notes },
+                { title: 'Video Notes', value: entry.video_notes },
+                { title: 'Next Step', value: entry.next_step },
+            ].filter(item => hasValue(item.value));
+
+            if (!blocks.length) {
+                sectionEl.style.display = 'none';
+                stackEl.innerHTML = '';
+                return;
+            }
+
+            stackEl.innerHTML = blocks.map(item => `
+                <div class="view-followup-item-hjn">
+                    <div class="view-followup-title-hjn">${escapeHtml(item.title)}</div>
+                    <div class="view-followup-text-hjn">${escapeHtml(item.value)}</div>
+                </div>
+            `).join('');
+            sectionEl.style.display = 'block';
         }
 
         /**
@@ -279,6 +653,8 @@
          */
         function openImageOverlay(imageUrl) {
             let overlay = document.getElementById('imageOverlayHjn');
+            const safeUrl = String(imageUrl || '').trim();
+            if (!safeUrl) return;
             if (!overlay) {
                 overlay = document.createElement('div');
                 overlay.id = 'imageOverlayHjn';
@@ -286,7 +662,7 @@
                 overlay.innerHTML = `
                     <div class="image-overlay-content-hjn">
                         <button class="image-overlay-close-hjn" onclick="MyavanaTimeline.View.closeImageOverlay()">&times;</button>
-                        <img src="${imageUrl}" alt="Full size view" class="image-overlay-img-hjn" />
+                        <img src="${escapeHtml(safeUrl)}" alt="Full size view" class="image-overlay-img-hjn" />
                     </div>
                 `;
                 document.body.appendChild(overlay);
@@ -298,7 +674,7 @@
                     }
                 });
             } else {
-                overlay.querySelector('.image-overlay-img-hjn').src = imageUrl;
+                overlay.querySelector('.image-overlay-img-hjn').src = safeUrl;
             }
             
             overlay.classList.add('active');
@@ -325,20 +701,12 @@
             const productsSection = document.getElementById('entryProductsSection');
             const productsEl = document.getElementById('entryProducts');
 
-            let products = [];
-            if (Array.isArray(entry.products)) {
-                products = entry.products.slice();
-            } else if (typeof entry.products === 'string' && entry.products.trim()) {
-                // split comma-separated list and trim
-                products = entry.products.split(',').map(p => p.trim()).filter(Boolean);
-            } else if (entry.products && typeof entry.products === 'object') {
-                // Sometimes products may be an object; attempt to extract values
-                try {
-                    products = Object.values(entry.products).map(String).map(p => p.trim()).filter(Boolean);
-                } catch (e) {
-                    products = [];
-                }
-            }
+            const products = normalizeStringList(
+                entry.products_list ||
+                entry.products_used_list ||
+                entry.products ||
+                entry.products_used
+            );
 
             if (!products || products.length === 0) {
                 if (productsSection) productsSection.style.display = 'none';
@@ -348,78 +716,114 @@
 
             if (productsSection) productsSection.style.display = 'block';
             if (productsEl) {
-                const productsHTML = products.map(product => `<span class="view-tag-hjn">${product}</span>`).join('');
+                const productsHTML = products.map(product => `<span class="view-tag-hjn">${escapeHtml(product)}</span>`).join('');
                 productsEl.innerHTML = productsHTML;
             }
         }
 
-        /**
-         * Load Goal View
-         *
-         * @param {number|string} goalIndex - Goal index to load
-         */
+        function findGoalListItem(goalRef) {
+            const candidates = document.querySelectorAll('[data-goal-index], [data-goal-id], .myavana-goal-card');
+            return Array.from(candidates).find(item => {
+                const idx = item.getAttribute('data-goal-index');
+                const id = item.getAttribute('data-goal-id');
+                const generic = item.getAttribute('data-id');
+                return valuesMatch(goalRef, idx) || valuesMatch(goalRef, id) || valuesMatch(goalRef, generic);
+            }) || null;
+        }
+
+        function parseJsonMaybe(value, fallback) {
+            if (!value) return fallback;
+            try {
+                return JSON.parse(value);
+            } catch (e) {
+                return fallback;
+            }
+        }
+
         function loadGoal(goalIndex) {
-            console.log('[loadGoal] Loading goal with index:', goalIndex);
+            console.log('[loadGoal] Loading goal with reference:', goalIndex);
             const body = document.getElementById('goalViewBody');
             if (!body) return;
 
-            // For goals, get data from the list item
-            const listItem = document.querySelector(`[data-goal-index="${goalIndex}"]`);
-            if (!listItem) {
-                showViewError('Goal not found');
-                return;
-            }
-
             const loadingEl = body.querySelector('.view-loading-hjn');
             const contentEl = body.querySelector('.view-content-hjn');
-
-            // Show loading
             if (loadingEl) loadingEl.style.display = 'flex';
             if (contentEl) contentEl.style.display = 'none';
 
-            // Extract data from list item - THIS IS THE KEY: extract the real database ID
-            setTimeout(() => {
-                const goalData = extractGoalData(listItem);
-                console.log('[loadGoal] Extracted goal data:', goalData);
-                populateGoalView(goalData);
-            }, 300);
+            const listItem = findGoalListItem(goalIndex);
+            const domGoal = listItem ? extractGoalData(listItem) : null;
+            const resolvedGoalId = domGoal && (domGoal.goal_id ?? domGoal.id);
+
+            const settings = window.myavanaTimelineSettings || {};
+            const nonce = settings.getGoalDetailsNonce || settings.getEntryDetailsNonce || settings.nonce || '';
+            const requestGoalId = hasValue(resolvedGoalId) ? resolvedGoalId : goalIndex;
+
+            const formData = new FormData();
+            formData.append('action', 'myavana_get_goal_details');
+            formData.append('goal_id', requestGoalId);
+            formData.append('security', nonce);
+
+            fetch(settings.ajaxUrl || settings.ajaxurl || '/wp-admin/admin-ajax.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result && result.success && result.data) {
+                    const payload = Object.assign({}, domGoal || {}, result.data || {});
+                    populateGoalView(payload);
+                    return;
+                }
+
+                if (domGoal) {
+                    populateGoalView(domGoal);
+                    return;
+                }
+
+                showViewError('Goal not found');
+            })
+            .catch(() => {
+                if (domGoal) {
+                    populateGoalView(domGoal);
+                    return;
+                }
+                showViewError('Goal not found');
+            });
         }
 
-        /**
-         * Extract goal data from list item
-         *
-         * @param {HTMLElement} listItem - List item element
-         * @returns {Object} Goal data object
-         */
         function extractGoalData(listItem) {
-            const title = listItem.querySelector('.list-item-title-hjn')?.textContent || 'Untitled Goal';
-            const dateRange = listItem.querySelector('.list-item-date-hjn')?.textContent || '';
-            const progressText = listItem.querySelector('.list-item-badge-hjn')?.textContent || '0%';
-            const progress = parseInt(progressText) || 0;
-            const description = listItem.querySelector('.list-item-description-hjn')?.textContent || '';
+            const title = listItem.querySelector('.list-item-title-hjn, .myavana-goal-title')?.textContent?.trim() || 'Untitled Goal';
+            const dateRange = listItem.querySelector('.list-item-date-hjn, .myavana-goal-dates')?.textContent?.trim() || '';
+            const progressText = listItem.querySelector('.list-item-badge-hjn, .myavana-goal-progress-badge')?.textContent || '0%';
+            const progress = parseInt(progressText, 10) || 0;
+            const description = listItem.querySelector('.list-item-description-hjn, .myavana-goal-description')?.textContent?.trim() ||
+                listItem.getAttribute('data-goal-description') ||
+                '';
 
-            // Extract goal ID from data attribute or goal index
-            const goalId = listItem.getAttribute('data-goal-id') ||
-                          listItem.getAttribute('data-id') ||
-                          listItem.getAttribute('data-goal-index');
+            const goalIndex = parseRefValue(listItem.getAttribute('data-goal-index'));
+            const goalIdRaw = listItem.getAttribute('data-goal-id') || listItem.getAttribute('data-id');
+            const goalId = parseRefValue(goalIdRaw);
+            const resolvedGoalRef = hasValue(goalIndex) ? goalIndex : goalId;
 
-            console.log('[extractGoalData] Raw goalId from attribute:', goalId);
-            console.log('[extractGoalData] data-goal-id:', listItem.getAttribute('data-goal-id'));
-            console.log('[extractGoalData] data-id:', listItem.getAttribute('data-id'));
-            console.log('[extractGoalData] data-goal-index:', listItem.getAttribute('data-goal-index'));
-            console.log('[extractGoalData] listItem:', listItem);
-
-            const parsedId = goalId ? parseInt(goalId) : null;
-            console.log('[extractGoalData] Parsed goal ID:', parsedId);
+            const milestones = parseJsonMaybe(listItem.getAttribute('data-goal-milestones'), []);
+            const progressHistory = parseJsonMaybe(listItem.getAttribute('data-goal-progress-history'), []);
+            const progressNotes = parseJsonMaybe(listItem.getAttribute('data-goal-progress-notes'), []);
 
             return {
-                id: parsedId,
-                goal_id: parsedId,
+                id: resolvedGoalRef,
+                goal_id: resolvedGoalRef,
+                goal_ref_id: goalId,
                 title,
                 dateRange,
-                progress,
                 description,
-                milestones: [] // Would come from server in real implementation
+                progress,
+                goal_category: listItem.getAttribute('data-goal-category') || '',
+                goal_target: listItem.getAttribute('data-goal-target') || '',
+                goal_priority: listItem.getAttribute('data-goal-priority') || '',
+                goal_checkin_frequency: listItem.getAttribute('data-goal-checkin-frequency') || '',
+                milestones: Array.isArray(milestones) ? milestones : [],
+                progress_history: Array.isArray(progressHistory) ? progressHistory : [],
+                progress_text: Array.isArray(progressNotes) ? progressNotes : []
             };
         }
 
@@ -439,29 +843,40 @@
             if (loadingEl) loadingEl.style.display = 'none';
             if (contentEl) contentEl.style.display = 'flex';
 
+            resetGoalViewSections();
+
             // Populate title
             const titleEl = document.getElementById('goalTitle');
-            if (titleEl) titleEl.textContent = goal.title;
+            if (titleEl) titleEl.textContent = goal.title || goal.goal_title || 'Untitled Goal';
 
             // Populate date range
             const dateEl = document.getElementById('goalDateRange');
-            if (dateEl) dateEl.textContent = goal.dateRange;
+            if (dateEl) {
+                const startDate = goal.start_date || goal.goal_start_date || '';
+                const endDate = goal.target_date || goal.goal_end_date || goal.end_date || '';
+                const fallbackRange = [startDate, endDate].filter(Boolean).join(' - ');
+                dateEl.textContent = goal.dateRange || fallbackRange;
+            }
 
             // Populate progress circle
             const progressPercent = document.getElementById('goalProgressPercent');
             const progressRing = document.getElementById('goalProgressRing');
+            const goalProgress = Math.max(0, Math.min(100, parseInt(goal.progress, 10) || 0));
 
-            if (progressPercent) progressPercent.textContent = `${goal.progress}%`;
+            if (progressPercent) progressPercent.textContent = `${goalProgress}%`;
 
             if (progressRing) {
                 const circumference = 2 * Math.PI * 60; // radius is 60
-                const offset = circumference - (goal.progress / 100) * circumference;
+                const offset = circumference - (goalProgress / 100) * circumference;
                 progressRing.style.strokeDashoffset = offset;
             }
 
             // Populate description
             const descEl = document.getElementById('goalDescription');
             if (descEl) descEl.textContent = goal.description || 'No description provided.';
+
+            populateGoalMilestones(goal.milestones);
+            populateGoalDetails(goal);
 
             // Populate progress history
             if (goal.progress_history && goal.progress_history.length > 0) {
@@ -488,10 +903,12 @@
             console.log('[populateGoalView] goal.id:', goal.id);
             console.log('[populateGoalView] goal.goal_id:', goal.goal_id);
 
+            const resolvedGoalId = hasValue(goal.goal_id) ? goal.goal_id : goal.id;
+
             const stateData = {
                 type: 'goal',
-                id: goal.id,
-                goal_id: goal.goal_id || goal.id,
+                id: resolvedGoalId,
+                goal_id: resolvedGoalId,
                 data: goal
             };
 
@@ -501,6 +918,85 @@
             // Verify it was stored
             const storedData = MyavanaTimeline.State.get('currentViewData');
             console.log('[populateGoalView] Verified stored state:', storedData);
+        }
+
+        function resetGoalViewSections() {
+            const sectionIds = [
+                'goalMilestonesSection',
+                'goalProgressHistorySection',
+                'goalNotesSection',
+                'goalDetailsSection'
+            ];
+
+            sectionIds.forEach(id => {
+                const sectionEl = document.getElementById(id);
+                if (sectionEl) {
+                    sectionEl.style.display = 'none';
+                }
+            });
+
+            const clearIds = ['goalMilestones', 'goalProgressHistory', 'goalProgressNotes', 'goalDetailsGrid'];
+            clearIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.innerHTML = '';
+                }
+            });
+        }
+
+        function populateGoalMilestones(milestones) {
+            const sectionEl = document.getElementById('goalMilestonesSection');
+            const milestonesEl = document.getElementById('goalMilestones');
+            if (!sectionEl || !milestonesEl) return;
+
+            const milestoneList = Array.isArray(milestones) ? milestones : [];
+            if (!milestoneList.length) {
+                sectionEl.style.display = 'none';
+                milestonesEl.innerHTML = '';
+                return;
+            }
+
+            const milestoneHtml = milestoneList
+                .map(item => {
+                    if (!item) return '';
+                    const text = typeof item === 'object' ? (item.text || item.title || '') : String(item);
+                    if (!text) return '';
+                    const achieved = typeof item === 'object' ? !!item.achieved : false;
+                    return `
+                        <div class="milestone-item-hjn ${achieved ? 'achieved' : ''}">
+                            <span class="milestone-dot-hjn">${achieved ? '&#10003;' : '&#9675;'}</span>
+                            <span class="milestone-text-hjn">${escapeHtml(text)}</span>
+                        </div>
+                    `;
+                })
+                .filter(Boolean)
+                .join('');
+
+            if (!milestoneHtml) {
+                sectionEl.style.display = 'none';
+                milestonesEl.innerHTML = '';
+                return;
+            }
+
+            milestonesEl.innerHTML = milestoneHtml;
+            sectionEl.style.display = 'block';
+        }
+
+        function populateGoalDetails(goal) {
+            const unit = goal.goal_measure_unit ? ` ${goal.goal_measure_unit}` : '';
+            const detailRows = [
+                { label: 'Status', value: goal.status },
+                { label: 'Category', value: goal.goal_category },
+                { label: 'Target Focus', value: goal.goal_target },
+                { label: 'Priority', value: goal.goal_priority || goal.priority },
+                { label: 'Check-In Frequency', value: goal.goal_checkin_frequency },
+                { label: 'Baseline', value: hasValue(goal.goal_baseline_value) ? `${goal.goal_baseline_value}${unit}` : '' },
+                { label: 'Target Value', value: hasValue(goal.goal_target_value) ? `${goal.goal_target_value}${unit}` : '' },
+                { label: 'Reward', value: goal.goal_reward },
+                { label: 'Success Criteria', value: goal.goal_success_criteria },
+            ];
+
+            renderDetailGrid('goalDetailsGrid', 'goalDetailsSection', detailRows);
         }
 
         /**
@@ -614,11 +1110,16 @@
             notesEl.innerHTML = notesHTML;
         }
 
-        /**
-         * Load Routine View
-         *
-         * @param {number|string} routineId - Routine ID to load
-         */
+        function findRoutineListItem(routineRef) {
+            const candidates = document.querySelectorAll('[data-routine-index], [data-routine-id], .myavana-routine-card');
+            return Array.from(candidates).find(item => {
+                const idx = item.getAttribute('data-routine-index');
+                const id = item.getAttribute('data-routine-id');
+                const generic = item.getAttribute('data-id');
+                return valuesMatch(routineRef, idx) || valuesMatch(routineRef, id) || valuesMatch(routineRef, generic);
+            }) || null;
+        }
+
         function loadRoutine(routineId) {
             console.log('Loading routine view:', routineId);
             const body = document.getElementById('routineViewBody');
@@ -629,23 +1130,20 @@
 
             const loadingEl = body.querySelector('.view-loading-hjn');
             const contentEl = body.querySelector('.view-content-hjn');
-
-            // Show loading
             if (loadingEl) loadingEl.style.display = 'flex';
             if (contentEl) contentEl.style.display = 'none';
 
-            // Try to get routine data from calendar data first
+            // Try calendar payload first (hair journey page)
             const calendarDataEl = document.getElementById('calendarDataHjn');
             if (calendarDataEl) {
                 try {
                     const calendarData = JSON.parse(calendarDataEl.textContent);
-                    const routine = calendarData.routines?.find(r => r.id == routineId);
+                    const calendarRoutine = Array.isArray(calendarData.routines)
+                        ? calendarData.routines.find(r => r.id == routineId)
+                        : null;
 
-                    if (routine) {
-                        console.log('Found routine in calendar data:', routine);
-                        setTimeout(() => {
-                            populateRoutineView(routine);
-                        }, 300);
+                    if (calendarRoutine) {
+                        populateRoutineView(calendarRoutine);
                         return;
                     }
                 } catch (error) {
@@ -653,39 +1151,77 @@
                 }
             }
 
-            // Fallback: try to find by data-routine-index attribute (for sidebar)
-            const listItem = document.querySelector(`[data-routine-index="${routineId}"]`);
-            if (listItem) {
-                console.log('Found routine in sidebar list');
-                setTimeout(() => {
-                    const routineData = extractRoutineData(listItem);
-                    populateRoutineView(routineData);
-                }, 300);
-                return;
-            }
+            const listItem = findRoutineListItem(routineId);
+            const domRoutine = listItem ? extractRoutineData(listItem) : null;
+            const resolvedRoutineId = domRoutine && (domRoutine.routine_id ?? domRoutine.id);
 
-            // If not found anywhere, show error
-            console.warn('Routine not found:', routineId);
-            showViewError('Routine not found');
+            const settings = window.myavanaTimelineSettings || {};
+            const nonce = settings.getRoutineDetailsNonce || settings.getEntryDetailsNonce || settings.nonce || '';
+            const requestRoutineId = hasValue(resolvedRoutineId) ? resolvedRoutineId : routineId;
+
+            const formData = new FormData();
+            formData.append('action', 'myavana_get_routine_details');
+            formData.append('routine_id', requestRoutineId);
+            formData.append('security', nonce);
+
+            fetch(settings.ajaxUrl || settings.ajaxurl || '/wp-admin/admin-ajax.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result && result.success && result.data) {
+                    const payload = Object.assign({}, domRoutine || {}, result.data || {});
+                    populateRoutineView(payload);
+                    return;
+                }
+
+                if (domRoutine) {
+                    populateRoutineView(domRoutine);
+                    return;
+                }
+
+                showViewError('Routine not found');
+            })
+            .catch(() => {
+                if (domRoutine) {
+                    populateRoutineView(domRoutine);
+                    return;
+                }
+                showViewError('Routine not found');
+            });
         }
 
-        /**
-         * Extract routine data from list item
-         *
-         * @param {HTMLElement} listItem - List item element
-         * @returns {Object} Routine data object
-         */
         function extractRoutineData(listItem) {
-            const title = listItem.querySelector('.list-item-title-hjn')?.textContent || 'Untitled Routine';
-            const schedule = listItem.querySelector('.list-item-badge-hjn')?.textContent || '';
-            const description = listItem.querySelector('.list-item-description-hjn')?.textContent || '';
+            const title = listItem.querySelector('.list-item-title-hjn, .myavana-routine-title')?.textContent?.trim() || 'Untitled Routine';
+            const schedule = listItem.querySelector('.list-item-badge-hjn, .myavana-routine-schedule')?.textContent?.trim() || '';
+            const description = listItem.querySelector('.list-item-description-hjn, .myavana-routine-description')?.textContent?.trim() ||
+                listItem.getAttribute('data-routine-description') ||
+                '';
+
+            const routineIndex = parseRefValue(listItem.getAttribute('data-routine-index'));
+            const routineIdRaw = listItem.getAttribute('data-routine-id') || listItem.getAttribute('data-id');
+            const parsedRoutineId = parseRefValue(routineIdRaw);
+            const resolvedRoutineRef = hasValue(routineIndex) ? routineIndex : parsedRoutineId;
+
+            const steps = parseJsonMaybe(listItem.getAttribute('data-routine-steps'), []);
+            const products = parseJsonMaybe(listItem.getAttribute('data-routine-products'), []);
 
             return {
+                id: resolvedRoutineRef,
+                routine_id: resolvedRoutineRef,
+                routine_ref_id: parsedRoutineId,
                 title,
                 schedule,
                 description,
-                steps: [],
-                products: []
+                frequency: listItem.getAttribute('data-routine-frequency') || schedule,
+                time: listItem.getAttribute('data-routine-time') || '',
+                duration: listItem.getAttribute('data-routine-duration') || '',
+                routine_phase: listItem.getAttribute('data-routine-phase') || '',
+                routine_goal_link: listItem.getAttribute('data-routine-goal-link') || '',
+                routine_tools: listItem.getAttribute('data-routine-tools') || '',
+                steps: Array.isArray(steps) ? steps : [],
+                products: Array.isArray(products) ? products : []
             };
         }
 
@@ -708,6 +1244,8 @@
             // Hide loading, show content
             if (loadingEl) loadingEl.style.display = 'none';
             if (contentEl) contentEl.style.display = 'flex';
+
+            resetRoutineViewSections();
 
             // Populate title
             const titleEl = document.getElementById('routineTitle');
@@ -753,8 +1291,8 @@
                             <div class="routine-step-hjn">
                                 <div class="step-number-hjn">${index + 1}</div>
                                 <div class="step-content-hjn">
-                                    <h5 class="step-title-hjn">${stepTitle}</h5>
-                                    ${stepDesc ? `<p class="step-description-hjn">${stepDesc}</p>` : ''}
+                                    <h5 class="step-title-hjn">${escapeHtml(stepTitle)}</h5>
+                                    ${stepDesc ? `<p class="step-description-hjn">${escapeHtml(stepDesc)}</p>` : ''}
                                 </div>
                             </div>
                         `;
@@ -765,9 +1303,91 @@
                 }
             }
 
+            // Populate products
+            const productsSection = document.getElementById('routineProductsSection');
+            const productsEl = document.getElementById('routineProducts');
+            const products = normalizeStringList(routine.products_list || routine.products);
+
+            if (productsSection && productsEl) {
+                if (products.length > 0) {
+                    productsSection.style.display = 'block';
+                    productsEl.innerHTML = products.map(product => `<span class="view-tag-hjn">${escapeHtml(product)}</span>`).join('');
+                } else {
+                    productsSection.style.display = 'none';
+                    productsEl.innerHTML = '';
+                }
+            }
+
+            populateRoutineDetails(routine);
+
             // Store data for edit functionality
-            MyavanaTimeline.State.set('currentViewData', { type: 'routine', id: routine.id, data: routine });
+            const resolvedRoutineId = hasValue(routine.routine_id) ? routine.routine_id : routine.id;
+            MyavanaTimeline.State.set('currentViewData', {
+                type: 'routine',
+                id: resolvedRoutineId,
+                routine_id: resolvedRoutineId,
+                data: routine
+            });
+            syncRoutineCompleteButton(resolvedRoutineId);
             console.log('Routine view populated successfully');
+        }
+
+        function syncRoutineCompleteButton(routineId) {
+            const completeBtn = document.getElementById('routineCompleteBtn');
+            if (!completeBtn || !hasValue(routineId)) return;
+
+            const today = completeBtn.getAttribute('data-date') || new Date().toISOString().split('T')[0];
+            completeBtn.setAttribute('data-routine-id', String(routineId));
+            completeBtn.setAttribute('data-date', today);
+
+            let completed = false;
+            const matchedToggle = document.querySelector(`[data-routine-complete-toggle][data-routine-id="${String(routineId)}"]`);
+            if (matchedToggle) {
+                completed = matchedToggle.classList.contains('is-complete') ||
+                    matchedToggle.getAttribute('aria-pressed') === 'true';
+            }
+
+            completeBtn.classList.toggle('is-complete', completed);
+            completeBtn.setAttribute('aria-pressed', completed ? 'true' : 'false');
+            completeBtn.textContent = completed ? 'Completed today' : 'Mark Complete Today';
+        }
+
+        function resetRoutineViewSections() {
+            const sectionIds = ['routineProductsSection', 'routineDetailsSection', 'routineHistorySection'];
+            sectionIds.forEach(id => {
+                const sectionEl = document.getElementById(id);
+                if (sectionEl) {
+                    sectionEl.style.display = 'none';
+                }
+            });
+
+            const clearIds = ['routineProducts', 'routineDetailsGrid'];
+            clearIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.innerHTML = '';
+                }
+            });
+        }
+
+        function populateRoutineDetails(routine) {
+            const tools = normalizeStringList(routine.routine_tools).join(', ');
+            const autoTrackRaw = routine.routine_auto_track;
+            const autoTrackValue = hasValue(autoTrackRaw)
+                ? ((String(autoTrackRaw) === '1' || String(autoTrackRaw).toLowerCase() === 'true') ? 'Enabled' : 'Disabled')
+                : '';
+
+            const detailRows = [
+                { label: 'Frequency', value: routine.frequency || routine.routine_frequency },
+                { label: 'Time', value: routine.time || routine.routine_time },
+                { label: 'Duration', value: routine.duration || routine.routine_duration },
+                { label: 'Phase', value: routine.routine_phase },
+                { label: 'Linked Goal', value: routine.routine_goal_link },
+                { label: 'Tools', value: tools },
+                { label: 'Auto Track', value: autoTrackValue },
+            ];
+
+            renderDetailGrid('routineDetailsGrid', 'routineDetailsSection', detailRows);
         }
 
         /**
@@ -816,13 +1436,17 @@
 
             // IMPORTANT: Extract entry ID BEFORE closing offcanvas
             // because closeTimelineViewOffcanvas() clears currentViewData after 400ms
-            const entryId = currentViewData.id ||
-                           currentViewData.entry_id ||
-                           (currentViewData.data && (currentViewData.data.id || currentViewData.data.entry_id));
+            let entryId = hasValue(currentViewData.id) ? currentViewData.id : null;
+            if (!hasValue(entryId) && hasValue(currentViewData.entry_id)) {
+                entryId = currentViewData.entry_id;
+            }
+            if (!hasValue(entryId) && currentViewData.data) {
+                entryId = hasValue(currentViewData.data.id) ? currentViewData.data.id : currentViewData.data.entry_id;
+            }
 
             console.log('[editEntry] Extracted entry ID:', entryId);
 
-            if (!entryId) {
+            if (!hasValue(entryId)) {
                 console.error('[editEntry] No entry ID found in currentViewData:', currentViewData);
                 alert('Could not find entry ID. Please try again.');
                 return;
@@ -857,13 +1481,17 @@
                 return;
             }
 
-            const entryId = currentViewData.id ||
-                           currentViewData.entry_id ||
-                           (currentViewData.data && (currentViewData.data.id || currentViewData.data.entry_id));
+            let entryId = hasValue(currentViewData.id) ? currentViewData.id : null;
+            if (!hasValue(entryId) && hasValue(currentViewData.entry_id)) {
+                entryId = currentViewData.entry_id;
+            }
+            if (!hasValue(entryId) && currentViewData.data) {
+                entryId = hasValue(currentViewData.data.id) ? currentViewData.data.id : currentViewData.data.entry_id;
+            }
 
             console.log('[deleteEntry] Deleting entry ID:', entryId);
 
-            if (!entryId) {
+            if (!hasValue(entryId)) {
                 alert('Could not find entry ID to delete.');
                 return;
             }
@@ -876,8 +1504,9 @@
 
             // Show loading on delete button
             const deleteBtn = document.getElementById('deleteEntryBtn');
+            let originalDeleteText = '';
             if (deleteBtn) {
-                const originalText = deleteBtn.innerHTML;
+                originalDeleteText = deleteBtn.innerHTML;
                 deleteBtn.innerHTML = '<div class="loading-spinner-hjn small"></div> Deleting...';
                 deleteBtn.disabled = true;
             }
@@ -930,7 +1559,7 @@
                     alert(data.data || 'Failed to delete entry');
                     // Reset delete button
                     if (deleteBtn) {
-                        deleteBtn.innerHTML = originalText;
+                        deleteBtn.innerHTML = originalDeleteText;
                         deleteBtn.disabled = false;
                     }
                 }
@@ -940,7 +1569,7 @@
                 alert('Network error. Please try again.');
                 // Reset delete button
                 if (deleteBtn) {
-                    deleteBtn.innerHTML = originalText;
+                    deleteBtn.innerHTML = originalDeleteText;
                     deleteBtn.disabled = false;
                 }
             });
@@ -959,10 +1588,16 @@
             }
 
             // IMPORTANT: Extract goal ID BEFORE closing offcanvas
-            const goalId = currentViewData.id || currentViewData.goal_id || (currentViewData.data && currentViewData.data.id);
+            let goalId = hasValue(currentViewData.id) ? currentViewData.id : null;
+            if (!hasValue(goalId) && hasValue(currentViewData.goal_id)) {
+                goalId = currentViewData.goal_id;
+            }
+            if (!hasValue(goalId) && currentViewData.data) {
+                goalId = hasValue(currentViewData.data.id) ? currentViewData.data.id : currentViewData.data.goal_id;
+            }
             console.log('[editGoal] Extracted goal ID:', goalId);
 
-            if (!goalId) {
+            if (!hasValue(goalId)) {
                 console.error('[editGoal] No goal ID found in currentViewData:', currentViewData);
                 alert('Could not find goal ID. Please try again.');
                 return;
@@ -997,10 +1632,16 @@
             }
 
             // IMPORTANT: Extract routine ID BEFORE closing offcanvas
-            const routineId = currentViewData.id || currentViewData.routine_id || (currentViewData.data && currentViewData.data.id);
+            let routineId = hasValue(currentViewData.id) ? currentViewData.id : null;
+            if (!hasValue(routineId) && hasValue(currentViewData.routine_id)) {
+                routineId = currentViewData.routine_id;
+            }
+            if (!hasValue(routineId) && currentViewData.data) {
+                routineId = hasValue(currentViewData.data.id) ? currentViewData.data.id : currentViewData.data.routine_id;
+            }
             console.log('[editRoutine] Extracted routine ID:', routineId);
 
-            if (!routineId) {
+            if (!hasValue(routineId)) {
                 console.error('[editRoutine] No routine ID found in currentViewData:', currentViewData);
                 alert('Could not find routine ID. Please try again.');
                 return;
@@ -1022,6 +1663,87 @@
             }
         }
 
+        /**
+         * Toggle routine completion for a date (defaults to today)
+         *
+         * @param {number|string} routineId
+         * @param {string} dateStr YYYY-MM-DD
+         * @param {HTMLElement|null} triggerEl
+         */
+        function toggleRoutineCompletion(routineId, dateStr, triggerEl) {
+            const parsedId = parseInt(routineId, 10);
+            if (Number.isNaN(parsedId) || parsedId < 0) {
+                return;
+            }
+
+            const settings = window.myavanaTimelineSettings || {};
+            const nonce = settings.toggleRoutineNonce || settings.addRoutineNonce || settings.nonce || '';
+            const payloadDate = dateStr && /^\d{4}-\d{2}-\d{2}$/.test(String(dateStr))
+                ? String(dateStr)
+                : new Date().toISOString().split('T')[0];
+
+            if (triggerEl) {
+                triggerEl.disabled = true;
+            }
+
+            fetch(settings.ajaxUrl || settings.ajaxurl || '/wp-admin/admin-ajax.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: 'myavana_toggle_routine_completion',
+                    security: nonce,
+                    routine_id: String(parsedId),
+                    date: payloadDate
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data || !data.success || !data.data) {
+                    throw new Error((data && data.data) || 'Unable to update routine completion');
+                }
+
+                const completed = !!data.data.completed;
+                const targets = [];
+                if (triggerEl) {
+                    targets.push(triggerEl);
+                } else {
+                    document.querySelectorAll(`[data-routine-complete-toggle][data-routine-id="${parsedId}"]`).forEach(el => targets.push(el));
+                }
+                const viewCompleteBtn = document.getElementById('routineCompleteBtn');
+                if (
+                    viewCompleteBtn &&
+                    String(viewCompleteBtn.getAttribute('data-routine-id') || '') === String(parsedId) &&
+                    !targets.includes(viewCompleteBtn)
+                ) {
+                    targets.push(viewCompleteBtn);
+                }
+
+                targets.forEach(btn => {
+                    const card = btn.closest('.timeline-card-hjn, .myavana-routine-manage-card');
+                    const isViewFooterBtn = btn.id === 'routineCompleteBtn';
+                    btn.classList.toggle('is-complete', completed);
+                    btn.setAttribute('aria-pressed', completed ? 'true' : 'false');
+                    btn.textContent = completed
+                        ? 'Completed today'
+                        : (isViewFooterBtn ? 'Mark Complete Today' : 'Mark complete');
+                    if (card) {
+                        card.classList.toggle('is-completed-hjn', completed);
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('[Routine Completion] Error:', error);
+                alert(error.message || 'Unable to update routine completion');
+            })
+            .finally(() => {
+                if (triggerEl) {
+                    triggerEl.disabled = false;
+                }
+            });
+        }
+
         // Public API
         return {
             openView: openView,
@@ -1032,6 +1754,18 @@
             deleteEntry: deleteEntry,
             editGoal: editGoal,
             editRoutine: editRoutine,
+            toggleRoutineCompletion: toggleRoutineCompletion,
+            toggleCurrentRoutineCompletion: function(triggerEl) {
+                const currentViewData = MyavanaTimeline.State.get('currentViewData');
+                if (!currentViewData || currentViewData.type !== 'routine') return;
+
+                const routineId = hasValue(currentViewData.routine_id) ? currentViewData.routine_id : currentViewData.id;
+                if (!hasValue(routineId)) return;
+
+                const sourceBtn = triggerEl || document.getElementById('routineCompleteBtn');
+                const buttonDate = sourceBtn ? sourceBtn.getAttribute('data-date') : '';
+                toggleRoutineCompletion(routineId, buttonDate, sourceBtn || null);
+            },
             initProgressNoteCounter: initProgressNoteCounter,
             openImageOverlay: openImageOverlay,
             closeImageOverlay: closeImageOverlay
@@ -1039,19 +1773,15 @@
 
     })();
 
-    // Backward compatibility - expose functions globally
-    if (typeof window.openViewOffcanvas === 'undefined') {
-        window.openViewOffcanvas = MyavanaTimeline.View.openView;
+    function hasValue(value) {
+        return value !== undefined && value !== null && value !== '';
     }
-    if (typeof window.loadEntryView === 'undefined') {
-        window.loadEntryView = MyavanaTimeline.View.loadEntry;
-    }
-    if (typeof window.loadGoalView === 'undefined') {
-        window.loadGoalView = MyavanaTimeline.View.loadGoal;
-    }
-    if (typeof window.loadRoutineView === 'undefined') {
-        window.loadRoutineView = MyavanaTimeline.View.loadRoutine;
-    }
+
+    // Backward compatibility - always map globals to the modular view controller.
+    window.openViewOffcanvas = MyavanaTimeline.View.openView;
+    window.loadEntryView = MyavanaTimeline.View.loadEntry;
+    window.loadGoalView = MyavanaTimeline.View.loadGoal;
+    window.loadRoutineView = MyavanaTimeline.View.loadRoutine;
     // Edit functions with parameter support for new form system
     if (typeof window.editEntry === 'undefined') {
         window.editEntry = function(entryId) {
@@ -1059,18 +1789,22 @@
             console.log('[window.editEntry] State exists:', !!MyavanaTimeline.State);
 
             // If no ID provided, try to get from currentViewData
-            if (!entryId) {
+            if (!hasValue(entryId)) {
                 const currentViewData = MyavanaTimeline.State ? MyavanaTimeline.State.get('currentViewData') : null;
                 console.log('[window.editEntry] currentViewData:', currentViewData);
                 if (currentViewData) {
-                    entryId = currentViewData.id ||
-                             currentViewData.entry_id ||
-                             (currentViewData.data && (currentViewData.data.id || currentViewData.data.entry_id));
+                    entryId = hasValue(currentViewData.id) ? currentViewData.id : null;
+                    if (!hasValue(entryId) && hasValue(currentViewData.entry_id)) {
+                        entryId = currentViewData.entry_id;
+                    }
+                    if (!hasValue(entryId) && currentViewData.data) {
+                        entryId = hasValue(currentViewData.data.id) ? currentViewData.data.id : currentViewData.data.entry_id;
+                    }
                 }
                 console.log('[window.editEntry] Extracted ID from state:', entryId);
             }
 
-            if (!entryId) {
+            if (!hasValue(entryId)) {
                 console.error('[window.editEntry] No entry ID available');
                 console.error('[window.editEntry] Dumping state:', MyavanaTimeline.State ? MyavanaTimeline.State.dump() : 'State not available');
                 alert('Could not find entry ID. Please try again.');
@@ -1102,17 +1836,21 @@
         window.editGoal = function(goalId) {
             console.log('[window.editGoal] Called with ID:', goalId);
 
-            if (!goalId) {
+            if (!hasValue(goalId)) {
                 const currentViewData = MyavanaTimeline.State ? MyavanaTimeline.State.get('currentViewData') : null;
                 if (currentViewData) {
-                    goalId = currentViewData.id ||
-                            currentViewData.goal_id ||
-                            (currentViewData.data && (currentViewData.data.id || currentViewData.data.goal_id));
+                    goalId = hasValue(currentViewData.id) ? currentViewData.id : null;
+                    if (!hasValue(goalId) && hasValue(currentViewData.goal_id)) {
+                        goalId = currentViewData.goal_id;
+                    }
+                    if (!hasValue(goalId) && currentViewData.data) {
+                        goalId = hasValue(currentViewData.data.id) ? currentViewData.data.id : currentViewData.data.goal_id;
+                    }
                 }
                 console.log('[window.editGoal] Got ID from state:', goalId);
             }
 
-            if (goalId) {
+            if (hasValue(goalId)) {
                 if (typeof closeTimelineViewOffcanvas === 'function') {
                     closeTimelineViewOffcanvas();
                 }
@@ -1133,17 +1871,21 @@
         window.editRoutine = function(routineId) {
             console.log('[window.editRoutine] Called with ID:', routineId);
 
-            if (!routineId) {
+            if (!hasValue(routineId)) {
                 const currentViewData = MyavanaTimeline.State ? MyavanaTimeline.State.get('currentViewData') : null;
                 if (currentViewData) {
-                    routineId = currentViewData.id ||
-                               currentViewData.routine_id ||
-                               (currentViewData.data && (currentViewData.data.id || currentViewData.data.routine_id));
+                    routineId = hasValue(currentViewData.id) ? currentViewData.id : null;
+                    if (!hasValue(routineId) && hasValue(currentViewData.routine_id)) {
+                        routineId = currentViewData.routine_id;
+                    }
+                    if (!hasValue(routineId) && currentViewData.data) {
+                        routineId = hasValue(currentViewData.data.id) ? currentViewData.data.id : currentViewData.data.routine_id;
+                    }
                 }
                 console.log('[window.editRoutine] Got ID from state:', routineId);
             }
 
-            if (routineId) {
+            if (hasValue(routineId)) {
                 if (typeof closeTimelineViewOffcanvas === 'function') {
                     closeTimelineViewOffcanvas();
                 }
@@ -1158,6 +1900,18 @@
                 console.error('[window.editRoutine] No routine ID available');
                 alert('Could not find routine ID. Please try again.');
             }
+        };
+    }
+
+    if (typeof window.toggleRoutineCompletion === 'undefined') {
+        window.toggleRoutineCompletion = function(routineId, dateStr, triggerEl) {
+            return MyavanaTimeline.View.toggleRoutineCompletion(routineId, dateStr, triggerEl || null);
+        };
+    }
+
+    if (typeof window.toggleCurrentRoutineCompletion === 'undefined') {
+        window.toggleCurrentRoutineCompletion = function(triggerEl) {
+            return MyavanaTimeline.View.toggleCurrentRoutineCompletion(triggerEl || null);
         };
     }
 

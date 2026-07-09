@@ -23,20 +23,21 @@
         /**
          * Set timeline filter by type
          *
-         * @param {string} filterType - The filter type ('all', 'entry', 'analysis', 'milestone', 'product')
+         * @param {string} filterType - The filter type ('all', 'entry', 'goal', 'routine')
          */
         function setFilter(filterType) {
+            const resolvedFilter = String(filterType || 'all').toLowerCase();
             // Update state
             if (window.MyavanaTimeline.State) {
-                window.MyavanaTimeline.State.set('currentFilter', filterType);
+                window.MyavanaTimeline.State.set('currentFilter', resolvedFilter);
             }
 
-            console.log('Timeline filter set to:', filterType);
+            console.log('Timeline filter set to:', resolvedFilter);
 
             // Update button states
-            const filterButtons = document.querySelectorAll('.timeline-filter-btn-hjn[data-filter]');
+            const filterButtons = document.querySelectorAll('.timeline-filter-btn-hjn[data-filter], .tl2-chip[data-filter]');
             filterButtons.forEach(btn => {
-                if (btn.dataset.filter === filterType) {
+                if ((btn.dataset.filter || '').toLowerCase() === resolvedFilter) {
                     btn.classList.add('active');
                 } else {
                     btn.classList.remove('active');
@@ -87,41 +88,90 @@
                 minRating
             });
 
-            // Get all timeline month groups
-            const monthGroups = document.querySelectorAll('.timeline-month-group-hjn');
+            // New TL2 weekly timeline structure
+            const tl2Timeline = document.getElementById('tl2TimelineWrapper');
+            if (tl2Timeline) {
+                const weekGroups = tl2Timeline.querySelectorAll('.tl2-week');
 
+                weekGroups.forEach(weekGroup => {
+                    const items = weekGroup.querySelectorAll('.tl2-filter-item');
+                    let visibleCount = 0;
+
+                    items.forEach(item => {
+                        const type = String(item.dataset.type || 'entry').toLowerCase();
+                        const title = (
+                            item.querySelector('.tl2-entry-title') ||
+                            item.querySelector('.tl2-goal-card-title') ||
+                            item.querySelector('.tl2-routine-tl-title')
+                        )?.textContent.toLowerCase() || '';
+                        const description = (
+                            item.querySelector('.tl2-goal-card-desc') ||
+                            item.querySelector('.tl2-routine-tl-meta') ||
+                            item.querySelector('.tl2-entry-meta-row')
+                        )?.textContent.toLowerCase() || '';
+                        const fullText = (item.textContent || '').toLowerCase();
+                        const dataRating = parseFloat(item.dataset.rating || '0');
+                        const itemRating = Number.isFinite(dataRating) ? dataRating : 0;
+
+                        const matchesType = currentFilter === 'all' || type === currentFilter;
+                        const matchesSearch = !searchTerm ||
+                            title.includes(searchTerm) ||
+                            description.includes(searchTerm) ||
+                            fullText.includes(searchTerm);
+                        const matchesRating = type !== 'entry' ||
+                            minRating === 0 ||
+                            itemRating >= minRating;
+
+                        const isVisible = matchesType && matchesSearch && matchesRating;
+                        item.style.display = isVisible ? '' : 'none';
+                        if (isVisible) {
+                            visibleCount++;
+                        }
+                    });
+
+                    weekGroup.style.display = visibleCount > 0 ? '' : 'none';
+                });
+
+                if (window.MyavanaTimeline.State) {
+                    window.MyavanaTimeline.State.trigger('filters:applied', {
+                        filter: currentFilter,
+                        search: searchTerm,
+                        rating: minRating
+                    });
+                }
+                return;
+            }
+
+            // Legacy timeline structure
+            const monthGroups = document.querySelectorAll('.timeline-month-group-hjn, .timeline-month-hjn');
             monthGroups.forEach(monthGroup => {
                 const items = monthGroup.querySelectorAll('.timeline-item-hjn');
                 let visibleCount = 0;
 
                 items.forEach(item => {
-                    const type = item.dataset.type || 'entry';
-                    const title = item.querySelector('.timeline-item-title-hjn')?.textContent.toLowerCase() || '';
-                    const description = item.querySelector('.timeline-item-description-hjn')?.textContent.toLowerCase() || '';
+                    const type = (item.dataset.type || 'entry').toLowerCase();
+                    const title = (
+                        item.querySelector('.timeline-item-title-hjn') ||
+                        item.querySelector('.timeline-card-title-hjn')
+                    )?.textContent.toLowerCase() || '';
+                    const description = (
+                        item.querySelector('.timeline-item-description-hjn') ||
+                        item.querySelector('.timeline-card-description-hjn')
+                    )?.textContent.toLowerCase() || '';
+                    const dataRating = parseFloat(item.dataset.rating || '0');
                     const ratingStars = item.querySelectorAll('.timeline-rating-star-hjn.filled');
-                    const itemRating = ratingStars.length;
+                    const itemRating = Number.isFinite(dataRating) && dataRating > 0 ? dataRating : ratingStars.length;
 
-                    // Check type filter
-                    let matchesType = currentFilter === 'all' || type === currentFilter;
-
-                    // Check search
-                    let matchesSearch = !searchTerm ||
-                        title.includes(searchTerm) ||
-                        description.includes(searchTerm);
-
-                    // Check rating (only for entries)
-                    let matchesRating = type !== 'entry' ||
-                        minRating === 0 ||
-                        itemRating >= minRating;
-
+                    const matchesType = currentFilter === 'all' || type === currentFilter;
+                    const matchesSearch = !searchTerm || title.includes(searchTerm) || description.includes(searchTerm);
+                    const matchesRating = type !== 'entry' || minRating === 0 || itemRating >= minRating;
                     const isVisible = matchesType && matchesSearch && matchesRating;
 
-                    item.style.display = isVisible ? 'flex' : 'none';
+                    item.style.display = isVisible ? '' : 'none';
                     if (isVisible) visibleCount++;
                 });
 
-                // Hide month group if no visible items
-                monthGroup.style.display = visibleCount > 0 ? 'block' : 'none';
+                monthGroup.style.display = visibleCount > 0 ? '' : 'none';
             });
 
             console.log('Timeline filters applied');
@@ -163,12 +213,16 @@
          */
         function initialize() {
             // Set up filter button listeners
-            const filterButtons = document.querySelectorAll('.timeline-filter-btn-hjn[data-filter]');
+            const filterButtons = document.querySelectorAll('.timeline-filter-btn-hjn[data-filter], .tl2-chip[data-filter]');
             filterButtons.forEach(btn => {
                 btn.addEventListener('click', function() {
                     setFilter(this.dataset.filter);
                 });
             });
+
+            if (window.MyavanaTimeline.State && !window.MyavanaTimeline.State.get('currentFilter')) {
+                window.MyavanaTimeline.State.set('currentFilter', 'all');
+            }
 
             // Set up search input listener
             const searchInput = document.getElementById('timelineSearchInput');
@@ -227,6 +281,20 @@
         };
 
     })();
+
+    // Backward-compatible global helpers for inline handlers in timeline template.
+    window.setTimelineFilter = function(filterType) {
+        return window.MyavanaTimeline.Filters.setFilter(filterType);
+    };
+    window.toggleTimelineFilterPanel = function() {
+        return window.MyavanaTimeline.Filters.togglePanel();
+    };
+    window.applyTimelineFilters = function() {
+        return window.MyavanaTimeline.Filters.apply();
+    };
+    window.clearTimelineFilters = function() {
+        return window.MyavanaTimeline.Filters.clear();
+    };
 
     console.log('MyavanaTimeline.Filters module loaded');
 

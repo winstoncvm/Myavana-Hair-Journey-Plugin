@@ -301,10 +301,6 @@ function myavana_add_hair_profile_menu_item($items, $args) {
             .myavana-profile-menu:hover .myavana-menu-arrow {
                 transform: rotate(180deg);
             }
-            .nav li ul, .menu li ul {
-                width: 100% !important;
-            }
-
             /* Dropdown Styles */
             .myavana-profile-dropdown {
                 display: none;
@@ -321,6 +317,7 @@ function myavana_add_hair_profile_menu_item($items, $args) {
                 transition: all 0.3s ease;
                 animation: fadeIn 0.3s forwards;
                 text-align: left;
+                min-width: 220px;
             }
 
             .myavana-profile-menu:hover .myavana-profile-dropdown {
@@ -502,11 +499,21 @@ function myavana_menu_scripts() {
 }
 
 function myavana_redirect_after_login($redirect_to, $request, $user) {
-    if (isset($user->ID) && user_can($user, 'read')) {
-        $username = bp_core_get_username($user->ID);
-        return home_url('/members/' . $username . '/hair_profile/');
+    if (!($user instanceof WP_User)) {
+        return $redirect_to;
     }
-    return $redirect_to;
+
+    // Always send admins to the Myavana intelligence dashboard in wp-admin.
+    if (user_can($user, 'manage_options')) {
+        return admin_url('admin.php?page=myavana-intelligence-dashboard');
+    }
+
+    // Keep frontend users on the product app experience.
+    if (user_can($user, 'read')) {
+        return home_url('/hair-journey/');
+    }
+
+    return home_url('/');
 }
 add_filter('login_redirect', 'myavana_redirect_after_login', 10, 3);
 add_filter('wp_mail_from', function ($email) {
@@ -1051,6 +1058,14 @@ function myavana_handle_vision_api_hair_analysis() {
         }
 
         $analysis = $result['analysis'];
+        $save_status = [
+            'analysis_saved' => false,
+            'snapshot_saved' => false,
+            'entry_created' => false,
+            'entry_id' => 0,
+            'image_attached' => false,
+            'snapshot_image_updated' => false
+        ];
 
         // Ensure required fields exist with fallbacks
         $required_fields = [
@@ -1142,7 +1157,8 @@ function myavana_handle_vision_api_hair_analysis() {
             $analysis_history = array_slice($analysis_history, -100);
         }
 
-        update_user_meta($user_id, 'myavana_hair_analysis_history', $analysis_history);
+        $analysis_saved = update_user_meta($user_id, 'myavana_hair_analysis_history', $analysis_history);
+        $save_status['analysis_saved'] = ($analysis_saved !== false);
         error_log('Myavana Hair Analysis: Saved to user meta for user ' . $user_id);
 
         // SAVE SNAPSHOT TO PROFILE TABLE
@@ -1156,6 +1172,11 @@ function myavana_handle_vision_api_hair_analysis() {
             'timestamp' => current_time('Y-m-d H:i:s'),
             'image_url' => '', // Will be populated after entry image is saved
             'summary' => $analysis['summary'] ?? 'AI-powered hair analysis completed.',
+            'environment' => $analysis['environment'] ?? 'Not visible',
+            'user_description' => $analysis['user_description'] ?? 'Not visible',
+            'mood_demeanor' => $analysis['mood_demeanor'] ?? 'Not visible',
+            'full_context' => $analysis['full_context'] ?? '',
+            'confidence_level' => $analysis['confidence_level'] ?? 0,
             'hair_analysis' => [
                 'type' => $analysis['hair_analysis']['type'] ?? 'Not determined',
                 'curl_pattern' => $analysis['hair_analysis']['curl_pattern'] ?? 'Not determined',
@@ -1165,9 +1186,17 @@ function myavana_handle_vision_api_hair_analysis() {
                 'porosity' => $analysis['hair_analysis']['porosity'] ?? 'Medium',
                 'density' => $analysis['hair_analysis']['density'] ?? 'Medium',
                 'length' => $analysis['hair_analysis']['length'] ?? 'Medium',
-                'texture' => $analysis['hair_analysis']['texture'] ?? 'Medium'
+                'texture' => $analysis['hair_analysis']['texture'] ?? 'Medium',
+                'hairstyle' => $analysis['hair_analysis']['hairstyle'] ?? 'Not determined',
+                'damage' => $analysis['hair_analysis']['damage'] ?? 'None observed',
+                'scalp_health' => $analysis['hair_analysis']['scalp_health'] ?? 'Not determined',
+                'hair_color' => $analysis['hair_analysis']['hair_color'] ?? 'Not determined',
+                'strand_thickness' => $analysis['hair_analysis']['strand_thickness'] ?? 'Medium',
+                'growth_pattern' => $analysis['hair_analysis']['growth_pattern'] ?? 'Not determined'
             ],
-            'recommendations' => $analysis['recommendations'] ?? []
+            'recommendations' => $analysis['recommendations'] ?? [],
+            'recommendations_priority' => $analysis['recommendations_priority'] ?? [],
+            'products' => $analysis['products'] ?? []
         ];
 
         if ($profile) {
@@ -1186,18 +1215,19 @@ function myavana_handle_vision_api_hair_analysis() {
             }
 
             // Update profile
-            $wpdb->update(
+            $profile_update = $wpdb->update(
                 $table_name,
                 ['hair_analysis_snapshots' => wp_json_encode($snapshots)],
                 ['user_id' => $user_id],
                 ['%s'],
                 ['%d']
             );
+            $save_status['snapshot_saved'] = ($profile_update !== false);
 
             error_log('Myavana Hair Analysis: Snapshot saved to profile table for user ' . $user_id);
         } else {
             // Create new profile with snapshot
-            $wpdb->insert(
+            $profile_insert = $wpdb->insert(
                 $table_name,
                 [
                     'user_id' => $user_id,
@@ -1206,6 +1236,7 @@ function myavana_handle_vision_api_hair_analysis() {
                 ],
                 ['%d', '%s', '%s']
             );
+            $save_status['snapshot_saved'] = ($profile_insert !== false);
 
             error_log('Myavana Hair Analysis: New profile created with snapshot for user ' . $user_id);
         }
@@ -1269,6 +1300,7 @@ function myavana_handle_vision_api_hair_analysis() {
                         $attachment_data = wp_generate_attachment_metadata($attachment_id, $filepath);
                         wp_update_attachment_metadata($attachment_id, $attachment_data);
                         set_post_thumbnail($post_id, $attachment_id);
+                        $save_status['image_attached'] = true;
 
                         // Update snapshot with image URL
                         $image_url = wp_get_attachment_url($attachment_id);
@@ -1283,13 +1315,14 @@ function myavana_handle_vision_api_hair_analysis() {
                                     $snapshots[$last_index]['image_url'] = $image_url;
 
                                     // Save back to database
-                                    $wpdb->update(
+                                    $snapshot_update = $wpdb->update(
                                         $table_name,
                                         ['hair_analysis_snapshots' => wp_json_encode($snapshots)],
                                         ['user_id' => $user_id],
                                         ['%s'],
                                         ['%d']
                                     );
+                                    $save_status['snapshot_image_updated'] = ($snapshot_update !== false);
 
                                     error_log('Myavana Hair Analysis: Updated snapshot with image URL');
                                 }
@@ -1302,13 +1335,29 @@ function myavana_handle_vision_api_hair_analysis() {
             error_log('Myavana Hair Analysis: Auto-created entry #' . $post_id . ' for user ' . $user_id);
             $analysis['entry_id'] = $post_id;
             $analysis['entry_created'] = true;
+            $save_status['entry_created'] = true;
+            $save_status['entry_id'] = intval($post_id);
         }
 
         // Log successful analysis
         error_log('Myavana Hair Analysis: Successfully completed for user ' . $user_id);
 
         // Return success response
-        wp_send_json_success(['analysis' => $analysis]);
+        $used_this_month = min(30, $current_month_count + 1);
+        $remaining_this_month = max(0, 30 - $used_this_month);
+
+        wp_send_json_success([
+            'analysis' => $analysis,
+            'save_status' => $save_status,
+            'analysis_saved' => $save_status['analysis_saved'],
+            'entry_created' => $save_status['entry_created'],
+            'entry_id' => $save_status['entry_id'],
+            'monthly_usage' => [
+                'used' => $used_this_month,
+                'limit' => 30,
+                'remaining' => $remaining_this_month
+            ]
+        ]);
 
     } catch (Exception $e) {
         error_log('Myavana Hair Analysis Exception: ' . $e->getMessage());
@@ -1413,14 +1462,66 @@ Format your response as JSON:
         }
 
         $analysis_data = json_decode($analysis_text, true);
-
-        if (!$analysis_data) {
+        if (!is_array($analysis_data)) {
             // Fallback: use raw text
             $analysis_data = [
                 'raw_analysis' => $analysis_text,
                 'formatted' => true
             ];
         }
+
+        $to_string_array = function($value) {
+            if (!is_array($value)) {
+                return [];
+            }
+
+            return array_values(array_filter(array_map(function($item) {
+                if (is_string($item)) {
+                    return sanitize_text_field($item);
+                }
+                if (is_array($item) && isset($item['name'])) {
+                    return sanitize_text_field($item['name']);
+                }
+                return '';
+            }, $value)));
+        };
+
+        $to_safe_text = function($value, $default = 'Not determined') {
+            if (!is_scalar($value)) {
+                return $default;
+            }
+            $text = sanitize_text_field((string) $value);
+            return $text !== '' ? $text : $default;
+        };
+
+        $hair_analysis = (isset($analysis_data['hair_analysis']) && is_array($analysis_data['hair_analysis']))
+            ? $analysis_data['hair_analysis']
+            : [];
+
+        $analysis_data['hair_type'] = $to_safe_text($analysis_data['hair_type'] ?? ($hair_analysis['type'] ?? 'Not determined'));
+        $analysis_data['curl_pattern'] = $to_safe_text($analysis_data['curl_pattern'] ?? ($hair_analysis['curl_pattern'] ?? 'Not determined'));
+        $analysis_data['porosity'] = $to_safe_text($analysis_data['porosity'] ?? ($hair_analysis['porosity'] ?? 'Not determined'));
+        $analysis_data['texture'] = $to_safe_text($analysis_data['texture'] ?? ($hair_analysis['texture'] ?? 'Not determined'));
+        $analysis_data['density'] = $to_safe_text($analysis_data['density'] ?? ($hair_analysis['density'] ?? 'Not determined'));
+        $analysis_data['length'] = $to_safe_text($analysis_data['length'] ?? ($hair_analysis['length'] ?? 'Not determined'));
+        $analysis_data['hydration'] = intval($analysis_data['hydration'] ?? ($hair_analysis['hydration'] ?? 0));
+        $analysis_data['elasticity'] = intval($analysis_data['elasticity'] ?? ($hair_analysis['elasticity'] ?? 0));
+        $analysis_data['health_score'] = intval($analysis_data['health_score'] ?? ($hair_analysis['health_score'] ?? 0));
+
+        $analysis_data['concerns'] = $to_string_array($analysis_data['concerns'] ?? []);
+        $analysis_data['recommendations'] = $to_string_array($analysis_data['recommendations'] ?? []);
+        $analysis_data['products'] = $to_string_array($analysis_data['products'] ?? []);
+
+        if (empty($analysis_data['summary'])) {
+            $analysis_data['summary'] = $analysis_data['raw_analysis'] ?? 'AI analysis completed successfully.';
+        }
+        $analysis_data['summary'] = wp_strip_all_tags(wp_trim_words($analysis_data['summary'], 40, '...'));
+        $analysis_data['analysis_generated_at'] = current_time('c');
+        $analysis_data['share_caption'] = sprintf(
+            'My MYAVANA AI Hair Analysis: %s hair, %d/10 health score.',
+            $analysis_data['hair_type'],
+            max(0, min(10, intval(round(($analysis_data['health_score'] / 10), 0))))
+        );
 
         // Increment rate limit counter
         set_transient($rate_limit_key, $analyses_today + 1, DAY_IN_SECONDS);

@@ -40,13 +40,16 @@ $current_name = $user->display_name ?: $user->first_name ?: '';
 }
 
 .myavana-onboarding-card {
-    background: white;
-    border-radius: 20px;
+    border-radius: 28px;
     width: 95%;
     max-width: 600px;
     max-height: 90vh;
     overflow: hidden;
-    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255,255,255,0.3);
+    background: linear-gradient(145deg, rgba(255,255,255,0.86) 0%, rgba(255,248,244,0.78) 100%);
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.24);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     animation: myavanaSlideUp 0.4s ease;
 }
 
@@ -76,6 +79,12 @@ $current_name = $user->display_name ?: $user->first_name ?: '';
     font-size: 20px;
     font-weight: 600;
     margin: 0;
+}
+
+.myavana-onboarding-subtitle {
+    margin: 8px 0 0;
+    color: rgba(255,255,255,0.86);
+    font-size: 14px;
 }
 
 .myavana-onboarding-skip {
@@ -156,6 +165,17 @@ $current_name = $user->display_name ?: $user->first_name ?: '';
 
 .myavana-onboarding-field {
     margin-bottom: 24px;
+}
+
+.myavana-onboarding-helper {
+    margin: 0 0 20px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.62);
+    border: 1px solid rgba(74,77,104,0.08);
+    color: var(--myavana-blueberry, #4a4d68);
+    font-size: 13px;
+    line-height: 1.6;
 }
 
 .myavana-onboarding-field label {
@@ -316,7 +336,46 @@ $current_name = $user->display_name ?: $user->first_name ?: '';
 }
 
 /* Mobile */
+@media (max-width: 768px) {
+    .myavana-onboarding-overlay {
+        padding: 12px;
+        align-items: flex-start;
+        overflow-y: auto;
+    }
+
+    .myavana-onboarding-card {
+        width: 100%;
+        max-height: calc(100dvh - 24px);
+        border-radius: 14px;
+    }
+
+    .myavana-onboarding-header {
+        padding: 22px 16px;
+    }
+
+    .myavana-onboarding-title {
+        font-size: 18px;
+    }
+
+    .myavana-onboarding-body {
+        padding: 20px 16px;
+        max-height: calc(100dvh - 220px);
+    }
+
+    .myavana-onboarding-footer {
+        padding: 14px 16px;
+    }
+
+    .myavana-onboarding-next {
+        padding: 12px 22px;
+    }
+}
+
 @media (max-width: 480px) {
+    .myavana-onboarding-overlay {
+        padding: 0;
+    }
+
     .myavana-onboarding-card {
         width: 100%;
         height: 100%;
@@ -339,7 +398,8 @@ $current_name = $user->display_name ?: $user->first_name ?: '';
         <div class="myavana-onboarding-header">
             <button class="myavana-onboarding-skip" id="onboardingSkip">Skip for now</button>
             <div class="myavana-onboarding-logo">MYAVANA</div>
-            <h2 class="myavana-onboarding-title">Let's Personalize Your Journey</h2>
+            <h2 class="myavana-onboarding-title">Your Hair Journey Starts Here</h2>
+            <p class="myavana-onboarding-subtitle">A quick setup to personalize your experience and prepare your first entry.</p>
         </div>
 
         <div class="myavana-onboarding-progress">
@@ -352,6 +412,7 @@ $current_name = $user->display_name ?: $user->first_name ?: '';
             <div class="myavana-onboarding-step active" data-step="1">
                 <h3>Welcome! Tell us about yourself</h3>
                 <p>This helps us personalize your hair care recommendations.</p>
+                <div class="myavana-onboarding-helper">We’ll save this profile information and use it to guide your first hair journey entry after setup.</div>
 
                 <div class="myavana-onboarding-field">
                     <label for="onboarding-name">What should we call you?</label>
@@ -436,6 +497,7 @@ jQuery(document).ready(function($) {
     const overlay = $('#myavanaOnboardingOverlay');
     let currentStep = 1;
     const totalSteps = 2;
+    const storageKey = 'myavana_onboarding_draft_v2';
 
     // Data storage
     const onboardingData = {
@@ -444,6 +506,40 @@ jQuery(document).ready(function($) {
         hair_goals: [],
         hair_texture: ''
     };
+
+    function persistDraft() {
+        window.sessionStorage.setItem(storageKey, JSON.stringify(onboardingData));
+    }
+
+    function restoreDraft() {
+        try {
+            const saved = JSON.parse(window.sessionStorage.getItem(storageKey) || '{}');
+            if (!saved || typeof saved !== 'object') return;
+
+            onboardingData.name = saved.name || onboardingData.name;
+            onboardingData.hair_type = saved.hair_type || '';
+            onboardingData.hair_goals = Array.isArray(saved.hair_goals) ? saved.hair_goals : [];
+            onboardingData.hair_texture = saved.hair_texture || '';
+
+            $('#onboarding-name').val(onboardingData.name);
+
+            if (onboardingData.hair_type) {
+                $(`#hair-type-selection .myavana-selection-option[data-value="${onboardingData.hair_type}"]`).addClass('selected');
+            }
+
+            if (onboardingData.hair_texture) {
+                $(`#hair-texture-selection .myavana-selection-option[data-value="${onboardingData.hair_texture}"]`).addClass('selected');
+            }
+
+            if (onboardingData.hair_goals.length) {
+                onboardingData.hair_goals.forEach(function(goal) {
+                    $(`#hair-goals-selection .myavana-chip[data-value="${goal}"]`).addClass('selected');
+                });
+            }
+        } catch (error) {
+            console.warn('MYAVANA onboarding draft restore failed', error);
+        }
+    }
 
     // Show onboarding
     function showOnboarding() {
@@ -525,8 +621,8 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 if (response.success) {
-                    // Redirect to hair journey page
-                    window.location.href = '<?php echo home_url('/hair-journey/?welcome=1'); ?>';
+                    window.sessionStorage.removeItem(storageKey);
+                    window.location.href = response.data.redirect || '<?php echo home_url('/hair-journey/?welcome=1&start_entry=1'); ?>';
                 } else {
                     alert(response.data.message || 'Something went wrong. Please try again.');
                     nextBtn.removeClass('loading').prop('disabled', false);
@@ -549,6 +645,7 @@ jQuery(document).ready(function($) {
                 nonce: '<?php echo wp_create_nonce('myavana_onboarding'); ?>'
             },
             success: function() {
+                window.sessionStorage.removeItem(storageKey);
                 hideOnboarding();
             }
         });
@@ -582,12 +679,14 @@ jQuery(document).ready(function($) {
         $('#hair-type-selection .myavana-selection-option').removeClass('selected');
         $(this).addClass('selected');
         onboardingData.hair_type = $(this).data('value');
+        persistDraft();
     });
 
     $('#hair-texture-selection .myavana-selection-option').on('click', function() {
         $('#hair-texture-selection .myavana-selection-option').removeClass('selected');
         $(this).addClass('selected');
         onboardingData.hair_texture = $(this).data('value');
+        persistDraft();
     });
 
     // Multi-selection (goals)
@@ -597,12 +696,16 @@ jQuery(document).ready(function($) {
         $('#hair-goals-selection .myavana-chip.selected').each(function() {
             onboardingData.hair_goals.push($(this).data('value'));
         });
+        persistDraft();
     });
 
     // Name input
     $('#onboarding-name').on('input', function() {
         onboardingData.name = $(this).val().trim();
+        persistDraft();
     });
+
+    restoreDraft();
 
     // Auto-show if needed
     <?php if (get_user_meta($user_id, 'myavana_show_onboarding', true)): ?>

@@ -222,9 +222,9 @@
         $('.myavana-profile-tab').removeClass('active');
         $(`.myavana-profile-tab[data-tab="${tabName}"]`).addClass('active');
 
-        // Update mobile nav
-        $('.myavana-mobile-nav-btn').removeClass('active');
-        $(`.myavana-mobile-nav-btn[data-tab="${tabName}"]`).addClass('active');
+        // Update quick action chips
+        $('.myavana-profile-quick-chip[data-tab]').removeClass('active');
+        $(`.myavana-profile-quick-chip[data-tab="${tabName}"]`).addClass('active');
 
         // Update tab content
         $('.myavana-profile-tab-content').removeClass('active');
@@ -232,6 +232,7 @@
 
         // Save active tab
         localStorage.setItem('myavanaActiveProfileTab', tabName);
+        localStorage.setItem('activeProfileTab', tabName);
 
         // Load tab-specific content
         if (tabName === 'community') {
@@ -508,38 +509,37 @@
         }
     };
 
-    /**
-     * FAB Menu
-     */
-    window.openCreateMenu = function() {
-        const $menu = $('#fabMenu');
-        $menu.css('display', 'flex');
-        setTimeout(() => $menu.addClass('active'), 10);
-    };
-
-    window.closeFabMenu = function() {
-        const $menu = $('#fabMenu');
-        $menu.removeClass('active');
-        setTimeout(() => $menu.css('display', 'none'), 300);
-    };
-
-    // Close FAB menu when clicking outside
-    $(document).on('click', function(e) {
-        const $menu = $('#fabMenu');
-        const $fab = $('.myavana-fab');
-        if ($menu.length && !$menu.is(e.target) && !$menu.has(e.target).length &&
-            !$fab.is(e.target) && !$fab.has(e.target).length) {
-            closeFabMenu();
+    window.copyProfileLink = function() {
+        const profileUrl = window.location.href.split('#')[0];
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(profileUrl)
+                .then(() => myavanaUpShowNotification('Profile link copied.', 'success'))
+                .catch(() => myavanaUpShowNotification('Unable to copy profile link.', 'error'));
+            return;
         }
-    });
+
+        const $temp = $('<input type="text" />').val(profileUrl).appendTo('body');
+        $temp.trigger('select');
+        document.execCommand('copy');
+        $temp.remove();
+        myavanaUpShowNotification('Profile link copied.', 'success');
+    };
 
     /**
      * Initialize on Document Ready
      */
     $(document).ready(function() {
         // Load active tab from localStorage
-        const activeTab = localStorage.getItem('myavanaActiveProfileTab') || 'journey';
+        const activeTab = localStorage.getItem('myavanaActiveProfileTab') || localStorage.getItem('activeProfileTab') || 'journey';
         switchProfileTab(activeTab);
+
+        // Support cross-page launcher fallback (e.g., community widget edit action)
+        const params = new URLSearchParams(window.location.search || '');
+        if (params.get('open_profile_edit') === '1' || params.get('edit_profile') === '1') {
+            setTimeout(() => {
+                myavanaUpOpenEditOffcanvas();
+            }, 120);
+        }
 
         // Make profile edit button work
         $('.myavana-avatar-edit-btn, #myavanaUpEditProfileBtn').on('click', function(e) {

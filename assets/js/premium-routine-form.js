@@ -316,6 +316,11 @@
     };
 
     // Global shortcut
-    window.createRoutine = () => MyavanaPremiumRoutineForm.open();
+    window.createRoutine = (prefillData) => {
+        if (typeof window.myavanaOpenCollectionComposer === 'function') {
+            return window.myavanaOpenCollectionComposer('routine', prefillData || {});
+        }
+        return MyavanaPremiumRoutineForm.open(prefillData);
+    };
 
 })(jQuery);

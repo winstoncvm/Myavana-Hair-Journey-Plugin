@@ -30,7 +30,7 @@ function myavana_tryon_shortcode($atts = []) {
                 <div class="checkbox-wrapper">
                     <input id="terms-agree" type="checkbox">
                     <label for="terms-agree"><div class="tick_mark"></div></label>
-                    <span class="myavana-checkbox-text">I agree to the <a href="/terms" target="_blank" style="color: var(--coral);">terms of use</a>.</span>
+                    <span class="myavana-checkbox-text">I agree to the <a href="<?php echo esc_url(home_url('/terms/')); ?>" target="_blank" rel="noopener noreferrer" style="color: var(--coral);">terms of use</a>.</span>
                 </div>
                 <p class="myavana-checkbox-desc">Please agree to the terms to use the virtual try-on feature.</p>
             </div>

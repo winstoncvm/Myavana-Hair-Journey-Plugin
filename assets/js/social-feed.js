@@ -16,19 +16,40 @@
     let currentPage = 1;
     let isLoading = false;
     let hasMorePosts = true;
+    let searchQuery = settings.initialSearch || '';
+    let hashtagQuery = settings.initialHashtag || '';
+    let mediaFilter = settings.initialMediaFilter || '';
+    let feedMode = settings.initialMode || 'discover';
+    let circleFilter = settings.initialCircle || '';
+    const postCache = new Map();
 
     /**
      * Initialize community feed
      */
     function initCommunityFeed() {
-        // Load initial posts
-        loadPosts();
-
         // Setup event listeners
         setupFilterButtons();
+        setupDiscoveryPanel();
         setupCreatePostModal();
         setupLoadMore();
         setupInfiniteScroll();
+
+        if (feedMode === 'following') {
+            currentFilter = 'following';
+            $('.myavana-community-mode-btn').removeClass('active');
+            $('.myavana-community-mode-btn[data-mode="following"]').addClass('active');
+            $('.myavana-filter-btn').removeClass('active');
+            $('.myavana-filter-btn[data-filter="following"]').addClass('active');
+        }
+
+        if (circleFilter) {
+            $('.myavana-circle-filter-btn').removeClass('active');
+            $(`.myavana-circle-filter-btn[data-circle="${circleFilter}"]`).addClass('active');
+        }
+
+        // Load initial data
+        loadDiscoveryData();
+        loadPosts();
     }
 
     /**
@@ -52,7 +73,9 @@
         if (isLoading) return;
 
         isLoading = true;
-        showLoading();
+        if (!append) {
+            showLoading();
+        }
 
         $.ajax({
             url: settings.ajaxUrl,
@@ -61,6 +84,11 @@
                 action: 'get_community_feed',
                 nonce: settings.nonce,
                 filter: currentFilter,
+                mode: feedMode,
+                circle: circleFilter,
+                search: searchQuery,
+                hashtag: hashtagQuery,
+                media_filter: mediaFilter,
                 page: currentPage,
                 per_page: settings.perPage || 10
             },   
@@ -83,7 +111,7 @@
                         }
 
                         // Check if there are more posts
-                        if (posts.length < settings.perPage) {
+                        if (posts.length < Number(settings.perPage || 10)) {
                             hasMorePosts = false;
                             $('#myavana-feed-load-more').hide();
                         } else {
@@ -99,7 +127,9 @@
             },
             complete: function() {
                 isLoading = false;
-                hideLoading();
+                if (!append) {
+                    hideLoading();
+                }
             }
         });
     }
@@ -107,12 +137,33 @@
     /**
      * Render posts to the grid
      */
+    function mergePostData(nextPost, existingPost = {}) {
+        const merged = Object.assign({}, existingPost, nextPost || {});
+        merged.id = Number(merged.id || existingPost.id || 0);
+        merged.title = merged.title || '';
+        merged.content = merged.content || '';
+        merged.image_url = merged.image_url || '';
+        merged.video_url = merged.video_url || '';
+        merged.post_type = merged.post_type || 'general';
+        merged.privacy_level = merged.privacy_level || 'public';
+        merged.hashtags = merged.hashtags || '';
+        merged.likes_count = Number(merged.likes_count || 0);
+        merged.comments_count = Number(merged.comments_count || 0);
+        merged.reactions = merged.reactions || existingPost.reactions || {};
+        merged.user_reaction = merged.user_reaction || existingPost.user_reaction || null;
+        merged.formatted_date = merged.formatted_date || existingPost.formatted_date || '';
+        return merged;
+    }
+
     function renderPosts(posts) {
         const $grid = $('#myavana-feed-grid');
         $grid.empty();
+        postCache.clear();
 
         posts.forEach(post => {
-            $grid.append(createPostCard(post));
+            const normalizedPost = mergePostData(post);
+            postCache.set(normalizedPost.id, normalizedPost);
+            $grid.append(createPostCard(normalizedPost));
         });
 
         $('#myavana-feed-empty').hide();
@@ -126,8 +177,33 @@
         const $grid = $('#myavana-feed-grid');
 
         posts.forEach(post => {
-            $grid.append(createPostCard(post));
+            const normalizedPost = mergePostData(post);
+            postCache.set(normalizedPost.id, normalizedPost);
+            $grid.append(createPostCard(normalizedPost));
         });
+    }
+
+    function upsertPostCard(postData) {
+        const postId = Number(postData && postData.id ? postData.id : 0);
+        if (!postId) {
+            return null;
+        }
+
+        const existingPost = postCache.get(postId) || {};
+        const normalizedPost = mergePostData(postData, existingPost);
+        postCache.set(postId, normalizedPost);
+
+        const $grid = $('#myavana-feed-grid');
+        const $existingCard = $grid.find(`.myavana-post-card[data-post-id="${postId}"]`);
+        const $newCard = $(createPostCard(normalizedPost));
+
+        if ($existingCard.length) {
+            $existingCard.replaceWith($newCard);
+        } else if ($grid.length) {
+            $grid.prepend($newCard);
+        }
+
+        return normalizedPost;
     }
 
     /**
@@ -137,14 +213,25 @@
         const reactions = post.reactions || {};
         const userReaction = post.user_reaction || null;
         const isLiked = post.is_liked || false;
+        const postTitle = normalizeCommunityText(post.title || '');
+        const postContent = normalizeCommunityText(post.content || '');
+        const hasText = postContent.trim().length > 0;
 
         // Calculate total reactions - use likes_count if reactions are not available
         const totalReactions = post.likes_count || Object.values(reactions).reduce((sum, count) => sum + count, 0);
 
+        const videoHtml = post.video_url ? `
+            <div class="myavana-post-video-wrapper">
+                <video class="myavana-post-video" controls preload="metadata" playsinline>
+                    <source src="${escapeHtml(post.video_url)}">
+                </video>
+            </div>
+        ` : '';
+
         const imageHtml = post.image_url ? `
             <div class="myavana-post-image-wrapper">
                 <img src="${escapeHtml(post.image_url)}"
-                     alt="${escapeHtml(post.title)}"
+                     alt="${escapeHtml(postTitle)}"
                      class="myavana-post-image"
                      loading="lazy">
             </div>
@@ -156,6 +243,7 @@
             'routine': 'Routine',
             'products': 'Product Review',
             'tips': 'Tips & Advice',
+            'video': 'Video Update',
             'general': 'General'
         };
 
@@ -185,6 +273,14 @@
             `;
         }
 
+        const hashtagChips = String(post.hashtags || '')
+            .split(',')
+            .map((tag) => tag.trim().replace(/^#+/, '').toLowerCase())
+            .filter((tag) => tag.length > 1)
+            .slice(0, 8)
+            .map((tag) => `<button type="button" class="myavana-post-hashtag" data-hashtag="${escapeHtml(tag)}">#${escapeHtml(tag)}</button>`)
+            .join('');
+
         return `
             <article class="myavana-post-card" data-post-id="${post.id}">
                 <div class="myavana-post-header">
@@ -195,41 +291,45 @@
                          title="View ${escapeHtml(post.display_name)}'s profile">
                     <div class="myavana-post-user-info">
                         <h3 class="myavana-post-username clickable-username" data-user-id="${post.user_id}">${escapeHtml(post.display_name)}</h3>
+                        ${post.is_verified_journey ? '<span class="myavana-verified-journey-badge">Verified Journey</span>' : ''}
                         <time class="myavana-post-time">${escapeHtml(post.formatted_date)}</time>
                     </div>
-                    <span class="myavana-post-type-badge">${typeLabels[post.post_type] || 'General'}</span>
-                    ${post.is_pinned ? `<span class="myavana-pinned-badge" title="Pinned post">📌 PINNED</span>` : ''}
-                    ${post.user_id == settings.userId ? `
-                        <div class="myavana-post-actions-menu">
-                            <button class="myavana-ci-pin-btn ${post.is_pinned ? 'pinned' : ''}" data-post-id="${post.id}" title="${post.is_pinned ? 'Unpin post' : 'Pin post'}">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="${post.is_pinned ? 'var(--myavana-coral)' : 'none'}" stroke="currentColor" stroke-width="2">
-                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-                                </svg>
-                            </button>
-                            <button class="myavana-post-edit-btn" data-post-id="${post.id}" title="Edit post">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                </svg>
-                            </button>
-                            <button class="myavana-post-delete-btn" data-post-id="${post.id}" title="Delete post">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="3 6 5 6 21 6"></polyline>
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                    <line x1="10" y1="11" x2="10" y2="17"></line>
-                                    <line x1="14" y1="11" x2="14" y2="17"></line>
-                                </svg>
-                            </button>
-                        </div>
-                    ` : ''}
+                    <div class="myavana-post-header-meta">
+                        <span class="myavana-post-type-badge">${typeLabels[post.post_type] || 'General'}</span>
+                        ${post.user_id == settings.userId ? `
+                            <div class="myavana-post-actions-menu">
+                                <button class="myavana-ci-pin-btn ${post.is_pinned ? 'pinned' : ''}" data-post-id="${post.id}" title="${post.is_pinned ? 'Unpin post' : 'Pin post'}">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="${post.is_pinned ? 'var(--myavana-coral)' : 'none'}" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                                    </svg>
+                                </button>
+                                <button class="myavana-post-edit-btn" data-post-id="${post.id}" title="Edit post">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                    </svg>
+                                </button>
+                                <button class="myavana-post-delete-btn" data-post-id="${post.id}" title="Delete post">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
                 </div>
 
+                ${videoHtml}
                 ${imageHtml}
 
                 <div class="myavana-post-content">
-                    <h2 class="myavana-post-title">${escapeHtml(post.title)}</h2>
-                    <p class="myavana-post-text ${post.content.length > 200 ? 'truncated' : ''}">${parseTextWithMentionsAndHashtags(escapeHtml(post.content))}</p>
-                    ${post.content.length > 200 ? '<a href="#" class="myavana-read-more">Read more</a>' : ''}
+                    ${postTitle ? `<h2 class="myavana-post-title">${escapeHtml(postTitle)}</h2>` : ''}
+                    ${hasText ? `<p class="myavana-post-text ${postContent.length > 200 ? 'truncated' : ''}">${parseTextWithMentionsAndHashtags(escapeHtml(postContent))}</p>` : ''}
+                    ${hasText && postContent.length > 200 ? '<a href="#" class="myavana-read-more">Read more</a>' : ''}
+                    ${hashtagChips ? `<div class="myavana-post-hashtags">${hashtagChips}</div>` : ''}
                 </div>
 
                 ${reactionCountsHtml}
@@ -319,12 +419,209 @@
 
             // Update state and reload
             currentFilter = filter;
+            if (filter === 'following') {
+                feedMode = 'following';
+                $('.myavana-community-mode-btn').removeClass('active');
+                $('.myavana-community-mode-btn[data-mode="following"]').addClass('active');
+            } else if (feedMode === 'following') {
+                feedMode = 'discover';
+                $('.myavana-community-mode-btn').removeClass('active');
+                $('.myavana-community-mode-btn[data-mode="discover"]').addClass('active');
+            }
             currentPage = 1;
             hasMorePosts = true;
 
             loadPosts();
         });
     }
+
+    /**
+     * Setup discovery, search, and media filters.
+     */
+    function setupDiscoveryPanel() {
+        $('.myavana-community-mode-btn').on('click', function() {
+            const nextMode = String($(this).data('mode') || 'discover');
+            if (nextMode === feedMode) {
+                return;
+            }
+
+            feedMode = nextMode;
+            $('.myavana-community-mode-btn').removeClass('active');
+            $(this).addClass('active');
+
+            if (feedMode === 'following') {
+                currentFilter = 'following';
+                $('.myavana-filter-btn').removeClass('active');
+                $('.myavana-filter-btn[data-filter="following"]').addClass('active');
+            } else if (currentFilter === 'following') {
+                currentFilter = 'all';
+                $('.myavana-filter-btn').removeClass('active');
+                $('.myavana-filter-btn[data-filter="all"]').addClass('active');
+            }
+
+            currentPage = 1;
+            hasMorePosts = true;
+            loadPosts(false);
+        });
+
+        $('.myavana-circle-filter-btn').on('click', function() {
+            const nextCircle = String($(this).data('circle') || '');
+            if (nextCircle === circleFilter) {
+                return;
+            }
+
+            circleFilter = nextCircle;
+            $('.myavana-circle-filter-btn').removeClass('active');
+            $(this).addClass('active');
+            currentPage = 1;
+            hasMorePosts = true;
+            loadPosts(false);
+        });
+
+        $('#myavana-community-search-btn').on('click', function() {
+            const query = ($('#myavana-community-search-input').val() || '').trim();
+            if (query.startsWith('#')) {
+                hashtagQuery = query.replace(/^#+/, '').toLowerCase();
+                searchQuery = '';
+            } else {
+                searchQuery = query;
+                hashtagQuery = '';
+            }
+            currentPage = 1;
+            hasMorePosts = true;
+            loadPosts(false);
+        });
+
+        $('#myavana-community-search-input').on('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                $('#myavana-community-search-btn').trigger('click');
+            }
+        });
+
+        $('#myavana-community-search-clear-btn').on('click', function() {
+            searchQuery = '';
+            hashtagQuery = '';
+            $('#myavana-community-search-input').val('');
+            $('.myavana-media-filter-btn').removeClass('active');
+            $('.myavana-media-filter-btn[data-media-filter=""]').addClass('active');
+            mediaFilter = '';
+            circleFilter = '';
+            $('.myavana-circle-filter-btn').removeClass('active');
+            $('.myavana-circle-filter-btn[data-circle=""]').addClass('active');
+            currentPage = 1;
+            hasMorePosts = true;
+            loadPosts(false);
+        });
+
+        $('.myavana-media-filter-btn').on('click', function() {
+            const nextFilter = String($(this).data('media-filter') || '');
+            if (nextFilter === mediaFilter) {
+                return;
+            }
+
+            $('.myavana-media-filter-btn').removeClass('active');
+            $(this).addClass('active');
+            mediaFilter = nextFilter;
+            currentPage = 1;
+            hasMorePosts = true;
+            loadPosts(false);
+        });
+    }
+
+    function loadDiscoveryData() {
+        $.ajax({
+            url: settings.ajaxUrl,
+            method: 'POST',
+            data: {
+                action: 'myavana_ci_discovery',
+                nonce: settings.nonce
+            },
+            success: function(response) {
+                if (!response.success || !response.data) {
+                    return;
+                }
+
+                renderDiscoveryHashtags(response.data.trending_hashtags || []);
+                renderDiscoveryCreators(response.data.suggested_creators || []);
+                renderDiscoveryChallenges(response.data.active_challenges || []);
+            }
+        });
+    }
+
+    function renderDiscoveryHashtags(items) {
+        const $container = $('#myavana-discovery-hashtags');
+        if (!$container.length) {
+            return;
+        }
+
+        if (!items.length) {
+            $container.html('<span class="myavana-discovery-empty">No hashtags yet.</span>');
+            return;
+        }
+
+        $container.html(items.map((item) => `
+            <button type="button" class="myavana-discovery-hashtag" data-hashtag="${escapeHtml(item.tag)}">
+                #${escapeHtml(item.tag)} <span>${Number(item.count || 0)}</span>
+            </button>
+        `).join(''));
+    }
+
+    function renderDiscoveryCreators(items) {
+        const $container = $('#myavana-discovery-creators');
+        if (!$container.length) {
+            return;
+        }
+
+        if (!items.length) {
+            $container.html('<span class="myavana-discovery-empty">No creator suggestions yet.</span>');
+            return;
+        }
+
+        $container.html(items.map((item) => `
+            <button type="button" class="myavana-discovery-creator clickable-avatar" data-user-id="${item.user_id}">
+                <img src="${escapeHtml(item.avatar)}" alt="${escapeHtml(item.display_name)}">
+                <span class="myavana-discovery-creator-name">${escapeHtml(item.display_name)}</span>
+                <span class="myavana-discovery-creator-meta">${Number(item.followers_count || 0)} followers</span>
+            </button>
+        `).join(''));
+    }
+
+    function renderDiscoveryChallenges(items) {
+        const $container = $('#myavana-discovery-challenges');
+        if (!$container.length) {
+            return;
+        }
+
+        if (!items.length) {
+            $container.html('<span class="myavana-discovery-empty">No active challenges right now.</span>');
+            return;
+        }
+
+        $container.html(items.map((item) => `
+            <button type="button" class="myavana-discovery-challenge ${item.hashtag ? 'has-hashtag' : ''}" data-hashtag="${escapeHtml(String(item.hashtag || '').replace(/^#/, ''))}">
+                <span class="myavana-discovery-challenge-title">${escapeHtml(item.title)}</span>
+                <span class="myavana-discovery-challenge-meta">${Number(item.participants_count || 0)} participants</span>
+                ${item.hashtag ? `<span class="myavana-discovery-challenge-tag">${escapeHtml(item.hashtag)}</span>` : ''}
+            </button>
+        `).join(''));
+    }
+
+    $(document).on('click', '.myavana-discovery-hashtag, .myavana-post-hashtag, .myavana-hashtag, .myavana-discovery-challenge.has-hashtag', function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const tag = String($(this).data('hashtag') || '').trim().replace(/^#+/, '').toLowerCase();
+        if (!tag) {
+            return;
+        }
+
+        hashtagQuery = tag;
+        $('#myavana-community-search-input').val(`#${tag}`);
+        currentPage = 1;
+        hasMorePosts = true;
+        loadPosts(false);
+    });
 
     /**
      * Setup create post modal
@@ -335,6 +632,20 @@
         const $uploadArea = $('#myavana-upload-area');
         const $fileInput = $('#myavana-post-image');
         const $uploadPreview = $('#myavana-upload-preview');
+        const $videoUploadArea = $('#myavana-video-upload-area');
+        const $videoFileInput = $('#myavana-post-video');
+        const $videoUploadPreview = $('#myavana-video-upload-preview');
+        const $videoUrlInput = $('#myavana-post-video-url');
+        const $titleInput = $('#myavana-post-title');
+        const $contentInput = $('#myavana-post-content');
+        const $postTypeInput = $('#myavana-post-type');
+        const $quickModeButtons = $form.find('.myavana-quick-post-btn[data-mode]');
+        const $advancedDetails = $form.find('.myavana-composer-advanced');
+        const $hashtagsInput = $('#myavana-post-hashtags');
+        const $aiMetadataInput = $('#myavana-post-ai-metadata');
+        const $aiResponse = $('#myavana-ai-response');
+        const $aiHashtags = $('#myavana-ai-hashtags');
+        const $aiButtons = $form.find('.myavana-ai-assist-btn');
 
         console.log('Modal setup:', {
             modal: $modal.length,
@@ -343,6 +654,89 @@
             fileInput: $fileInput.length
         });
 
+        function normalizeHashtags(hashtags) {
+            if (!hashtags) {
+                return [];
+            }
+
+            const list = Array.isArray(hashtags) ? hashtags : String(hashtags).split(/[,\s]+/);
+            const cleaned = list
+                .map((tag) => String(tag).trim().replace(/^#+/, '').replace(/[^\w]/g, '').toLowerCase())
+                .filter((tag) => tag.length > 1);
+
+            return [...new Set(cleaned)].slice(0, 12);
+        }
+
+        function renderAiHashtags(hashtags) {
+            if (!hashtags || hashtags.length === 0) {
+                $aiHashtags.empty().hide();
+                return;
+            }
+
+            $aiHashtags
+                .html(hashtags.map((tag) => `<span class="myavana-ai-hashtag-chip">#${escapeHtml(tag)}</span>`).join(''))
+                .css('display', 'flex');
+        }
+
+        function setAiResponse(message, type = 'info') {
+            if (!message) {
+                $aiResponse.removeClass('success error').empty().hide();
+                return;
+            }
+
+            $aiResponse
+                .removeClass('success error')
+                .addClass(type === 'error' ? 'error' : 'success')
+                .text(message)
+                .show();
+        }
+
+        function createFallbackTitle(postType, hasImage, hasVideo) {
+            if (hasVideo || postType === 'video') {
+                return 'Video Hair Update';
+            }
+            if (hasImage) {
+                return 'Hair Journey Photo Update';
+            }
+
+            const typeLabelMap = {
+                progress: 'Hair Progress Update',
+                transformation: 'Transformation Update',
+                routine: 'Routine Update',
+                products: 'Product Review',
+                tips: 'Hair Care Tip',
+                general: 'Hair Journey Update'
+            };
+
+            return typeLabelMap[postType] || 'Hair Journey Update';
+        }
+
+        function resetCreatePostForm() {
+            $form[0].reset();
+            $quickModeButtons.removeClass('active');
+            $quickModeButtons.filter('[data-mode="text"]').addClass('active');
+            if ($advancedDetails.length) {
+                $advancedDetails.prop('open', false);
+            }
+            $fileInput.val('');
+            $uploadPreview.hide().empty();
+            $uploadArea.find('.myavana-upload-prompt').show();
+            $videoFileInput.val('');
+            $videoUploadPreview.hide().empty();
+            $videoUploadArea.find('.myavana-upload-prompt').show();
+            $videoUrlInput.val('');
+            $hashtagsInput.val('');
+            $aiMetadataInput.val('');
+            setAiResponse('');
+            renderAiHashtags([]);
+        }
+
+        function closeCreatePostModal() {
+            $modal.removeClass('active');
+            $('body').css('overflow', '');
+            resetCreatePostForm();
+        }
+
         // Open modal
         $('#myavana-create-post-btn, .myavana-feed-empty .myavana-btn-primary').on('click', function() {
             console.log('Opening modal...');
@@ -350,23 +744,43 @@
             $('body').css('overflow', 'hidden');
         });
 
+        $quickModeButtons.on('click', function(e) {
+            e.preventDefault();
+            const mode = String($(this).data('mode') || 'text');
+            $quickModeButtons.removeClass('active');
+            $(this).addClass('active');
+
+            if (mode === 'photo') {
+                $postTypeInput.val('progress');
+                $fileInput.trigger('click');
+                return;
+            }
+
+            if (mode === 'video') {
+                $postTypeInput.val('video');
+                $videoFileInput.trigger('click');
+                return;
+            }
+
+            $postTypeInput.val('general');
+            $contentInput.trigger('focus');
+        });
+
+        $('#myavana-open-entry-selector-inline').on('click', function(e) {
+            e.preventDefault();
+            closeCreatePostModal();
+            $('.share-existing-entry-btn').trigger('click');
+        });
+
         // Close modal - Fixed to prevent closing when clicking inside modal
         $('#myavana-close-modal, #myavana-cancel-post').on('click', function() {
-            $modal.removeClass('active');
-            $('body').css('overflow', '');
-            $form[0].reset();
-            $uploadPreview.hide().empty();
-            $('.myavana-upload-prompt').show();
+            closeCreatePostModal();
         });
 
         // Close modal when clicking overlay (outside modal content)
-        $('.myavana-modal-overlay').on('click', function(e) {
+        $modal.find('.myavana-modal-overlay').on('click', function(e) {
             if (e.target === this) {
-                $modal.removeClass('active');
-                $('body').css('overflow', '');
-                $form[0].reset();
-                $uploadPreview.hide().empty();
-                $('.myavana-upload-prompt').show();
+                closeCreatePostModal();
             }
         });
 
@@ -408,18 +822,173 @@
             $uploadArea.find('.myavana-upload-prompt').show();
         });
 
+        $videoUploadArea.on('click', function(e) {
+            if (e.target !== $videoFileInput[0]) {
+                e.preventDefault();
+                e.stopPropagation();
+                $videoFileInput.trigger('click');
+            }
+        });
+
+        $videoFileInput.on('change', function(e) {
+            const file = e.target.files[0];
+            if (!file || !file.type.startsWith('video/')) {
+                return;
+            }
+
+            const objectUrl = URL.createObjectURL(file);
+            $videoUploadPreview.html(`
+                <video src="${escapeHtml(objectUrl)}" controls preload="metadata"></video>
+                <button type="button" class="myavana-remove-video">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            `).show();
+            $videoUploadArea.find('.myavana-upload-prompt').hide();
+            $postTypeInput.val('video');
+        });
+
+        $videoUploadPreview.on('click', '.myavana-remove-video', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $videoFileInput.val('');
+            $videoUploadPreview.hide().empty();
+            $videoUploadArea.find('.myavana-upload-prompt').show();
+        });
+
+        $videoUrlInput.on('input', function() {
+            if (($(this).val() || '').trim().length > 0) {
+                $postTypeInput.val('video');
+            }
+        });
+
+        // AI assist actions
+        $aiButtons.on('click', function(e) {
+            e.preventDefault();
+
+            const $btn = $(this);
+            const assistType = $btn.data('ai-action');
+            const title = normalizeCommunityText($titleInput.val() || '').trim();
+            const content = normalizeCommunityText($contentInput.val() || '').trim();
+            const postType = ($postTypeInput.val() || 'general').trim();
+
+            if (assistType === 'improve' && !content) {
+                showNotification('Write a draft first, then use Improve Draft.', 'info');
+                return;
+            }
+
+            if (assistType === 'hashtags' && !title && !content) {
+                showNotification('Add a title or story first to generate hashtags.', 'info');
+                return;
+            }
+
+            $aiButtons.prop('disabled', true);
+            $btn.text('Thinking...');
+            setAiResponse('Generating AI suggestions...');
+
+            $.ajax({
+                url: settings.ajaxUrl,
+                method: 'POST',
+                data: {
+                    action: 'myavana_ci_ai_post_assist',
+                    nonce: settings.nonce,
+                    assist_type: assistType,
+                    title: title,
+                    content: content,
+                    post_type: postType
+                },
+                success: function(response) {
+                    if (!response.success || !response.data) {
+                        setAiResponse(response.data || 'AI assistant is unavailable right now.', 'error');
+                        return;
+                    }
+
+                    const data = response.data;
+                    const hashtags = normalizeHashtags(data.hashtags || data.hashtag_string || '');
+
+                    if (assistType === 'caption') {
+                        if (data.title) {
+                            $titleInput.val(data.title);
+                        }
+                        if (data.content) {
+                            $contentInput.val(data.content);
+                        }
+                    } else if (assistType === 'improve' && data.content) {
+                        $contentInput.val(data.content);
+                    }
+
+                    if (hashtags.length > 0) {
+                        $hashtagsInput.val(hashtags.join(','));
+                        renderAiHashtags(hashtags);
+                    }
+
+                    $aiMetadataInput.val(JSON.stringify({
+                        assisted: true,
+                        assist_type: assistType,
+                        generated_at: new Date().toISOString(),
+                        source: data.source || 'ai',
+                        hashtags: hashtags
+                    }));
+
+                    setAiResponse(data.message || 'AI suggestions are ready.');
+                },
+                error: function() {
+                    setAiResponse('Network error while using AI assistant.', 'error');
+                },
+                complete: function() {
+                    $aiButtons.prop('disabled', false);
+                    $aiButtons.each(function() {
+                        const action = $(this).data('ai-action');
+                        const labelMap = {
+                            caption: 'Generate Caption',
+                            improve: 'Improve Draft',
+                            hashtags: 'Suggest Hashtags'
+                        };
+                        $(this).text(labelMap[action] || 'Try Again');
+                    });
+                }
+            });
+        });
+
         // Form submission
         $form.on('submit', function(e) {
             e.preventDefault();
 
+            const postType = ($postTypeInput.val() || '').trim();
+            const title = normalizeCommunityText($titleInput.val() || '').trim();
+            const content = normalizeCommunityText($contentInput.val() || '').trim();
+            const videoUrlValue = ($videoUrlInput.val() || '').trim();
+            const selectedVideoInput = $videoFileInput[0];
+            const hasVideoFile = !!(selectedVideoInput && selectedVideoInput.files && selectedVideoInput.files.length > 0);
+            const selectedImageInput = $fileInput[0];
+            const hasImageFile = !!(selectedImageInput && selectedImageInput.files && selectedImageInput.files.length > 0);
+
+            if (!title && !content && !hasImageFile && !hasVideoFile && !videoUrlValue) {
+                showNotification('Add text, photo, or video before posting.', 'error');
+                return;
+            }
+
+            if (postType === 'video' && !videoUrlValue && !hasVideoFile) {
+                showNotification('Video posts require a video URL or uploaded video.', 'error');
+                return;
+            }
+
             const formData = new FormData(this);
             formData.append('action', 'create_community_post');
             formData.append('nonce', settings.nonce);
+            formData.set('title', title || createFallbackTitle(postType, hasImageFile, hasVideoFile || !!videoUrlValue));
+            formData.set('content', content);
 
             // Get file if exists
             const fileInput = $fileInput[0];
             if (fileInput.files.length > 0) {
                 formData.append('image', fileInput.files[0]);
+            }
+
+            if (hasVideoFile) {
+                formData.append('video', selectedVideoInput.files[0]);
             }
 
             $.ajax({
@@ -431,14 +1000,12 @@
                 success: function(response) {
                     if (response.success) {
                         // Close modal
-                        $modal.removeClass('active');
-                        $('body').css('overflow', '');
-                        $form[0].reset();
-                        $uploadPreview.hide().empty();
+                        closeCreatePostModal();
 
                         // Reload feed
                         currentPage = 1;
                         loadPosts();
+                        loadDiscoveryData();
 
                         // Show success message
                         showNotification('Your post has been shared successfully!', 'success');
@@ -456,41 +1023,33 @@
         $('#myavana-ci-save-draft-btn').on('click', function(e) {
             e.preventDefault();
 
-            const content = $('#myavana-post-content').val();
-            if (!content.trim()) {
-                showNotification('Please write something before saving as draft', 'error');
+            const title = normalizeCommunityText($titleInput.val() || '').trim();
+            const content = normalizeCommunityText($contentInput.val() || '').trim();
+            const postType = ($postTypeInput.val() || 'general').trim();
+
+            if (!title && !content) {
+                showNotification('Add a title or story before saving your draft.', 'error');
                 return;
-            }
-
-            const formData = new FormData();
-            formData.append('action', 'myavana_ci_manage_draft');
-            formData.append('nonce', settings.nonce);
-            formData.append('operation', 'create');
-            formData.append('content', content);
-            formData.append('visibility', $('#myavana-post-visibility').val());
-
-            // Get file if exists
-            const fileInput = $fileInput[0];
-            if (fileInput.files.length > 0) {
-                formData.append('image', fileInput.files[0]);
             }
 
             $.ajax({
                 url: settings.ajaxUrl,
                 method: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
+                data: {
+                    action: 'myavana_ci_manage_draft',
+                    nonce: settings.nonce,
+                    action_type: 'save',
+                    title: title,
+                    content: content,
+                    post_type: postType
+                },
                 success: function(response) {
                     if (response.success) {
-                        // Close modal
-                        $modal.removeClass('active');
-                        $('body').css('overflow', '');
-                        $form[0].reset();
-                        $uploadPreview.hide().empty();
-                        $('.myavana-upload-prompt').show();
-
-                        showNotification('Draft saved successfully!', 'success');
+                        closeCreatePostModal();
+                        const draftMessage = response.data && response.data.message
+                            ? response.data.message
+                            : 'Draft saved successfully!';
+                        showNotification(draftMessage, 'success');
                     } else {
                         showNotification(response.data || 'Failed to save draft', 'error');
                     }
@@ -688,9 +1247,10 @@
 
         return `
             <div class="myavana-comment ${isReply ? 'myavana-comment-reply' : ''}" data-comment-id="${comment.id}" data-post-id="${comment.post_id || ''}">
-                <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(comment.display_name)}" class="myavana-comment-avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'%23e7a690\\'%3E%3Cpath d=\\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z\\'/%3E%3C/svg%3E'">
+                
                 <div class="myavana-comment-content">
                     <div class="myavana-comment-header">
+                    <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(comment.display_name)}" class="myavana-comment-avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'%23e7a690\\'%3E%3Cpath d=\\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z\\'/%3E%3C/svg%3E'">
                         <span class="myavana-comment-author">${escapeHtml(comment.display_name)}</span>
                         <span class="myavana-comment-time">${escapeHtml(comment.formatted_date)}</span>
                     </div>
@@ -921,10 +1481,19 @@
         setTimeout(() => $modal.addClass('active'), 10);
 
         // Close modal handlers
-        $modal.find('.myavana-share-close, .myavana-modal-overlay').on('click', function(e) {
+        const closeShareModal = () => {
+            $modal.removeClass('active');
+            setTimeout(() => $modal.remove(), 300);
+        };
+
+        $modal.find('.myavana-share-close').on('click', function(e) {
+            e.preventDefault();
+            closeShareModal();
+        });
+
+        $modal.find('.myavana-modal-overlay').on('click', function(e) {
             if (e.target === this) {
-                $modal.removeClass('active');
-                setTimeout(() => $modal.remove(), 300);
+                closeShareModal();
             }
         });
 
@@ -978,6 +1547,48 @@
      */
     let bookmarkPressTimer = null;
     let bookmarkPickerShown = false;
+    let bookmarkTouchHandledAt = 0;
+
+    function toggleDefaultBookmark($btn, postId) {
+        const $svg = $btn.find('svg');
+
+        $btn.prop('disabled', true);
+
+        $.ajax({
+            url: settings.ajaxUrl,
+            method: 'POST',
+            data: {
+                action: 'bookmark_post',
+                nonce: settings.nonce,
+                post_id: postId,
+                collection: 'saved'
+            },
+            success: function(response) {
+                if (response.success) {
+                    const action = response.data && response.data.action ? response.data.action : '';
+                    const message = response.data && response.data.message ? response.data.message : 'Saved state updated.';
+
+                    if (action === 'bookmarked') {
+                        $btn.addClass('bookmarked');
+                        $svg.attr('fill', 'var(--myavana-coral)');
+                        showNotification(message, 'success');
+                    } else {
+                        $btn.removeClass('bookmarked');
+                        $svg.attr('fill', 'none');
+                        showNotification(message, 'info');
+                    }
+                } else {
+                    showNotification(response.data || 'Failed to save post', 'error');
+                }
+            },
+            error: function() {
+                showNotification('Network error. Please try again.', 'error');
+            },
+            complete: function() {
+                $btn.prop('disabled', false);
+            }
+        });
+    }
 
     $(document).on('mousedown touchstart', '.bookmark-btn', function(e) {
         e.preventDefault();
@@ -997,46 +1608,19 @@
         clearTimeout(bookmarkPressTimer);
 
         // If it was a quick click (not long press), toggle default bookmark
-        if (!bookmarkPickerShown && e.type === 'mouseup') {
+        if (!bookmarkPickerShown && (e.type === 'mouseup' || e.type === 'touchend')) {
+            // Ignore synthetic mouseup that often follows touchend on mobile
+            if (e.type === 'mouseup' && Date.now() - bookmarkTouchHandledAt < 450) {
+                return;
+            }
+
             const $btn = $(this);
             const postId = $btn.data('post-id');
-            const $svg = $btn.find('svg');
+            if (e.type === 'touchend') {
+                bookmarkTouchHandledAt = Date.now();
+            }
 
-            $btn.prop('disabled', true);
-
-            $.ajax({
-                url: settings.ajaxUrl,
-                method: 'POST',
-                data: {
-                    action: 'bookmark_post',
-                    nonce: settings.nonce,
-                    post_id: postId,
-                    collection: 'saved'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        const {action, message} = response.data;
-
-                        if (action === 'bookmarked') {
-                            $btn.addClass('bookmarked');
-                            $svg.attr('fill', 'var(--myavana-coral)');
-                            showNotification(message, 'success');
-                        } else {
-                            $btn.removeClass('bookmarked');
-                            $svg.attr('fill', 'none');
-                            showNotification(message, 'info');
-                        }
-                    } else {
-                        showNotification(response.data || 'Failed to save post', 'error');
-                    }
-                },
-                error: function() {
-                    showNotification('Network error. Please try again.', 'error');
-                },
-                complete: function() {
-                    $btn.prop('disabled', false);
-                }
-            });
+            toggleDefaultBookmark($btn, postId);
         }
     });
 
@@ -1051,7 +1635,8 @@
             data: {
                 action: 'myavana_ci_manage_collection',
                 nonce: settings.nonce,
-                operation: 'list'
+                action_type: 'list',
+                post_id: postId
             },
             success: function(response) {
                 if (response.success) {
@@ -1072,7 +1657,7 @@
     function showCollectionsModal(postId, collections) {
         const collectionsHTML = collections.map(col => `
             <label class="myavana-ci-collection-item">
-                <input type="checkbox" name="collection" value="${col.id}" ${col.has_post ? 'checked' : ''}>
+                <input type="checkbox" name="collection" value="${col.id}" ${Number(col.has_post) === 1 ? 'checked' : ''}>
                 <span>${escapeHtml(col.name)}</span>
                 <span class="myavana-ci-collection-count">(${col.post_count || 0})</span>
             </label>
@@ -1117,13 +1702,22 @@
         $('body').append($modal).css('overflow', 'hidden');
 
         // Close handlers
-        $modal.find('.myavana-ci-collections-close, .myavana-ci-collections-cancel, .myavana-modal-overlay').on('click', function(e) {
+        const closeCollectionsModal = () => {
+            $modal.removeClass('active');
+            setTimeout(() => {
+                $modal.remove();
+                $('body').css('overflow', '');
+            }, 300);
+        };
+
+        $modal.find('.myavana-ci-collections-close, .myavana-ci-collections-cancel').on('click', function(e) {
+            e.preventDefault();
+            closeCollectionsModal();
+        });
+
+        $modal.find('.myavana-modal-overlay').on('click', function(e) {
             if (e.target === this) {
-                $modal.removeClass('active');
-                setTimeout(() => {
-                    $modal.remove();
-                    $('body').css('overflow', '');
-                }, 300);
+                closeCollectionsModal();
             }
         });
 
@@ -1143,12 +1737,15 @@
                 data: {
                     action: 'myavana_ci_manage_collection',
                     nonce: settings.nonce,
-                    operation: 'create',
-                    name: name
+                    action_type: 'create',
+                    collection_name: name
                 },
                 success: function(response) {
                     if (response.success) {
-                        const newCollection = response.data.collection;
+                        const newCollection = {
+                            id: response.data.collection_id,
+                            name: response.data.name
+                        };
                         const $list = $modal.find('.myavana-ci-collections-list');
                         $list.find('.myavana-ci-no-collections').remove();
                         $list.append(`
@@ -1186,13 +1783,16 @@
                 data: {
                     action: 'myavana_ci_manage_collection',
                     nonce: settings.nonce,
-                    operation: 'add_post',
+                    action_type: 'add_post',
                     post_id: postId,
                     collection_ids: selectedCollections.join(',')
                 },
                 success: function(response) {
                     if (response.success) {
-                        showNotification('Post saved to collections!', 'success');
+                        const collectionMessage = response.data && response.data.message
+                            ? response.data.message
+                            : 'Collections updated!';
+                        showNotification(collectionMessage, 'success');
                         $modal.removeClass('active');
                         setTimeout(() => {
                             $modal.remove();
@@ -1218,109 +1818,436 @@
         e.preventDefault();
         e.stopPropagation();
 
-        const postId = $(this).data('post-id');
-        const $postCard = $(this).closest('.myavana-post-card');
-        const $postContent = $postCard.find('.myavana-post-content');
+        const postId = Number($(this).data('post-id') || 0);
+        if (!postId) {
+            showNotification('Invalid post selected.', 'error');
+            return;
+        }
 
-        // Get current values
-        const currentTitle = $postCard.find('.myavana-post-title').text();
-        const currentText = $postCard.find('.myavana-post-text').text();
+        const cachedPost = postCache.get(postId) || {};
+        const $postCard = $(`.myavana-post-card[data-post-id="${postId}"]`);
+        const postData = mergePostData({
+            id: postId,
+            title: normalizeCommunityText(cachedPost.title || $postCard.find('.myavana-post-title').text().trim()),
+            content: normalizeCommunityText(cachedPost.content || $postCard.find('.myavana-post-text').text().trim()),
+            image_url: cachedPost.image_url || $postCard.find('.myavana-post-image').attr('src') || '',
+            video_url: cachedPost.video_url || $postCard.find('.myavana-post-video source').attr('src') || '',
+            post_type: cachedPost.post_type || 'general',
+            privacy_level: cachedPost.privacy_level || 'public',
+            hashtags: cachedPost.hashtags || ''
+        }, cachedPost);
 
-        // Create edit form
-        const $editForm = $(`
-            <div class="myavana-edit-post-form">
-                <div class="myavana-edit-form-group">
-                    <label for="edit-title-${postId}">Title</label>
-                    <input type="text" id="edit-title-${postId}" class="myavana-edit-input" value="${escapeHtml(currentTitle)}" maxlength="200">
-                </div>
-                <div class="myavana-edit-form-group">
-                    <label for="edit-content-${postId}">Content</label>
-                    <textarea id="edit-content-${postId}" class="myavana-edit-textarea" maxlength="5000">${escapeHtml(currentText)}</textarea>
-                </div>
-                <div class="myavana-edit-form-actions">
-                    <button class="myavana-edit-cancel-btn" data-post-id="${postId}">Cancel</button>
-                    <button class="myavana-edit-save-btn" data-post-id="${postId}">Save Changes</button>
+        $('#myavana-edit-post-modal').remove();
+
+        const postTypeOptions = [
+            { value: 'progress', label: 'Progress Update' },
+            { value: 'transformation', label: 'Before & After' },
+            { value: 'routine', label: 'Routine Share' },
+            { value: 'products', label: 'Product Review' },
+            { value: 'tips', label: 'Tips & Advice' },
+            { value: 'video', label: 'Video Update' },
+            { value: 'general', label: 'General' }
+        ];
+
+        const postTypeSelectHtml = postTypeOptions.map((option) => `
+            <option value="${option.value}" ${postData.post_type === option.value ? 'selected' : ''}>${option.label}</option>
+        `).join('');
+
+        const hashtagsValue = String(postData.hashtags || '')
+            .split(',')
+            .map((tag) => tag.trim().replace(/^#+/, ''))
+            .filter((tag) => tag.length > 1)
+            .join(', ');
+
+        const $modal = $(`
+            <div class="myavana-modal myavana-edit-post-modal active" id="myavana-edit-post-modal">
+                <div class="myavana-modal-overlay"></div>
+                <div class="myavana-modal-content myavana-edit-post-modal-content">
+                    <div class="myavana-modal-header">
+                        <h2 class="myavana-subheader">Edit Post</h2>
+                        <button class="myavana-modal-close myavana-edit-close" aria-label="Close edit post modal">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="myavana-modal-body">
+                        <form id="myavana-edit-post-form" novalidate>
+                            <div class="myavana-form-group">
+                                <label class="myavana-form-label" for="myavana-edit-post-title">Title</label>
+                                <input type="text" id="myavana-edit-post-title" class="myavana-form-input" maxlength="200" value="${escapeHtml(postData.title || '')}" required>
+                            </div>
+
+                            <div class="myavana-form-group">
+                                <label class="myavana-form-label" for="myavana-edit-post-content">Story</label>
+                                <textarea id="myavana-edit-post-content" class="myavana-form-textarea" rows="5" maxlength="5000" required>${escapeHtml(postData.content || '')}</textarea>
+                            </div>
+
+                            <div class="myavana-form-group">
+                                <label class="myavana-form-label" for="myavana-edit-post-hashtags">Hashtags</label>
+                                <input type="text" id="myavana-edit-post-hashtags" class="myavana-form-input" value="${escapeHtml(hashtagsValue)}" placeholder="growth, naturalhair, washday">
+                            </div>
+
+                            <div class="myavana-edit-post-meta-grid">
+                                <div class="myavana-form-group">
+                                    <label class="myavana-form-label" for="myavana-edit-post-type">Post Type</label>
+                                    <select id="myavana-edit-post-type" class="myavana-form-select">
+                                        ${postTypeSelectHtml}
+                                    </select>
+                                </div>
+                                <div class="myavana-form-group">
+                                    <label class="myavana-form-label">Privacy</label>
+                                    <div class="myavana-edit-privacy-segmented">
+                                        <label class="myavana-edit-privacy-option">
+                                            <input type="radio" name="myavana-edit-privacy" value="public" ${postData.privacy_level === 'public' ? 'checked' : ''}>
+                                            <span>Public</span>
+                                        </label>
+                                        <label class="myavana-edit-privacy-option">
+                                            <input type="radio" name="myavana-edit-privacy" value="followers" ${postData.privacy_level === 'followers' ? 'checked' : ''}>
+                                            <span>Followers</span>
+                                        </label>
+                                        <label class="myavana-edit-privacy-option">
+                                            <input type="radio" name="myavana-edit-privacy" value="private" ${postData.privacy_level === 'private' ? 'checked' : ''}>
+                                            <span>Private</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="myavana-form-group">
+                                <label class="myavana-form-label">Photo</label>
+                                <div class="myavana-upload-area myavana-edit-upload-area" id="myavana-edit-upload-area">
+                                    <input type="file" id="myavana-edit-post-image" accept="image/*" style="display: none;">
+                                    <div class="myavana-upload-prompt">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--myavana-coral)" stroke-width="2">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                            <polyline points="21 15 16 10 5 21"></polyline>
+                                        </svg>
+                                        <p class="myavana-body">Tap to replace or add a photo</p>
+                                    </div>
+                                    <div class="myavana-upload-preview" id="myavana-edit-upload-preview" style="display: none;"></div>
+                                </div>
+                            </div>
+
+                            <div class="myavana-form-group">
+                                <label class="myavana-form-label" for="myavana-edit-post-video-url">Video URL</label>
+                                <input type="url" id="myavana-edit-post-video-url" class="myavana-form-input" value="${escapeHtml(postData.video_url || '')}" placeholder="https://example.com/video.mp4">
+                                <div class="myavana-upload-area myavana-upload-area-video myavana-edit-upload-area" id="myavana-edit-video-upload-area">
+                                    <input type="file" id="myavana-edit-post-video" accept="video/*" style="display: none;">
+                                    <div class="myavana-upload-prompt">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--myavana-coral)" stroke-width="2">
+                                            <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                                            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                                        </svg>
+                                        <p class="myavana-body">Upload or replace video</p>
+                                    </div>
+                                    <div class="myavana-upload-preview" id="myavana-edit-video-upload-preview" style="display: none;"></div>
+                                </div>
+                            </div>
+
+                            <div class="myavana-modal-footer">
+                                <button type="button" class="myavana-btn-secondary myavana-edit-cancel">Cancel</button>
+                                <button type="submit" class="myavana-btn-primary myavana-edit-submit">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         `);
 
-        // Store original content
-        $postContent.data('original-html', $postContent.html());
+        $('body').append($modal).css('overflow', 'hidden');
 
-        // Replace content with edit form
-        $postContent.html($editForm);
-    });
+        const $form = $modal.find('#myavana-edit-post-form');
+        const $titleInput = $modal.find('#myavana-edit-post-title');
+        const $contentInput = $modal.find('#myavana-edit-post-content');
+        const $hashtagsInput = $modal.find('#myavana-edit-post-hashtags');
+        const $postTypeInput = $modal.find('#myavana-edit-post-type');
+        const $privacyInputs = $modal.find('input[name="myavana-edit-privacy"]');
 
-    /**
-     * Handle edit cancel
-     */
-    $(document).on('click', '.myavana-edit-cancel-btn', function(e) {
-        e.preventDefault();
-        const postId = $(this).data('post-id');
-        const $postCard = $(`[data-post-id="${postId}"]`);
-        const $postContent = $postCard.find('.myavana-post-content');
+        const $imageUploadArea = $modal.find('#myavana-edit-upload-area');
+        const $imageFileInput = $modal.find('#myavana-edit-post-image');
+        const $imagePreview = $modal.find('#myavana-edit-upload-preview');
 
-        // Restore original content
-        $postContent.html($postContent.data('original-html'));
-    });
+        const $videoUploadArea = $modal.find('#myavana-edit-video-upload-area');
+        const $videoFileInput = $modal.find('#myavana-edit-post-video');
+        const $videoUrlInput = $modal.find('#myavana-edit-post-video-url');
+        const $videoPreview = $modal.find('#myavana-edit-video-upload-preview');
+        const $saveBtn = $modal.find('.myavana-edit-submit');
 
-    /**
-     * Handle edit save
-     */
-    $(document).on('click', '.myavana-edit-save-btn', function(e) {
-        e.preventDefault();
+        let removeImage = false;
+        let removeVideo = false;
+        let videoObjectUrl = '';
+        const existingImageUrl = String(postData.image_url || '').trim();
+        const existingVideoUrl = String(postData.video_url || '').trim();
 
-        const postId = $(this).data('post-id');
-        const $postCard = $(`[data-post-id="${postId}"]`);
-        const $saveBtn = $(this);
+        const closeEditModal = () => {
+            if (videoObjectUrl) {
+                URL.revokeObjectURL(videoObjectUrl);
+                videoObjectUrl = '';
+            }
+            $modal.removeClass('active');
+            setTimeout(() => {
+                $modal.remove();
+                $('body').css('overflow', '');
+            }, 200);
+        };
 
-        const newTitle = $(`#edit-title-${postId}`).val().trim();
-        const newContent = $(`#edit-content-${postId}`).val().trim();
+        function renderImagePreview(source, label = '') {
+            if (!source) {
+                $imagePreview.hide().empty();
+                $imageUploadArea.find('.myavana-upload-prompt').show();
+                return;
+            }
 
-        if (!newTitle || !newContent) {
-            showNotification('Title and content are required', 'error');
-            return;
+            $imagePreview.html(`
+                <img src="${escapeHtml(source)}" alt="Image preview">
+                ${label ? `<span class="myavana-edit-media-chip">${escapeHtml(label)}</span>` : ''}
+                <button type="button" class="myavana-remove-image myavana-edit-remove-media" aria-label="Remove image">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            `).show();
+            $imageUploadArea.find('.myavana-upload-prompt').hide();
         }
 
-        $saveBtn.prop('disabled', true).text('Saving...');
-
-        $.ajax({
-            url: settings.ajaxUrl,
-            method: 'POST',
-            data: {
-                action: 'myavana_ci_edit_post',
-                nonce: settings.nonce,
-                post_id: postId,
-                title: newTitle,
-                content: newContent
-            },
-            success: function(response) {
-                if (response.success) {
-                    // Update post display
-                    const $postContent = $postCard.find('.myavana-post-content');
-                    const truncated = newContent.length > 200;
-                    $postContent.html(`
-                        <h2 class="myavana-post-title">${escapeHtml(newTitle)}</h2>
-                        <p class="myavana-post-text ${truncated ? 'truncated' : ''}">${escapeHtml(newContent)}</p>
-                        ${truncated ? '<a href="#" class="myavana-read-more">Read more</a>' : ''}
-                    `);
-                    showNotification('Post updated successfully', 'success');
-                } else {
-                    showNotification(response.data || 'Failed to update post', 'error');
-                    // Restore original content on error
-                    const $postContent = $postCard.find('.myavana-post-content');
-                    $postContent.html($postContent.data('original-html'));
-                }
-            },
-            error: function() {
-                showNotification('Network error. Please try again.', 'error');
-                // Restore original content on error
-                const $postContent = $postCard.find('.myavana-post-content');
-                $postContent.html($postContent.data('original-html'));
-            },
-            complete: function() {
-                $saveBtn.prop('disabled', false).text('Save Changes');
+        function renderVideoPreview(source, label = '') {
+            if (!source) {
+                $videoPreview.hide().empty();
+                $videoUploadArea.find('.myavana-upload-prompt').show();
+                return;
             }
+
+            $videoPreview.html(`
+                <video src="${escapeHtml(source)}" controls preload="metadata" playsinline></video>
+                ${label ? `<span class="myavana-edit-media-chip">${escapeHtml(label)}</span>` : ''}
+                <button type="button" class="myavana-remove-video myavana-edit-remove-media" aria-label="Remove video">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            `).show();
+            $videoUploadArea.find('.myavana-upload-prompt').hide();
+        }
+
+        if (existingImageUrl) {
+            renderImagePreview(existingImageUrl, 'Current Photo');
+        }
+        if (existingVideoUrl) {
+            renderVideoPreview(existingVideoUrl, 'Current Video');
+        }
+
+        $modal.find('.myavana-edit-close, .myavana-edit-cancel').on('click', function(evt) {
+            evt.preventDefault();
+            closeEditModal();
+        });
+
+        $modal.find('.myavana-modal-overlay').on('click', function(evt) {
+            if (evt.target === this) {
+                closeEditModal();
+            }
+        });
+
+        $imageUploadArea.on('click', function(evt) {
+            if (evt.target !== $imageFileInput[0]) {
+                evt.preventDefault();
+                $imageFileInput.trigger('click');
+            }
+        });
+
+        $imageFileInput.on('change', function(evt) {
+            const file = evt.target.files && evt.target.files[0];
+            if (!file) {
+                return;
+            }
+            if (!file.type.startsWith('image/')) {
+                showNotification('Please choose a valid image file.', 'error');
+                this.value = '';
+                return;
+            }
+
+            removeImage = false;
+            const reader = new FileReader();
+            reader.onload = function(loadEvent) {
+                renderImagePreview(loadEvent.target.result, 'New Photo');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        $imagePreview.on('click', '.myavana-remove-image', function(evt) {
+            evt.preventDefault();
+            evt.stopPropagation();
+
+            const hasReplacementFile = !!($imageFileInput[0].files && $imageFileInput[0].files.length > 0);
+            if (hasReplacementFile && existingImageUrl) {
+                $imageFileInput.val('');
+                removeImage = false;
+                renderImagePreview(existingImageUrl, 'Current Photo');
+                return;
+            }
+
+            removeImage = true;
+            $imageFileInput.val('');
+            renderImagePreview('');
+        });
+
+        $videoUploadArea.on('click', function(evt) {
+            if (evt.target !== $videoFileInput[0]) {
+                evt.preventDefault();
+                $videoFileInput.trigger('click');
+            }
+        });
+
+        $videoFileInput.on('change', function(evt) {
+            const file = evt.target.files && evt.target.files[0];
+            if (!file) {
+                return;
+            }
+            if (!file.type.startsWith('video/')) {
+                showNotification('Please choose a valid video file.', 'error');
+                this.value = '';
+                return;
+            }
+
+            if (videoObjectUrl) {
+                URL.revokeObjectURL(videoObjectUrl);
+            }
+            videoObjectUrl = URL.createObjectURL(file);
+            removeVideo = false;
+            $videoUrlInput.val('');
+            renderVideoPreview(videoObjectUrl, 'New Video');
+            $postTypeInput.val('video');
+        });
+
+        $videoPreview.on('click', '.myavana-remove-video', function(evt) {
+            evt.preventDefault();
+            evt.stopPropagation();
+
+            const hasReplacementFile = !!($videoFileInput[0].files && $videoFileInput[0].files.length > 0);
+            if (hasReplacementFile && existingVideoUrl) {
+                if (videoObjectUrl) {
+                    URL.revokeObjectURL(videoObjectUrl);
+                    videoObjectUrl = '';
+                }
+                $videoFileInput.val('');
+                removeVideo = false;
+                $videoUrlInput.val(existingVideoUrl);
+                renderVideoPreview(existingVideoUrl, 'Current Video');
+                return;
+            }
+
+            removeVideo = true;
+            if (videoObjectUrl) {
+                URL.revokeObjectURL(videoObjectUrl);
+                videoObjectUrl = '';
+            }
+            $videoFileInput.val('');
+            $videoUrlInput.val('');
+            renderVideoPreview('');
+        });
+
+        $videoUrlInput.on('input', function() {
+            const value = ($(this).val() || '').trim();
+            if (value) {
+                if (videoObjectUrl) {
+                    URL.revokeObjectURL(videoObjectUrl);
+                    videoObjectUrl = '';
+                }
+                $videoFileInput.val('');
+                removeVideo = false;
+                renderVideoPreview(value, 'Video URL');
+                $postTypeInput.val('video');
+                return;
+            }
+
+            if (!removeVideo && !$videoFileInput[0].files.length && existingVideoUrl) {
+                renderVideoPreview(existingVideoUrl, 'Current Video');
+                return;
+            }
+            renderVideoPreview('');
+        });
+
+        $form.on('submit', function(evt) {
+            evt.preventDefault();
+
+            const title = normalizeCommunityText($titleInput.val() || '').trim();
+            const content = normalizeCommunityText($contentInput.val() || '').trim();
+            const postType = ($postTypeInput.val() || 'general').trim();
+            const privacyLevel = ($privacyInputs.filter(':checked').val() || 'public').trim();
+            const hashtags = ($hashtagsInput.val() || '').trim();
+            const videoUrl = ($videoUrlInput.val() || '').trim();
+            const hasImageFile = !!($imageFileInput[0].files && $imageFileInput[0].files.length > 0);
+            const hasVideoFile = !!($videoFileInput[0].files && $videoFileInput[0].files.length > 0);
+            const hasKeptExistingVideo = !!(!removeVideo && !hasVideoFile && !videoUrl && existingVideoUrl);
+
+            if (!title || !content) {
+                showNotification('Title and story are required.', 'error');
+                return;
+            }
+
+            if (postType === 'video' && !hasVideoFile && !videoUrl && !hasKeptExistingVideo) {
+                showNotification('Video posts require a video URL or uploaded video.', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('action', 'myavana_ci_edit_post');
+            formData.append('nonce', settings.nonce);
+            formData.append('post_id', postId);
+            formData.append('title', title);
+            formData.append('content', content);
+            formData.append('post_type', postType);
+            formData.append('privacy_level', privacyLevel);
+            formData.append('hashtags', hashtags);
+            formData.append('video_url', videoUrl);
+            formData.append('remove_image', removeImage ? '1' : '0');
+            formData.append('remove_video', removeVideo ? '1' : '0');
+
+            if (hasImageFile) {
+                formData.append('image', $imageFileInput[0].files[0]);
+            }
+            if (hasVideoFile) {
+                formData.append('video', $videoFileInput[0].files[0]);
+            }
+
+            $saveBtn.prop('disabled', true).text('Saving...');
+
+            $.ajax({
+                url: settings.ajaxUrl,
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (!response.success) {
+                        showNotification(response.data || 'Failed to update post', 'error');
+                        return;
+                    }
+
+                    const responsePost = response.data && response.data.post ? response.data.post : {};
+                    responsePost.id = postId;
+                    const updatedPost = upsertPostCard(mergePostData(responsePost, postData));
+
+                    if (!updatedPost) {
+                        currentPage = 1;
+                        loadPosts(false);
+                    }
+
+                    loadDiscoveryData();
+                    closeEditModal();
+                    showNotification((response.data && response.data.message) || 'Post updated successfully', 'success');
+                },
+                error: function() {
+                    showNotification('Network error. Please try again.', 'error');
+                },
+                complete: function() {
+                    $saveBtn.prop('disabled', false).text('Save Changes');
+                }
+            });
         });
     });
 
@@ -1421,7 +2348,7 @@
             url: settings.ajaxUrl,
             method: 'POST',
             data: {
-                action: 'like_comment',
+                action: 'myavana_ci_like_comment',
                 nonce: settings.nonce,
                 comment_id: commentId
             },
@@ -1688,7 +2615,7 @@
                 action: 'myavana_ci_reply_to_comment',
                 nonce: settings.nonce,
                 post_id: postId,
-                parent_id: parentCommentId,
+                parent_comment_id: parentCommentId,
                 content: content
             },
             success: function(response) {
@@ -1879,13 +2806,22 @@
         $('body').append($modal).css('overflow', 'hidden');
 
         // Close handlers
-        $modal.find('.myavana-ci-report-close, .myavana-ci-report-cancel, .myavana-modal-overlay').on('click', function(e) {
+        const closeReportModal = () => {
+            $modal.removeClass('active');
+            setTimeout(() => {
+                $modal.remove();
+                $('body').css('overflow', '');
+            }, 300);
+        };
+
+        $modal.find('.myavana-ci-report-close, .myavana-ci-report-cancel').on('click', function(e) {
+            e.preventDefault();
+            closeReportModal();
+        });
+
+        $modal.find('.myavana-modal-overlay').on('click', function(e) {
             if (e.target === this) {
-                $modal.removeClass('active');
-                setTimeout(() => {
-                    $modal.remove();
-                    $('body').css('overflow', '');
-                }, 300);
+                closeReportModal();
             }
         });
 
@@ -1961,7 +2897,8 @@
             data: {
                 action: 'myavana_ci_get_post_analytics',
                 nonce: settings.nonce,
-                post_id: postId
+                post_id: postId,
+                analytics_type: 'reactions'
             },
             success: function(response) {
                 if (response.success) {
@@ -1980,7 +2917,7 @@
      * Show post analytics modal
      */
     function showPostAnalyticsModal(postId, data) {
-        const { reactions, shares } = data;
+        const reactions = data.reactions || [];
 
         const reactionEmojis = {
             'like': '❤️',
@@ -2005,7 +2942,7 @@
                     <div class="myavana-ci-analytics-users">
                         ${users.map(u => `
                             <div class="myavana-ci-analytics-user">
-                                <img src="${escapeHtml(u.avatar)}" alt="${escapeHtml(u.display_name)}">
+                                <img src="${escapeHtml(u.user_avatar || u.avatar || '')}" alt="${escapeHtml(u.display_name)}">
                                 <span>${escapeHtml(u.display_name)}</span>
                             </div>
                         `).join('')}
@@ -2039,13 +2976,22 @@
         $('body').append($modal).css('overflow', 'hidden');
 
         // Close handlers
-        $modal.find('.myavana-ci-analytics-close, .myavana-modal-overlay').on('click', function(e) {
+        const closeAnalyticsModal = () => {
+            $modal.removeClass('active');
+            setTimeout(() => {
+                $modal.remove();
+                $('body').css('overflow', '');
+            }, 300);
+        };
+
+        $modal.find('.myavana-ci-analytics-close').on('click', function(e) {
+            e.preventDefault();
+            closeAnalyticsModal();
+        });
+
+        $modal.find('.myavana-modal-overlay').on('click', function(e) {
             if (e.target === this) {
-                $modal.removeClass('active');
-                setTimeout(() => {
-                    $modal.remove();
-                    $('body').css('overflow', '');
-                }, 300);
+                closeAnalyticsModal();
             }
         });
     }
@@ -2117,6 +3063,14 @@
     function renderUserProfile(profile) {
         const isOwnProfile = profile.user_id == settings.userId;
         const isFollowing = profile.is_following || false;
+        const journeyStats = profile.hair_journey_stats || {};
+        const journeyPreview = profile.hair_journey_preview || {};
+        const entryPreview = Array.isArray(journeyPreview.entries) ? journeyPreview.entries : [];
+        const goalsPreview = Array.isArray(journeyPreview.goals) ? journeyPreview.goals : [];
+        const routinePreview = Array.isArray(journeyPreview.routine) ? journeyPreview.routine : [];
+        const avgHealthValue = (journeyStats.avg_health_rating === 0 || journeyStats.avg_health_rating)
+            ? `${journeyStats.avg_health_rating}/10`
+            : '--';
 
         return `
             <div class="myavana-upm-header">
@@ -2201,18 +3155,76 @@
 
                 <div class="myavana-upm-tab-content" data-tab-content="journey">
                     <div class="myavana-upm-journey">
-                        ${profile.hair_journey_stats ? `
-                            <div class="myavana-upm-journey-stats">
-                                <div class="myavana-upm-journey-stat">
-                                    <span class="myavana-upm-journey-label">Total Entries</span>
-                                    <span class="myavana-upm-journey-value">${profile.hair_journey_stats.total_entries || 0}</span>
-                                </div>
-                                <div class="myavana-upm-journey-stat">
-                                    <span class="myavana-upm-journey-label">Journey Started</span>
-                                    <span class="myavana-upm-journey-value">${profile.hair_journey_stats.journey_start || 'Recently'}</span>
-                                </div>
+                        <div class="myavana-upm-journey-stats">
+                            <div class="myavana-upm-journey-stat">
+                                <span class="myavana-upm-journey-label">Total Entries</span>
+                                <span class="myavana-upm-journey-value">${journeyStats.total_entries || 0}</span>
                             </div>
-                        ` : '<div class="myavana-upm-empty">No hair journey data yet</div>'}
+                            <div class="myavana-upm-journey-stat">
+                                <span class="myavana-upm-journey-label">Journey Started</span>
+                                <span class="myavana-upm-journey-value">${escapeHtml(journeyStats.journey_start || 'Recently')}</span>
+                            </div>
+                            <div class="myavana-upm-journey-stat">
+                                <span class="myavana-upm-journey-label">Entries (30 days)</span>
+                                <span class="myavana-upm-journey-value">${journeyStats.entries_last_30_days || 0}</span>
+                            </div>
+                            <div class="myavana-upm-journey-stat">
+                                <span class="myavana-upm-journey-label">Avg Health</span>
+                                <span class="myavana-upm-journey-value">${escapeHtml(avgHealthValue)}</span>
+                            </div>
+                            <div class="myavana-upm-journey-stat">
+                                <span class="myavana-upm-journey-label">Goals</span>
+                                <span class="myavana-upm-journey-value">${journeyStats.goals_count || 0}</span>
+                            </div>
+                            <div class="myavana-upm-journey-stat">
+                                <span class="myavana-upm-journey-label">Routine Steps</span>
+                                <span class="myavana-upm-journey-value">${journeyStats.routine_steps_count || 0}</span>
+                            </div>
+                        </div>
+
+                        <div class="myavana-upm-journey-preview-grid">
+                            <section class="myavana-upm-journey-panel">
+                                <h4>Recent Entries</h4>
+                                ${entryPreview.length ? `
+                                    <ul class="myavana-upm-journey-list">
+                                        ${entryPreview.map((entry) => `
+                                            <li>
+                                                <span class="myavana-upm-journey-item-title">${escapeHtml(entry.title || 'Hair Entry')}</span>
+                                                <span class="myavana-upm-journey-item-meta">${escapeHtml(entry.date || '')}${entry.health_rating ? ` • Health ${escapeHtml(entry.health_rating)}/10` : ''}</span>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                ` : '<div class="myavana-upm-empty-inline">No entries yet.</div>'}
+                            </section>
+
+                            <section class="myavana-upm-journey-panel">
+                                <h4>Active Goals</h4>
+                                ${goalsPreview.length ? `
+                                    <ul class="myavana-upm-journey-list">
+                                        ${goalsPreview.map((goal) => `
+                                            <li>
+                                                <span class="myavana-upm-journey-item-title">${escapeHtml(goal.title || 'Hair Goal')}</span>
+                                                <span class="myavana-upm-journey-item-meta">${escapeHtml(String(goal.progress || 0))}% complete${goal.target_date ? ` • Target ${escapeHtml(goal.target_date)}` : ''}</span>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                ` : '<div class="myavana-upm-empty-inline">No goals shared yet.</div>'}
+                            </section>
+
+                            <section class="myavana-upm-journey-panel">
+                                <h4>Routine Snapshot</h4>
+                                ${routinePreview.length ? `
+                                    <ul class="myavana-upm-journey-list">
+                                        ${routinePreview.map((step) => `
+                                            <li>
+                                                <span class="myavana-upm-journey-item-title">${escapeHtml(step.name || 'Routine Step')}</span>
+                                                <span class="myavana-upm-journey-item-meta">${escapeHtml(step.frequency || 'daily')}</span>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                ` : '<div class="myavana-upm-empty-inline">No routine steps yet.</div>'}
+                            </section>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2320,8 +3332,36 @@
     /**
      * View my profile
      */
+    function launchGlobalProfileEdit() {
+        // 1) Unified profile offcanvas (profile page)
+        if (typeof window.myavanaUpOpenEditOffcanvas === 'function' && $('#myavanaUpEditOffcanvas').length) {
+            window.myavanaUpOpenEditOffcanvas();
+            return;
+        }
+
+        // 2) Legacy sidebar offcanvas (timeline shell)
+        if (typeof window.openProfileEditOffcanvas === 'function' && $('.offcanvas-hjn.profile-edit').length) {
+            window.openProfileEditOffcanvas();
+            return;
+        }
+
+        // 3) Fallback: route to profile and auto-open there
+        const fallbackSettings = window.myavanaCommunitySettings || {};
+        const profileUrl = (settings.profileUrl || fallbackSettings.profileUrl || '/profile/').toString();
+        const separator = profileUrl.indexOf('?') === -1 ? '?' : '&';
+        window.location.href = `${profileUrl}${separator}open_profile_edit=1`;
+    }
+
+    window.myavanaCommunityOpenProfileEdit = launchGlobalProfileEdit;
+
+    // Keep backward compatibility for legacy inline handlers used in community widget
+    if (typeof window.myavanaUpOpenEditOffcanvas !== 'function') {
+        window.myavanaUpOpenEditOffcanvas = launchGlobalProfileEdit;
+    }
+
     window.viewMyProfile = function() {
-        const userId = settings.userId || window.myavanaCommunitySettings?.userId;
+        const fallbackSettings = window.myavanaCommunitySettings || {};
+        const userId = settings.userId || fallbackSettings.userId;
         if (userId) {
             openUserProfileModal(userId);
         }
@@ -2335,13 +3375,206 @@
         alert('Profile editing coming soon! For now, you can update your profile from WordPress settings.');
     };
 
+    function closeSavedPostsModal() {
+        const $modal = $('#myavana-saved-posts-modal');
+        if ($modal.length) {
+            $modal.removeClass('active');
+            setTimeout(() => {
+                $modal.remove();
+                $('body').css('overflow', '');
+            }, 250);
+        }
+    }
+
+    function renderSavedPostsContent(posts) {
+        if (!posts || posts.length === 0) {
+            return `
+                <div class="myavana-saved-posts-empty">
+                    <p>No saved posts yet. Tap the bookmark icon on community posts to save them here.</p>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="myavana-saved-posts-grid">
+                ${posts.map((post) => {
+                    const title = normalizeCommunityText(post.title || 'Saved post');
+                    const content = normalizeCommunityText(post.content || '');
+                    const shortContent = content.substring(0, 140);
+                    const truncated = content.length > 140 ? '...' : '';
+                    return `
+                        <article class="myavana-saved-post-card" data-post-id="${post.id}">
+                            ${post.image_url ? `<img src="${escapeHtml(post.image_url)}" alt="${escapeHtml(title)}" class="myavana-saved-post-image">` : ''}
+                            <div class="myavana-saved-post-content">
+                                <h4>${escapeHtml(title)}</h4>
+                                <p>${escapeHtml(shortContent)}${truncated}</p>
+                                <div class="myavana-saved-post-meta">By ${escapeHtml(post.display_name || 'Community member')} • ${escapeHtml(post.formatted_date || '')}</div>
+                                <div class="myavana-saved-post-actions">
+                                    <button class="myavana-btn-secondary myavana-saved-share-btn" data-post-id="${post.id}" data-title="${escapeHtml(title || 'Myavana Community Post')}" data-content="${escapeHtml(content || '')}">
+                                        Share
+                                    </button>
+                                    <button class="myavana-btn-secondary myavana-saved-view-btn" data-post-id="${post.id}">
+                                        View
+                                    </button>
+                                    <button class="myavana-btn-secondary myavana-saved-remove-btn" data-post-id="${post.id}">
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </article>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    function scrollToPostInFeed(postId, attempt = 0) {
+        const $target = $(`.myavana-post-card[data-post-id="${postId}"]`);
+        if ($target.length) {
+            $('html, body').animate({ scrollTop: Math.max($target.offset().top - 120, 0) }, 350);
+            $target.addClass('myavana-saved-post-highlight');
+            setTimeout(() => $target.removeClass('myavana-saved-post-highlight'), 1800);
+            return;
+        }
+
+        if (attempt < 10) {
+            setTimeout(() => scrollToPostInFeed(postId, attempt + 1), 300);
+        }
+    }
+
     /**
      * View saved posts
      */
     window.viewSavedPosts = function() {
-        // TODO: Implement saved posts page in Phase 4
-        alert('Saved posts page coming soon!');
+        closeSavedPostsModal();
+
+        const modalHTML = `
+            <div class="myavana-saved-posts-modal active" id="myavana-saved-posts-modal">
+                <div class="myavana-modal-overlay"></div>
+                <div class="myavana-saved-posts-modal-content">
+                    <div class="myavana-saved-posts-header">
+                        <h3>Saved Posts</h3>
+                        <button class="myavana-saved-posts-close" type="button" aria-label="Close saved posts">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="myavana-saved-posts-body">
+                        <div class="myavana-comments-loading">Loading saved posts...</div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        $('body').append(modalHTML).css('overflow', 'hidden');
+
+        $.ajax({
+            url: settings.ajaxUrl,
+            method: 'POST',
+            data: {
+                action: 'myavana_ci_get_saved_posts',
+                nonce: settings.nonce
+            },
+            success: function(response) {
+                const $body = $('#myavana-saved-posts-modal .myavana-saved-posts-body');
+                if (response.success) {
+                    $body.html(renderSavedPostsContent(response.data.posts || []));
+                } else {
+                    $body.html('<div class="myavana-comments-error">Failed to load saved posts.</div>');
+                }
+            },
+            error: function() {
+                $('#myavana-saved-posts-modal .myavana-saved-posts-body').html('<div class="myavana-comments-error">Network error. Please try again.</div>');
+            }
+        });
     };
+
+    $(document).on('click', '.myavana-saved-posts-close', function(e) {
+        e.preventDefault();
+        closeSavedPostsModal();
+    });
+
+    $(document).on('click', '#myavana-saved-posts-modal .myavana-modal-overlay', function(e) {
+        if (e.target === this) {
+            closeSavedPostsModal();
+        }
+    });
+
+    $(document).on('click', '.myavana-saved-share-btn', function(e) {
+        e.preventDefault();
+        const postId = $(this).data('post-id');
+        const title = $(this).data('title') || 'Myavana Community Post';
+        const content = $(this).data('content') || 'Check out this post from Myavana Community.';
+        openShareModal(postId, title, content);
+    });
+
+    $(document).on('click', '.myavana-saved-view-btn', function(e) {
+        e.preventDefault();
+
+        const postId = $(this).data('post-id');
+        closeSavedPostsModal();
+
+        currentFilter = 'all';
+        currentPage = 1;
+        hasMorePosts = true;
+        $('.myavana-filter-btn').removeClass('active');
+        $('.myavana-filter-btn[data-filter="all"]').addClass('active');
+        loadPosts(false);
+        scrollToPostInFeed(postId);
+    });
+
+    $(document).on('click', '.myavana-saved-remove-btn', function(e) {
+        e.preventDefault();
+
+        const $btn = $(this);
+        const postId = $btn.data('post-id');
+        $btn.prop('disabled', true).text('Removing...');
+
+        $.ajax({
+            url: settings.ajaxUrl,
+            method: 'POST',
+            data: {
+                action: 'bookmark_post',
+                nonce: settings.nonce,
+                post_id: postId,
+                collection: 'saved'
+            },
+            success: function(response) {
+                if (!response.success) {
+                    showNotification(response.data || 'Failed to remove saved post.', 'error');
+                    $btn.prop('disabled', false).text('Remove');
+                    return;
+                }
+
+                const action = response.data && response.data.action ? response.data.action : '';
+                if (action && action !== 'unbookmarked') {
+                    showNotification('Post bookmark state changed. Refreshing saved posts...', 'info');
+                    window.viewSavedPosts();
+                    return;
+                }
+
+                const $card = $btn.closest('.myavana-saved-post-card');
+                $card.fadeOut(200, function() {
+                    $(this).remove();
+                    if (!$('.myavana-saved-post-card').length) {
+                        $('#myavana-saved-posts-modal .myavana-saved-posts-body').html(renderSavedPostsContent([]));
+                    }
+                });
+
+                const $bookmarkBtn = $(`.bookmark-btn[data-post-id="${postId}"]`);
+                $bookmarkBtn.removeClass('bookmarked');
+                $bookmarkBtn.find('svg').attr('fill', 'none');
+
+                showNotification('Post removed from saved.', 'success');
+            },
+            error: function() {
+                showNotification('Network error. Please try again.', 'error');
+                $btn.prop('disabled', false).text('Remove');
+            }
+        });
+    });
 
     /**
      * Handle read more clicks
@@ -2429,6 +3662,31 @@
     /**
      * Parse text with @mentions and #hashtags
      */
+    function decodeHtmlEntities(text) {
+        const source = text === null || text === undefined ? '' : String(text);
+        if (!source) {
+            return '';
+        }
+
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = source;
+        return textarea.value;
+    }
+
+    function normalizeCommunityText(text) {
+        let normalized = text === null || text === undefined ? '' : String(text);
+        if (!normalized) {
+            return '';
+        }
+
+        normalized = normalized
+            .replace(/\\+&#0*39;|\\+&#x0*27;|\\+&apos;/gi, "'")
+            .replace(/\\+&quot;/gi, '"')
+            .replace(/\\+&amp;/gi, '&');
+
+        return decodeHtmlEntities(normalized);
+    }
+
     function parseTextWithMentionsAndHashtags(text) {
         if (!text) return '';
 
@@ -2436,7 +3694,7 @@
         text = text.replace(/@(\w+)/g, '<span class="myavana-mention">@$1</span>');
 
         // Parse #hashtags
-        text = text.replace(/#(\w+)/g, '<span class="myavana-hashtag">#$1</span>');
+        text = text.replace(/#(\w+)/g, '<span class="myavana-hashtag" data-hashtag="$1">#$1</span>');
 
         // Parse simple formatting (bold, italic)
         text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
@@ -2553,13 +3811,13 @@
     let currentImageIndex = 0;
     let galleryImages = [];
 
-    $(document).on('click', '.myavana-post-image img', function(e) {
+    $(document).on('click', 'img.myavana-post-image', function(e) {
         e.preventDefault();
         const $postCard = $(this).closest('.myavana-post-card');
 
         // Get all images in this post
         galleryImages = [];
-        $postCard.find('.myavana-post-image img').each(function() {
+        $postCard.find('img.myavana-post-image').each(function() {
             galleryImages.push($(this).attr('src'));
         });
 
@@ -2645,6 +3903,56 @@
             if (e.key === 'Escape') closeLightbox();
             if (e.key === 'ArrowRight') showNextImage();
             if (e.key === 'ArrowLeft') showPrevImage();
+            return;
+        }
+
+        if (e.key === 'Escape') {
+            const $activeModal = $([
+                '#myavana-edit-post-modal.active',
+                '#myavana-create-post-modal.active',
+                '.myavana-share-modal.active',
+                '.myavana-ci-collections-modal.active',
+                '.myavana-ci-report-modal.active',
+                '.myavana-ci-analytics-modal.active',
+                '.myavana-upm-modal.active',
+                '#myavana-saved-posts-modal.active',
+                '.myavana-modal.active'
+            ].join(',')).last();
+
+            if (!$activeModal.length) {
+                return;
+            }
+
+            const $closeBtn = $activeModal.find([
+                '.myavana-edit-close',
+                '.myavana-modal-close',
+                '.myavana-share-close',
+                '.myavana-ci-collections-close',
+                '.myavana-ci-report-close',
+                '.myavana-ci-analytics-close',
+                '.myavana-upm-close',
+                '.myavana-saved-posts-close',
+                '#myavana-close-modal'
+            ].join(',')).first();
+
+            if ($closeBtn.length) {
+                $closeBtn.trigger('click');
+                return;
+            }
+
+            const $overlay = $activeModal.find('.myavana-modal-overlay, .myavana-upm-overlay').first();
+            if ($overlay.length) {
+                $overlay.trigger('click');
+                return;
+            }
+
+            $activeModal.removeClass('active');
+            setTimeout(() => {
+                if ($activeModal.attr('id') !== 'myavana-create-post-modal') {
+                    $activeModal.remove();
+                }
+                $('body').css('overflow', '');
+            }, 260);
         }
     });
 

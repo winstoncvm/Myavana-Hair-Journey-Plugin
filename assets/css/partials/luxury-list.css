@@ -226,6 +226,19 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+/* Type-specific accents for redesigned list cards */
+.list-item-goal-hjn {
+    border-left: 4px solid var(--myavana-coral);
+}
+
+.list-item-entry-hjn {
+    border-left: 4px solid var(--myavana-blueberry);
+}
+
+.list-item-routine-hjn {
+    border-left: 4px solid #2f8f5a;
+}
+
 .list-item-hjn:active {
     transform: scale(0.98);
 }
@@ -387,6 +400,10 @@
     line-height: 1;
 }
 
+.tag-type-hjn {
+    font-weight: 700;
+}
+
 .list-item-progress-hjn {
     margin-top: 0.75rem;
 }
@@ -406,6 +423,17 @@
 }
 
 /* List Item Action */
+.list-item-actions-hjn {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.list-item-actions-hjn .list-item-action-hjn {
+    flex: 1;
+    width: auto;
+}
+
 .list-item-action-hjn {
     padding: 0.875rem 1rem;
     background: var(--myavana-coral);
@@ -423,9 +451,19 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+.list-item-action-hjn.is-secondary {
+    background: transparent;
+    color: var(--myavana-blueberry);
+    border: 1px solid var(--myavana-blueberry);
+}
+
 .list-item-action-hjn:active {
     transform: scale(0.98);
     background: var(--myavana-blueberry);
+}
+
+.list-item-action-hjn.is-secondary:active {
+    background: rgba(74, 77, 104, 0.08);
 }
 
 /* Empty State */
@@ -497,7 +535,7 @@
     }
 
     .list-grid-hjn {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
         gap: 1.25rem;
     }
     .list-grid-hjn-profile {
@@ -576,9 +614,10 @@
 
     .list-item-hjn {
         padding: 1.5rem;
-        grid-template-columns: auto 1fr auto;
-        grid-template-rows: 1fr;
-        flex-direction: row;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        column-gap: 1rem;
+        row-gap: 0.75rem;
         align-items: start;
     }
 
@@ -595,13 +634,26 @@
     }
 
     .list-item-content-hjn {
+        min-width: 0;
         order: 0;
     }
 
-    .list-item-action-hjn {
+    .list-item-actions-hjn {
         width: auto;
+        min-width: 120px;
+        flex-direction: column;
+        align-self: stretch;
+        justify-content: center;
+    }
+
+    .list-item-actions-hjn .list-item-action-hjn {
+        width: 100%;
+        min-width: 110px;
         white-space: nowrap;
-        align-self: center;
+    }
+
+    .list-item-action-hjn {
+        align-self: auto;
         order: 0;
     }
 
@@ -635,21 +687,51 @@
     }
 
     .list-grid-hjn {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.5rem;
     }
     .list-grid-hjn-profile {
-        grid-template-columns: repeat(1, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 1.5rem;
+    }
+
+    /* In multi-column desktop grid, keep cards vertically stacked internally */
+    .list-item-hjn {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .list-item-thumbnail-hjn {
+        width: 100%;
+        height: 180px;
+        order: -1;
+    }
+
+    .list-item-actions-hjn {
+        width: 100%;
+        min-width: 0;
+        flex-direction: row;
+        align-self: stretch;
+        justify-content: stretch;
+    }
+
+    .list-item-actions-hjn .list-item-action-hjn {
+        min-width: 0;
+        width: auto;
+        flex: 1;
     }
 }
 
 /* Desktop XL (1280px and up) */
 @media (min-width: 1280px) {
     .list-grid-hjn {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1.5rem;
     }
     .list-grid-hjn-profile {
-        grid-template-columns: repeat(1, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 1.5rem;
     }
     .list-item-hjn-profile {
