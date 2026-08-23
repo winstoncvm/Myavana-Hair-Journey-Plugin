@@ -57,11 +57,34 @@ class Myavana_Shortcodes {
     }
 
     public function login_shortcode() {
-        return myavana_login_shortcode();
+        // Legacy plain-POST form (myavana_login_shortcode(), in
+        // templates/login-shortcode.php) bypasses the canonical AJAX auth
+        // system entirely — no rate limiting, no password policy, no shared
+        // validation. Send visitors to the site-wide modal instead of
+        // rendering it.
+        $this->redirect_to_canonical_auth('signin');
     }
 
     public function register_shortcode() {
-        return myavana_register_shortcode();
+        // See login_shortcode() — myavana_register_shortcode() creates
+        // accounts with none of the password/terms validation the modal
+        // enforces. Redirect to the canonical modal instead.
+        $this->redirect_to_canonical_auth('signup');
+    }
+
+    private function redirect_to_canonical_auth($form) {
+        $target = add_query_arg(['auth' => '1', 'form' => $form], home_url('/'));
+
+        if (!empty($_GET['redirect_to'])) {
+            $redirect_to = wp_unslash($_GET['redirect_to']);
+            // Only forward same-site redirect targets.
+            if (wp_validate_redirect($redirect_to, false)) {
+                $target = add_query_arg('redirect_to', rawurlencode($redirect_to), $target);
+            }
+        }
+
+        wp_safe_redirect($target);
+        exit;
     }
 
     public function hair_journey_shortcode(){

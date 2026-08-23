@@ -238,11 +238,15 @@
                 const key = this.storage.key(i);
                 if (key && key.startsWith('myavana_')) {
                     const dataKey = key.replace('myavana_', '');
+                    const raw = this.storage.getItem(key);
                     try {
-                        const value = JSON.parse(this.storage.getItem(key));
-                        this.cache.set(dataKey, value);
+                        this.cache.set(dataKey, JSON.parse(raw));
                     } catch (e) {
-                        Myavana.error('Failed to load data from storage:', key);
+                        // Not every "myavana_" key in storage belongs to this
+                        // cache (e.g. site-intelligence-tracker.js writes a
+                        // plain-string session id under the same prefix).
+                        // Keep the raw value instead of treating it as an error.
+                        this.cache.set(dataKey, raw);
                     }
                 }
             }

@@ -425,13 +425,13 @@ function myavana_luxury_home_shortcode() {
                     <div class="myavana-luxury-member-overview">
                         <article class="myavana-luxury-member-highlight">
                             <div class="myavana-luxury-member-highlight-head">
-                                <span class="myavana-luxury-section-badge">Your Snapshot</span>
-                                <h2 class="myavana-luxury-member-title">A quick look at what your hair journey needs next.</h2>
+                                <span class="myavana-luxury-section-badge">Your day, considered</span>
+                                <h2 class="myavana-luxury-member-title">A calm view of what moves your journey forward today.</h2>
                             </div>
                             <p class="myavana-luxury-member-description">
                                 You logged <strong><?php echo esc_html($user_stats['entries_this_month']); ?></strong> entries in the last 30 days,
                                 completed <strong><?php echo esc_html($user_stats['completed_today']); ?></strong> routines today,
-                                and have <strong><?php echo esc_html($completed_goals); ?></strong> completed goals so far.
+                                and have <strong><?php echo esc_html($completed_goals); ?></strong> goals already completed.
                             </p>
                             <div class="myavana-luxury-member-metrics">
                                 <div class="myavana-luxury-member-metric">

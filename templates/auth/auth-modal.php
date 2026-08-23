@@ -906,6 +906,12 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
                     <div class="myavana-error-message" id="myavana-signin-error" role="alert"></div>
                     <div class="myavana-success-message" id="myavana-signin-success" role="alert"></div>
 
+                    <div class="myavana-google-auth-wrap myavana-google-auth-primary">
+                        <div id="myavanaGoogleSignin" class="myavana-google-auth-slot"></div>
+                        <div class="myavana-google-auth-helper" data-google-auth-helper="signin" style="display:none;">Google sign-in is not available right now.</div>
+                    </div>
+                    <div class="myavana-auth-divider"><span>or continue with email</span></div>
+
                     <div class="myavana-form-group" data-validate="login">
                         <label for="myavana-signin-login">Email or Username</label>
                         <input type="text" id="myavana-signin-login" name="login"
@@ -938,12 +944,6 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
 
                     <button type="submit" class="myavana-submit-btn">Sign In to MYAVANA</button>
 
-                    <div class="myavana-auth-divider"><span>or continue with</span></div>
-                    <div class="myavana-google-auth-wrap">
-                        <div id="myavanaGoogleSignin" class="myavana-google-auth-slot"></div>
-                        <div class="myavana-google-auth-helper" data-google-auth-helper="signin" style="display:none;">Google sign-in is not available right now.</div>
-                    </div>
-
                     <a href="#" class="myavana-forgot-link" id="myavanaForgotLink">Forgot your password?</a>
                 </form>
 
@@ -951,6 +951,12 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
                 <form class="myavana-auth-form" id="myavanaSignupForm" role="tabpanel" aria-labelledby="myavanaSignupTab">
                     <div class="myavana-error-message" id="myavana-signup-error" role="alert"></div>
                     <div class="myavana-success-message" id="myavana-signup-success" role="alert"></div>
+
+                    <div class="myavana-google-auth-wrap myavana-google-auth-primary">
+                        <div id="myavanaGoogleSignup" class="myavana-google-auth-slot"></div>
+                        <div class="myavana-google-auth-helper" data-google-auth-helper="signup" style="display:none;">Google sign-up is not available right now.</div>
+                    </div>
+                    <div class="myavana-auth-divider"><span>or continue with email</span></div>
 
                     <div class="myavana-form-group" data-validate="name">
                         <label for="myavana-signup-name">Full Name</label>
@@ -1010,12 +1016,6 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
                     </div>
 
                     <button type="submit" class="myavana-submit-btn">Create My MYAVANA Account</button>
-
-                    <div class="myavana-auth-divider"><span>or continue with</span></div>
-                    <div class="myavana-google-auth-wrap">
-                        <div id="myavanaGoogleSignup" class="myavana-google-auth-slot"></div>
-                        <div class="myavana-google-auth-helper" data-google-auth-helper="signup" style="display:none;">Google sign-up is not available right now.</div>
-                    </div>
                 </form>
 
                 <!-- Forgot Password Form -->

@@ -149,9 +149,10 @@
                 return;
             }
 
+            const forceAuthPrompt = this.shouldForceAuthPrompt();
             setTimeout(() => {
-                this.showModal();
-            }, this.shouldForceAuthPrompt() ? 150 : (this.settings.delay || 2000));
+                this.showModal(forceAuthPrompt ? this.getForcedFormType() : 'signin');
+            }, forceAuthPrompt ? 150 : (this.settings.delay || 2000));
         },
 
         // Check if modal should be shown
@@ -190,6 +191,15 @@
                 return params.get('auth') === '1';
             } catch (e) {
                 return false;
+            }
+        },
+
+        getForcedFormType: function() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                return this.normalizeFormType(params.get('form') || 'signin');
+            } catch (e) {
+                return 'signin';
             }
         },
 

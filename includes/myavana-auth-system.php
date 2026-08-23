@@ -51,6 +51,10 @@ class Myavana_Auth_System {
         add_action('wp_ajax_nopriv_myavana_reset_password', [$this, 'handle_password_reset']);
         add_action('wp_ajax_myavana_reset_password', [$this, 'handle_password_reset']);
 
+        // Email verification
+        add_action('template_redirect', [$this, 'handle_verify_email_link']);
+        add_action('wp_ajax_myavana_resend_verification', [$this, 'handle_resend_verification']);
+
         // New onboarding save handler
         add_action('wp_ajax_myavana_save_onboarding', [$this, 'handle_save_onboarding']);
 
@@ -75,6 +79,33 @@ class Myavana_Auth_System {
 
         // Onboarding detection
         add_action('template_redirect', [$this, 'detect_onboarding_needed']);
+
+        // Retire the legacy /login/ and /register/ pages in favor of the
+        // canonical modal. Priority 5 so this runs ahead of Youzify's own
+        // template_redirect-time page override — Youzify is separately
+        // configured (youzify_login_page option) to render its own native
+        // membership form on the "login" page, which would otherwise render
+        // before this ever gets a chance to redirect.
+        add_action('template_redirect', [$this, 'redirect_legacy_auth_pages'], 5);
+    }
+
+    public function redirect_legacy_auth_pages() {
+        if (is_user_logged_in() || !is_page(['login', 'register', 'register-2'])) {
+            return;
+        }
+
+        $form = is_page('login') ? 'signin' : 'signup';
+        $target = add_query_arg(['auth' => '1', 'form' => $form], home_url('/'));
+
+        if (!empty($_GET['redirect_to'])) {
+            $redirect_to = wp_unslash($_GET['redirect_to']);
+            if (wp_validate_redirect($redirect_to, false)) {
+                $target = add_query_arg('redirect_to', rawurlencode($redirect_to), $target);
+            }
+        }
+
+        wp_safe_redirect($target);
+        exit;
     }
 
     // private function load_options() {
@@ -414,45 +445,28 @@ class Myavana_Auth_System {
             wp_send_json_error(['message' => 'Please enter your password.', 'field' => 'password']);
         }
 
-        // Check if user exists first
-        $user_exists = is_email($login) ? get_user_by('email', $login) : get_user_by('login', $login);
-
-        if (!$user_exists) {
-            wp_send_json_error([
-                'message' => 'No account found with this email/username. Would you like to create one?',
-                'field' => 'login',
-                'show_signup' => true
-            ]);
-        }
-
+        // Deliberately do NOT check whether the account exists before calling
+        // wp_authenticate(), and give every failure mode (no such account,
+        // wrong password, malformed email) the same generic message. Telling
+        // an attacker "no account found" vs "wrong password" lets them
+        // enumerate registered emails; a single message doesn't.
         $user = wp_authenticate($login, $password);
 
         if (is_wp_error($user)) {
-            // Record failed attempt
+            // Record failed attempt regardless of whether the account exists,
+            // so probing for valid emails is rate-limited the same as a
+            // real password-guessing attempt.
             $this->record_failed_login_attempt($login);
 
-            $error_code = $user->get_error_code();
             $attempts_remaining = $this->get_remaining_attempts($login);
             $attempts_msg = $attempts_remaining > 0 ? " ({$attempts_remaining} attempts remaining)" : "";
 
-            if ($error_code === 'incorrect_password') {
-                wp_send_json_error([
-                    'message' => "Incorrect password. Please try again or reset your password.{$attempts_msg}",
-                    'field' => 'password',
-                    'show_forgot' => true,
-                    'attempts_remaining' => $attempts_remaining
-                ]);
-            } elseif ($error_code === 'invalid_email') {
-                wp_send_json_error([
-                    'message' => 'Invalid email format. Please check and try again.',
-                    'field' => 'login'
-                ]);
-            } else {
-                wp_send_json_error([
-                    'message' => "Unable to sign in. Please check your credentials.{$attempts_msg}",
-                    'attempts_remaining' => $attempts_remaining
-                ]);
-            }
+            wp_send_json_error([
+                'message' => "The email/username or password you entered is incorrect.{$attempts_msg}",
+                'field' => 'password',
+                'show_forgot' => true,
+                'attempts_remaining' => $attempts_remaining
+            ]);
         }
 
         // Clear failed attempts on successful login
@@ -504,8 +518,9 @@ class Myavana_Auth_System {
             wp_send_json_error(['message' => 'Please create a password.', 'field' => 'password']);
         }
 
-        if (strlen($password) < 8) {
-            wp_send_json_error(['message' => 'Password must be at least 8 characters long.', 'field' => 'password']);
+        $password_error = $this->validate_password_strength($password);
+        if ($password_error) {
+            wp_send_json_error(['message' => $password_error, 'field' => 'password']);
         }
 
         if (!$terms) {
@@ -539,6 +554,8 @@ class Myavana_Auth_System {
         update_user_meta($user_id, 'myavana_signup_date', current_time('mysql'));
         update_user_meta($user_id, 'myavana_onboarding_status', 'pending');
         update_user_meta($user_id, 'myavana_show_onboarding', true);
+        update_user_meta($user_id, 'myavana_email_verified', 'no');
+        $this->send_verification_email($user_id);
 
         // Update display name
         wp_update_user(['ID' => $user_id, 'display_name' => $name]);
@@ -561,9 +578,10 @@ class Myavana_Auth_System {
         $first_name = explode(' ', $name)[0];
 
         wp_send_json_success([
-            'message' => "Welcome to MYAVANA, {$first_name}! Let's get your hair journey started.",
+            'message' => "Welcome to MYAVANA, {$first_name}! Let's get your hair journey started. We've sent a verification link to {$email} — confirm it when you get a chance.",
             'user_id' => $user_id,
-            'trigger_onboarding' => true
+            'trigger_onboarding' => true,
+            'email_verified' => false
         ]);
     }
 
@@ -673,10 +691,127 @@ class Myavana_Auth_System {
         update_user_meta($user_id, 'myavana_google_email', $google_user['email']);
         update_user_meta($user_id, 'myavana_auth_provider', 'google');
         update_user_meta($user_id, 'myavana_last_google_login', current_time('mysql'));
+        // verify_google_id_token() already rejects unverified Google emails,
+        // so a Google sign-in is proof enough — no separate email needed.
+        update_user_meta($user_id, 'myavana_email_verified', 'yes');
 
         if ($is_new_user) {
             update_user_meta($user_id, 'myavana_registration_source', 'google');
         }
+    }
+
+    // =========================
+    // EMAIL VERIFICATION
+    // =========================
+
+    private function send_verification_email($user_id) {
+        $user = get_user_by('id', $user_id);
+        if (!$user) {
+            return false;
+        }
+
+        $token = wp_generate_password(32, false);
+        update_user_meta($user_id, 'myavana_email_verification_token', $token);
+        update_user_meta($user_id, 'myavana_email_verification_sent', current_time('mysql'));
+
+        $verify_url = add_query_arg([
+            'myavana_verify_email' => '1',
+            'uid' => $user_id,
+            'token' => $token,
+        ], home_url('/'));
+
+        $site_name = get_bloginfo('name');
+        $subject = "Confirm your MYAVANA email address";
+        $message = $this->get_verification_email_template($user, $verify_url, $site_name);
+
+        $headers = [
+            'Content-Type: text/html; charset=UTF-8',
+            'From: ' . $site_name . ' <noreply@' . wp_parse_url(home_url(), PHP_URL_HOST) . '>'
+        ];
+
+        return wp_mail($user->user_email, $subject, $message, $headers);
+    }
+
+    private function get_verification_email_template($user, $verify_url, $site_name) {
+        ob_start();
+        ?>
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Confirm your email - <?php echo esc_html($site_name); ?></title>
+            <style>
+                body { font-family: 'Archivo', Arial, sans-serif; background: #f5f5f7; margin: 0; padding: 20px; }
+                .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+                .header { background: linear-gradient(135deg, #e7a690 0%, #fce5d7 100%); padding: 40px 20px; text-align: center; color: white; }
+                .logo { font-size: 28px; font-weight: 900; text-transform: uppercase; margin-bottom: 10px; }
+                .content { padding: 40px 30px; }
+                .button { display: inline-block; background: #e7a690; color: white !important; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; text-transform: uppercase; margin: 20px 0; }
+                .footer { background: #f5f5f7; padding: 20px; text-align: center; color: #666; font-size: 14px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="logo">MYAVANA</div>
+                    <p style="margin: 0; font-size: 18px;">Confirm your email address</p>
+                </div>
+                <div class="content">
+                    <p>Hi <strong><?php echo esc_html($user->display_name ?: $user->user_login); ?></strong>,</p>
+                    <p>Welcome to MYAVANA! Please confirm this is your email address so we can keep your hair journey and progress safe.</p>
+                    <p style="text-align: center;">
+                        <a href="<?php echo esc_url($verify_url); ?>" class="button">Confirm My Email</a>
+                    </p>
+                    <p><small>This link doesn't expire, but if you didn't create a MYAVANA account, you can safely ignore this email.</small></p>
+                </div>
+                <div class="footer">
+                    <p>This email was sent from MYAVANA Hair Journey</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        <?php
+        return ob_get_clean();
+    }
+
+    public function handle_verify_email_link() {
+        if (empty($_GET['myavana_verify_email'])) {
+            return;
+        }
+
+        $user_id = absint($_GET['uid'] ?? 0);
+        $token = sanitize_text_field($_GET['token'] ?? '');
+        $stored_token = $user_id ? get_user_meta($user_id, 'myavana_email_verification_token', true) : '';
+
+        if ($user_id && $token && $stored_token && hash_equals($stored_token, $token)) {
+            update_user_meta($user_id, 'myavana_email_verified', 'yes');
+            delete_user_meta($user_id, 'myavana_email_verification_token');
+            wp_safe_redirect(add_query_arg('myavana_email_verified', '1', home_url('/')));
+        } else {
+            wp_safe_redirect(add_query_arg('myavana_email_verified', '0', home_url('/')));
+        }
+        exit;
+    }
+
+    public function handle_resend_verification() {
+        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'myavana_auth_nonce')) {
+            wp_send_json_error(['message' => 'Security check failed. Please refresh and try again.']);
+        }
+
+        if (!is_user_logged_in()) {
+            wp_send_json_error(['message' => 'Please sign in first.']);
+        }
+
+        $user_id = get_current_user_id();
+        if (get_user_meta($user_id, 'myavana_email_verified', true) === 'yes') {
+            wp_send_json_success(['message' => 'Your email is already verified.']);
+        }
+
+        $sent = $this->send_verification_email($user_id);
+        if ($sent) {
+            wp_send_json_success(['message' => 'Verification email sent! Please check your inbox.']);
+        }
+        wp_send_json_error(['message' => 'Unable to send verification email right now. Please try again shortly.']);
     }
 
     private function handle_forgot_password() {
@@ -978,6 +1113,28 @@ class Myavana_Auth_System {
         }
 
         return false;
+    }
+
+    // Mirrors the requirements shown live in templates/auth/auth-modal.php's
+    // checkPasswordStrength() so the server never accepts a password the UI
+    // displayed as failing every requirement.
+    private function validate_password_strength($password) {
+        if (strlen($password) < 8) {
+            return 'Password must be at least 8 characters long.';
+        }
+        if (!preg_match('/[A-Z]/', $password)) {
+            return 'Password must include at least one uppercase letter.';
+        }
+        if (!preg_match('/[a-z]/', $password)) {
+            return 'Password must include at least one lowercase letter.';
+        }
+        if (!preg_match('/[0-9]/', $password)) {
+            return 'Password must include at least one number.';
+        }
+        if (!preg_match('/[!@#$%^&*(),.?":{}|<>]/', $password)) {
+            return 'Password must include at least one special character (!@#$%^&*).';
+        }
+        return null;
     }
 
     private function generate_unique_username($email) {
@@ -1644,8 +1801,9 @@ class Myavana_Auth_System {
             wp_send_json_error(['message' => 'Please enter a new password.']);
         }
 
-        if (strlen($password) < 8) {
-            wp_send_json_error(['message' => 'Password must be at least 8 characters long.']);
+        $password_error = $this->validate_password_strength($password);
+        if ($password_error) {
+            wp_send_json_error(['message' => $password_error]);
         }
 
         if ($password !== $password_confirm) {

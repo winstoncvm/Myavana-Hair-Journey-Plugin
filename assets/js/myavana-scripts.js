@@ -32,6 +32,10 @@ jQuery(document).ready(function($) {
 });
 document.addEventListener("DOMContentLoaded", function() {
     const container = document.querySelector('.myavana-video-chatbot-container');
+    // This script only applies to pages that render the AI chatbot widget
+    // (e.g. the hair diary). Bail out everywhere else instead of chasing
+    // null-reference errors from elements that were never on the page.
+    if (!container) return;
     const videoContainer = document.querySelector('.the-video');
     const video = document.getElementById('myavana-video');
     const canvas = document.getElementById('myavana-canvas');

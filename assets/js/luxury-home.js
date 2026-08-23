@@ -824,22 +824,25 @@
 
         // Initialize onboarding system
         initOnboarding: function() {
-            const ajaxData = window.myavanaLuxuryData || {};
-
-            // Auto-show onboarding for new users
-            if (ajaxData.showOnboarding && ajaxData.isLoggedIn) {
-                // Show onboarding after a brief delay to let the page settle
-                setTimeout(() => {
-                    this.startOnboarding();
-                }, 2000);
-            }
+            // The canonical onboarding modal (templates/auth/onboarding-modal.php)
+            // already auto-shows itself server-side via render_onboarding_overlay()
+            // when onboarding is pending. Do NOT auto-trigger the legacy overlay here
+            // too — doing so injects a second, duplicate-ID copy of the overlay into
+            // the DOM and breaks both instances' click handlers.
         },
 
         // Start onboarding process
         startOnboarding: function() {
             console.log('🚀 Starting MYAVANA onboarding...');
 
-            // Load onboarding overlay
+            // Prefer the canonical server-rendered onboarding modal so we never end
+            // up with two overlays sharing the same element IDs on the page.
+            if (typeof window.showMyavanaOnboarding === 'function') {
+                window.showMyavanaOnboarding();
+                return;
+            }
+
+            // Fallback for pages where the canonical modal wasn't rendered.
             this.loadOnboardingOverlay();
         },
 

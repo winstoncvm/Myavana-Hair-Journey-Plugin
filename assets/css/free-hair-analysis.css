@@ -706,6 +706,41 @@
     50% { background-position: 100% 50%; }
 }
 
+/* Light editorial treatment: keep the analysis invitation quiet and tactile. */
+.myavana-free-analysis-cta {
+    background: #f7f1eb;
+    border-top: 1px solid rgba(34, 35, 35, 0.1);
+    border-bottom: 1px solid rgba(34, 35, 35, 0.1);
+}
+
+.myavana-free-analysis-cta::before { display: none; }
+
+.myavana-free-analysis-badge {
+    background: #f8e8df;
+    border: 1px solid rgba(185, 111, 88, 0.2);
+    animation: none;
+}
+
+.badge-icon { animation: none; }
+.badge-text { color: #b96f58; }
+.gradient-text-animated {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    background-clip: border-box;
+    color: #b96f58;
+    animation: none;
+}
+
+.myavana-free-analysis-description,
+.trust-label { color: #625c57; }
+.feature-pill { border: 1px solid rgba(34, 35, 35, 0.11); box-shadow: none; }
+.myavana-free-analysis-btn { background: #222323; box-shadow: none; }
+.myavana-free-analysis-btn:hover { background: #4a4440; box-shadow: 0 10px 24px rgba(34, 35, 35, 0.12); }
+.btn-shine { display: none; }
+.analysis-preview-card { border: 1px solid rgba(34, 35, 35, 0.11); box-shadow: 0 18px 40px rgba(34, 35, 35, 0.09); transform: none; }
+.analysis-preview-card:hover { transform: none; }
+.preview-avatar { background: #f8e8df; }
+
 @keyframes shine {
     0% { transform: translate(-50%, -50%) rotate(0deg); }
     100% { transform: translate(-50%, -50%) rotate(360deg); }

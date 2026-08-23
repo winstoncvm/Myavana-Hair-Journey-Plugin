@@ -2210,6 +2210,152 @@ h1, h2, h3, h4, h5, h6 {
     }
 }
 
+/* =================================================
+   LIGHT EDITORIAL HOME REFINEMENT
+   The member experience intentionally stays paper-light: colour is reserved
+   for status and action rather than filling whole dashboard sections.
+   ================================================= */
+.myavana-luxury-homepage {
+    --myavana-paper: #fdfbf8;
+    --myavana-paper-warm: #f7f1eb;
+    --myavana-ink-soft: #625c57;
+    --myavana-line: rgba(34, 35, 35, 0.11);
+    --myavana-coral-deep: #b96f58;
+    background: var(--myavana-paper);
+}
+
+.myavana-luxury-homepage .gradient-text,
+.myavana-luxury-homepage .gradient-text-animated {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    background-clip: border-box;
+    color: var(--myavana-coral-deep);
+}
+
+.myavana-luxury-homepage .myavana-luxury-hero {
+    min-height: min(780px, 100vh);
+    background: var(--myavana-paper);
+    border-bottom: 1px solid var(--myavana-line);
+}
+
+.myavana-luxury-homepage .myavana-luxury-hero::before {
+    color: rgba(34, 35, 35, 0.025);
+}
+
+.myavana-luxury-homepage .myavana-luxury-hero-badge,
+.myavana-luxury-homepage .myavana-luxury-section-badge {
+    background: #f8e8df;
+    color: var(--myavana-coral-deep);
+    border: 1px solid rgba(185, 111, 88, 0.15);
+}
+
+.myavana-luxury-homepage .myavana-luxury-hero-title {
+    font-size: clamp(42px, 5.25vw, 72px);
+    line-height: .93;
+    letter-spacing: -.055em;
+    text-transform: none;
+}
+
+.myavana-luxury-homepage .myavana-luxury-hero-subtitle {
+    font-size: clamp(18px, 2vw, 24px);
+    line-height: 1.3;
+}
+
+.myavana-luxury-homepage .myavana-luxury-hero-description { color: var(--myavana-ink-soft); opacity: 1; }
+.myavana-luxury-homepage .myavana-luxury-btn-primary { background: var(--myavana-onyx); box-shadow: none; }
+.myavana-luxury-homepage .myavana-luxury-btn-primary:hover { background: #4a4440; box-shadow: 0 10px 24px rgba(34,35,35,.12); }
+.myavana-luxury-homepage .myavana-luxury-btn-secondary { border-color: var(--myavana-line); background: transparent; color: var(--myavana-onyx); }
+.myavana-luxury-homepage .myavana-luxury-btn-secondary:hover { border-color: rgba(185,111,88,.5); background: #fff; color: var(--myavana-onyx); }
+
+.myavana-luxury-homepage .myavana-luxury-hero-image {
+    background: #e7ddd5;
+    border-radius: 24px;
+    box-shadow: 0 24px 55px rgba(34,35,35,.11);
+}
+
+.myavana-luxury-homepage .hero-image { border-radius: 24px; }
+
+.myavana-luxury-homepage .myavana-luxury-personal-stats,
+.myavana-luxury-homepage .myavana-luxury-global-stats { gap: 10px; }
+
+.myavana-luxury-homepage .myavana-luxury-stat,
+.myavana-luxury-homepage .myavana-luxury-personal-stats .myavana-luxury-stat {
+    background: #fff;
+    border: 1px solid var(--myavana-line);
+    box-shadow: 0 7px 20px rgba(34,35,35,.045);
+}
+
+.myavana-luxury-homepage .myavana-luxury-personal-stats .myavana-luxury-stat::before { display: none; }
+.myavana-luxury-homepage .myavana-luxury-stat-number,
+.myavana-luxury-homepage .myavana-luxury-personal-stats .myavana-luxury-stat-number { color: var(--myavana-onyx); }
+.myavana-luxury-homepage .myavana-luxury-stat-label,
+.myavana-luxury-homepage .myavana-luxury-personal-stats .myavana-luxury-stat-label { color: var(--myavana-ink-soft); }
+
+.myavana-luxury-homepage .quick-action-card {
+    background: #fff;
+    border: 1px solid var(--myavana-line);
+    box-shadow: 0 7px 20px rgba(34,35,35,.045);
+    color: var(--myavana-onyx);
+}
+
+.myavana-luxury-homepage .quick-action-card::before { display: none; }
+.myavana-luxury-homepage .quick-action-card:hover { border-color: rgba(185,111,88,.45); box-shadow: 0 14px 30px rgba(34,35,35,.08); }
+.myavana-luxury-homepage .action-icon { width: 42px; height: 42px; background: #f8e8df; box-shadow: none; }
+.myavana-luxury-homepage .action-icon i { color: var(--myavana-coral-deep); }
+.myavana-luxury-homepage .action-content h4 { color: var(--myavana-onyx); }
+.myavana-luxury-homepage .action-content p { color: var(--myavana-ink-soft); }
+
+.myavana-luxury-homepage .myavana-luxury-member-hub {
+    padding: 64px 0 96px;
+    background: var(--myavana-paper-warm);
+}
+
+.myavana-luxury-homepage .myavana-luxury-member-overview { gap: 18px; }
+.myavana-luxury-homepage .myavana-luxury-member-highlight,
+.myavana-luxury-homepage .myavana-luxury-member-card {
+    background: rgba(255,255,255,.92);
+    border: 1px solid var(--myavana-line);
+    box-shadow: 0 10px 28px rgba(34,35,35,.055);
+    border-radius: 20px;
+}
+
+.myavana-luxury-homepage .myavana-luxury-member-highlight::before,
+.myavana-luxury-homepage .myavana-luxury-member-card::before { display: none; }
+.myavana-luxury-homepage .myavana-luxury-member-highlight { padding: 32px; }
+.myavana-luxury-homepage .myavana-luxury-member-highlight-head .myavana-luxury-section-badge { box-shadow: none; }
+.myavana-luxury-homepage .myavana-luxury-member-title { max-width: 14ch; color: var(--myavana-onyx); font-size: clamp(29px, 3.3vw, 44px); line-height: 1.02; text-transform: none; text-shadow: none; }
+.myavana-luxury-homepage .myavana-luxury-member-description,
+.myavana-luxury-homepage .myavana-luxury-member-description strong { color: var(--myavana-ink-soft); }
+.myavana-luxury-homepage .myavana-luxury-member-description strong { font-weight: 700; color: var(--myavana-onyx); }
+.myavana-luxury-homepage .myavana-luxury-member-metric { background: #fcf9f5; border-color: var(--myavana-line); box-shadow: none; }
+.myavana-luxury-homepage .myavana-luxury-member-metric .value { color: var(--myavana-onyx); }
+.myavana-luxury-homepage .myavana-luxury-member-metric .label { color: var(--myavana-ink-soft); }
+.myavana-luxury-homepage .myavana-luxury-member-actions .myavana-luxury-btn-primary { box-shadow: none; }
+.myavana-luxury-homepage .myavana-luxury-member-actions .myavana-luxury-btn-secondary,
+.myavana-luxury-homepage .myavana-luxury-member-card-actions .myavana-luxury-btn-secondary { border-color: var(--myavana-line); background: #fff; color: var(--myavana-onyx); }
+.myavana-luxury-homepage .myavana-luxury-member-card-actions .myavana-luxury-btn-secondary:hover,
+.myavana-luxury-homepage .myavana-luxury-member-actions .myavana-luxury-btn-secondary:hover { background: #f8e8df; color: var(--myavana-onyx); }
+.myavana-luxury-homepage .myavana-luxury-member-card-head .eyebrow,
+.myavana-luxury-homepage .myavana-luxury-member-item .item-type { color: var(--myavana-coral-deep); }
+.myavana-luxury-homepage .myavana-luxury-member-card-head h3,
+.myavana-luxury-homepage .myavana-luxury-member-item h4 { color: var(--myavana-onyx); }
+.myavana-luxury-homepage .myavana-luxury-member-card-head a { color: var(--myavana-ink-soft); }
+.myavana-luxury-homepage .myavana-luxury-member-item { background: #fcf9f5; border-color: var(--myavana-line); box-shadow: none; }
+.myavana-luxury-homepage .item-pill { background: #f2ebe5; color: var(--myavana-ink-soft); }
+.myavana-luxury-homepage .item-pill.is-success { background: #e6f1e9; color: #327448; }
+.myavana-luxury-homepage .myavana-luxury-progress-bar { background: #eee7e0; }
+.myavana-luxury-homepage .myavana-luxury-progress-bar span { background: var(--myavana-coral-deep); }
+.myavana-luxury-homepage .myavana-luxury-member-meta { color: var(--myavana-ink-soft); }
+.myavana-luxury-homepage .myavana-luxury-member-empty { background: #fcf9f5; border-color: rgba(185,111,88,.34); }
+.myavana-luxury-homepage .myavana-luxury-member-empty h4 { color: var(--myavana-onyx); }
+.myavana-luxury-homepage .myavana-luxury-member-empty p { color: var(--myavana-ink-soft); }
+
+@media (max-width: 800px) {
+    .myavana-luxury-homepage .myavana-luxury-hero { min-height: auto; padding-top: 130px; }
+    .myavana-luxury-homepage .myavana-luxury-member-hub { padding: 36px 0 64px; }
+    .myavana-luxury-homepage .myavana-luxury-member-highlight { padding: 24px; }
+}
+
 /* ================================================
    MODAL SYSTEM STYLES
    ================================================ */

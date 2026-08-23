@@ -99,10 +99,12 @@ require_once MYAVANA_DIR . 'templates/advanced-dashboard-shortcode.php';
 // require_once MYAVANA_DIR . 'templates/widgets/quick-stats.php';
 // require_once MYAVANA_DIR . 'templates/widgets/recommended-products.php';
 
-// Initialize Auth System
-if (function_exists('myavana_init_auth_system')) {
-    $myavana_auth_system = myavana_init_auth_system();
-}
+// Auth system initializes itself via its own `plugins_loaded` hook
+// (see bottom of includes/myavana-auth-system.php). Do not also call
+// myavana_init_auth_system() here — doing so instantiated Myavana_Auth_System
+// twice per request, which double-registered every hook on that class
+// (duplicate auth modal markup, duplicate onboarding overlay, and the
+// register/login AJAX handlers running twice per submission).
 
 // Force email from address to support@myavana.com
 add_filter('wp_mail_from', function ($email) {
